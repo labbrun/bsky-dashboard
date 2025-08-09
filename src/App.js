@@ -135,7 +135,8 @@ const App = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '"Roboto", sans-serif'
+        fontFamily: '"Roboto", sans-serif',
+        fontSize: '16px'
       }}>
         <div style={{
           background: 'rgba(30, 30, 30, 0.95)',
@@ -150,7 +151,7 @@ const App = () => {
             <h1 style={{ color: '#ffffff', fontSize: '1.875rem', fontWeight: '700', marginBottom: '0.5rem' }}>
               Labb.run Analytics
             </h1>
-            <p style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>
+            <p style={{ color: '#a0a0a0', fontSize: '16px' }}>
               Bluesky Intelligence Dashboard
             </p>
           </div>
@@ -160,7 +161,7 @@ const App = () => {
               <label style={{ 
                 display: 'block', 
                 color: '#e0e0e0', 
-                fontSize: '0.875rem', 
+                fontSize: '16px', 
                 fontWeight: '500',
                 marginBottom: '0.5rem'
               }}>
@@ -178,7 +179,7 @@ const App = () => {
                   border: '1px solid #404040',
                   borderRadius: '8px',
                   color: '#ffffff',
-                  fontSize: '1rem',
+                  fontSize: '16px',
                   outline: 'none'
                 }}
                 placeholder="Enter password"
@@ -194,7 +195,7 @@ const App = () => {
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
-                fontSize: '1rem',
+                fontSize: '16px',
                 fontWeight: '600',
                 cursor: 'pointer'
               }}
@@ -211,7 +212,7 @@ const App = () => {
             borderRadius: '8px',
             textAlign: 'center'
           }}>
-            <p style={{ color: '#93c5fd', fontSize: '0.75rem', margin: 0 }}>
+            <p style={{ color: '#93c5fd', fontSize: '14px', margin: 0 }}>
               Demo Password: labb2025
             </p>
           </div>
@@ -234,7 +235,8 @@ const App = () => {
     <div style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-      fontFamily: '"Roboto", sans-serif'
+      fontFamily: '"Roboto", sans-serif',
+      fontSize: '16px'
     }}>
       <header style={{
         background: 'rgba(30, 30, 30, 0.95)',
@@ -247,19 +249,19 @@ const App = () => {
             <h1 style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>
               Labb.run Analytics
             </h1>
-            <p style={{ color: '#a0a0a0', fontSize: '0.875rem', margin: 0 }}>
+            <p style={{ color: '#a0a0a0', fontSize: '16px', margin: 0 }}>
               Bluesky Intelligence Dashboard
             </p>
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {error && (
-              <span style={{ color: '#ef4444', fontSize: '0.875rem' }}>
+              <span style={{ color: '#ef4444', fontSize: '16px' }}>
                 {error}
               </span>
             )}
             {loading && (
-              <span style={{ color: '#3b82f6', fontSize: '0.875rem' }}>
+              <span style={{ color: '#3b82f6', fontSize: '16px' }}>
                 Loading...
               </span>
             )}
@@ -275,7 +277,7 @@ const App = () => {
                 borderRadius: '8px',
                 color: '#f87171',
                 cursor: 'pointer',
-                fontSize: '0.875rem'
+                fontSize: '16px'
               }}
             >
               <LogOut size={16} />
@@ -307,7 +309,7 @@ const App = () => {
                   borderBottom: activeTab === tab.id ? '2px solid #3b82f6' : '2px solid transparent',
                   color: activeTab === tab.id ? '#3b82f6' : '#a0a0a0',
                   cursor: 'pointer',
-                  fontSize: '0.875rem',
+                  fontSize: '16px',
                   fontWeight: '500'
                 }}
               >
@@ -328,7 +330,7 @@ const App = () => {
               borderRadius: '12px',
               padding: '1.5rem'
             }}>
-              <h2 style={{ color: '#ffffff', fontSize: '1.25rem', fontWeight: '600', marginBottom: '1.5rem' }}>
+              <h2 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1.5rem' }}>
                 Recent Posts Timeline
               </h2>
               
@@ -346,7 +348,7 @@ const App = () => {
                       padding: '1rem'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                        <span style={{ color: '#a0a0a0', fontSize: '0.75rem' }}>
+                        <span style={{ color: '#a0a0a0', fontSize: '14px' }}>
                           {formatDate(post.indexedAt)}
                         </span>
                         <a 
@@ -359,7 +361,7 @@ const App = () => {
                         </a>
                       </div>
                       
-                      <p style={{ color: '#e0e0e0', fontSize: '0.875rem', lineHeight: '1.4', marginBottom: '1rem' }}>
+                      <p style={{ color: '#e0e0e0', fontSize: '16px', lineHeight: '1.4', marginBottom: '1rem' }}>
                         {post.text || 'No text content'}
                       </p>
                       
@@ -373,7 +375,7 @@ const App = () => {
                         </div>
                       )}
                       
-                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: '#a0a0a0' }}>
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '14px', color: '#a0a0a0' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <Heart size={12} />
                           {post.likeCount || 0}
@@ -404,25 +406,25 @@ const App = () => {
                 borderRadius: '12px',
                 padding: '1.5rem'
               }}>
-                <h3 style={{ color: '#ffffff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>
+                <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1rem' }}>
                   Profile Summary
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>Followers</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600' }}>
+                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Followers</span>
+                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
                       {formatNumber(metrics?.followersCount || 0)}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>Following</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600' }}>
+                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Following</span>
+                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
                       {formatNumber(metrics?.followsCount || 0)}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>Posts</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600' }}>
+                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Posts</span>
+                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
                       {formatNumber(metrics?.postsCount || 0)}
                     </span>
                   </div>
@@ -435,25 +437,25 @@ const App = () => {
                 borderRadius: '12px',
                 padding: '1.5rem'
               }}>
-                <h3 style={{ color: '#ffffff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>
+                <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1rem' }}>
                   Engagement Metrics
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>Total Likes</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600' }}>
+                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Total Likes</span>
+                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
                       {formatNumber(metrics?.totalLikes || 0)}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>Total Replies</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600' }}>
+                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Total Replies</span>
+                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
                       {formatNumber(metrics?.totalReplies || 0)}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>Total Reposts</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600' }}>
+                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Total Reposts</span>
+                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
                       {formatNumber(metrics?.totalReposts || 0)}
                     </span>
                   </div>
@@ -466,7 +468,7 @@ const App = () => {
                 borderRadius: '12px',
                 padding: '1.5rem'
               }}>
-                <h3 style={{ color: '#ffffff', fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>
+                <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1rem' }}>
                   Recent Followers
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -489,7 +491,7 @@ const App = () => {
                           objectFit: 'cover'
                         }}
                       />
-                      <span style={{ color: '#e0e0e0', fontSize: '0.75rem' }}>
+                      <span style={{ color: '#e0e0e0', fontSize: '14px' }}>
                         @{follower.handle}
                       </span>
                     </div>
@@ -503,32 +505,32 @@ const App = () => {
         {activeTab === 'audience' && (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
             <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Audience Analytics</h3>
-            <p>Coming soon - This will show audience demographics and insights</p>
+            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Audience Analytics</h3>
+            <p style={{ fontSize: '16px' }}>Coming soon - This will show audience demographics and insights</p>
           </div>
         )}
 
         {activeTab === 'content' && (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
             <MessageSquare size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Content Performance</h3>
-            <p>Coming soon - This will show your top performing posts and content analytics</p>
+            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Content Performance</h3>
+            <p style={{ fontSize: '16px' }}>Coming soon - This will show your top performing posts and content analytics</p>
           </div>
         )}
 
         {activeTab === 'trending' && (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
             <Hash size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Trending Topics</h3>
-            <p>Coming soon - This will show trending topics across platforms</p>
+            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Trending Topics</h3>
+            <p style={{ fontSize: '16px' }}>Coming soon - This will show trending topics across platforms</p>
           </div>
         )}
 
         {activeTab === 'opportunities' && (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
             <Lightbulb size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Content Opportunities</h3>
-            <p>Coming soon - This will show AI-generated content suggestions and opportunities</p>
+            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Content Opportunities</h3>
+            <p style={{ fontSize: '16px' }}>Coming soon - This will show AI-generated content suggestions and opportunities</p>
           </div>
         )}
       </main>
