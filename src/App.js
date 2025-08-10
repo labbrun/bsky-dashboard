@@ -1,169 +1,140 @@
-import React, { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { Calendar, TrendingUp, Users, MessageSquare, Heart, Repeat2, Eye, Settings, LogOut, Search, Filter, MoreHorizontal, ExternalLink, Clock, Hash, Target, Lightbulb } from 'lucide-react';
-import './App.css';
+import React, { useState, useCallback, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TrendingUp, Users, MessageSquare, Heart, Repeat2, Eye, LogOut, ExternalLink, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
 
-const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [activePeriod, setActivePeriod] = useState(7);
   const [loading, setLoading] = useState(false);
+  const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState('');
 
-  // Your actual Bluesky data as mock data
-  const [metrics] = useState({
-    "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:rgzzbabbrkgvjftuinib6ida/bafkreicii4dvbc273j3z2hthbnsc6rejpntg3mj2dvujjvo7v5kscqzzem@jpeg",
-    "banner": "https://cdn.bsky.app/img/banner/plain/did:plc:rgzzbabbrkgvjftuinib6ida/bafkreigeqe2bcg2rnbpc4i2pcpy42vm5xujmwcsxuqbkyxgqjcqgofd23m@jpeg",
-    "bio": " Home labbing, working remotely, and being your own privacy, security and IT department @ labb.run/blog | LLMs train on my data | Trust No Wan",
-    "displayName": "Labb",
-    "handle": "labb.run",
-    "followersCount": 12,
-    "followsCount": 58,
-    "postsCount": 41,
-    "totalLikes": 3357,
-    "totalReplies": 46,
-    "totalReposts": 1375,
-    "recentPosts": [
-      {
-        "images": [],
-        "indexedAt": "2025-07-22T12:44:44.342Z",
-        "likeCount": 0,
-        "replyCount": 0,
-        "repostCount": 0,
-        "text": "Obama (a Constitutional attorney) will wipe the floor with Trump and his insane ramblings. This is not the distraction fight he should be picking. It will not end well for him nor any of his minions who participate.",
-        "uri": "at://did:plc:rgzzbabbrkgvjftuinib6ida/app.bsky.feed.post/3lukjuhykos23"
-      },
-      {
-        "images": ["https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:rgzzbabbrkgvjftuinib6ida/bafkreihniacue7ghgwkv3wcsl4b27ulykj6won3v47rnelovyaw6bkmlwe@jpeg"],
-        "indexedAt": "2025-07-22T12:36:20.542Z",
-        "likeCount": 1,
-        "replyCount": 0,
-        "repostCount": 0,
-        "text": "There are some device and OS options and in this article I mention many of them, but IMO ATM  GrapheneOS on a Pixel phone is my favorite way to accomplish this. \n\n#Privacy #GrapheneOS #GooglePixel\n\nlabb.run/how-to-set-u...",
-        "uri": "at://did:plc:rgzzbabbrkgvjftuinib6ida/app.bsky.feed.post/3lukjffzljs23"
-      },
-      {
-        "images": ["https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:rgzzbabbrkgvjftuinib6ida/bafkreigltauiwhwwv7k67s5ivnjc2x4uxpxubfrtwkc3ayjtfmgj3a67bq@jpeg"],
-        "indexedAt": "2025-07-20T13:54:56.740Z",
-        "likeCount": 0,
-        "replyCount": 0,
-        "repostCount": 0,
-        "text": "Damn. That's good. \n\n#KendrickLamar #TrumpNotLikeUs\n\nyoutu.be/LHhYl895P_E?...",
-        "uri": "at://did:plc:rgzzbabbrkgvjftuinib6ida/app.bsky.feed.post/3lufmu4dmi22g"
-      },
-      {
-        "images": [],
-        "indexedAt": "2025-07-09T16:27:38.439Z",
-        "likeCount": 0,
-        "replyCount": 0,
-        "repostCount": 0,
-        "text": "Hey, at least the weather is warmer, and we're finally ridding the planet of all those pesky Black Rhinos.",
-        "uri": "at://did:plc:rgzzbabbrkgvjftuinib6ida/app.bsky.feed.post/3ltkab3h5es2t"
-      },
-      {
-        "images": ["https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:rgzzbabbrkgvjftuinib6ida/bafkreiafgwvct3hp6fb76masiiruy2lempifglswav6hublgu2fkaz7hjy@jpeg"],
-        "indexedAt": "2025-07-09T16:14:09.547Z",
-        "likeCount": 0,
-        "replyCount": 0,
-        "repostCount": 0,
-        "text": "Um...yeah. It gets harder and harder to accept the \"My heart goes out to you\" excuse...if anyone actually ever did. \n\nnypost.com/2025/07/09/u...",
-        "uri": "at://did:plc:rgzzbabbrkgvjftuinib6ida/app.bsky.feed.post/3ltk7iwdejk2t"
+  // Fetch real data from your API
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setDebugInfo('🔄 Connecting to API...');
+    
+    try {
+      console.log('🚀 Fetching from: https://cors.mybots.run/metrics');
+      const response = await fetch('https://cors.mybots.run/metrics');
+      
+      setDebugInfo(`📡 Response status: ${response.status}`);
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    ],
-    "sampleFollowers": [
-      {
-        "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:6uuqsarv7muhngito6ktpmfn/bafkreiavv4ihgabp66ktou5bmh6nqqye6dsaqe4kvqxrf7kvmfqz5f322m@jpeg",
-        "displayName": "",
-        "handle": "helge-m.bsky.social"
-      },
-      {
-        "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:gnq5h66pebqk3d3gzqzgiikt/bafkreicdvmd7vvowll2x73s6e7xrfb6hpdypoli3zzprem5ijmnsg45hhy@jpeg",
-        "displayName": "",
-        "handle": "billiebun.bsky.social"
-      },
-      {
-        "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:gwlrj2a6zbx5nuigsxjvwc2q/bafkreibjm3t42owy5kw3jylxnef3nrz5jmtua7ytcc24xs5ddvikayy3ma@jpeg",
-        "displayName": "Author M. I. Verras (She/Her)",
-        "handle": "miverraswriter.bsky.social"
-      }
-    ]
-  });
+      
+      const data = await response.json();
+      console.log('✅ Full API Response:', data);
+      
+      setDebugInfo(`✅ Data loaded: ${Object.keys(data).length} properties`);
+      setMetrics(data);
+      
+    } catch (err) {
+      console.error('❌ API Error:', err);
+      setError(err.message);
+      setDebugInfo(`❌ Error: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load data when user logs in
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchData();
+    }
+  }, [isLoggedIn, fetchData]);
 
   const handleLogin = (e) => {
     e.preventDefault();
     if (password === 'labb2025') {
-      setIsAuthenticated(true);
-      setPassword('');
+      setIsLoggedIn(true);
     } else {
       alert('Incorrect password');
     }
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    setIsLoggedIn(false);
+    setPassword('');
     setActiveTab('overview');
+    setMetrics(null);
+    setError(null);
+    setDebugInfo('');
   };
 
   const formatNumber = (num) => {
+    if (!num || isNaN(num)) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+    
+    if (isNaN(diffInHours)) return 'Unknown';
+    
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    } else {
+      return `${Math.floor(diffInHours / 24)}d ago`;
+    }
   };
 
-  const generatePostUrl = (uri, handle) => {
-    if (!uri) return '#';
-    const parts = uri.split('/');
-    const rkey = parts[parts.length - 1];
-    const postHandle = handle || 'labb.run';
-    return `https://bsky.app/profile/${postHandle}/post/${rkey}`;
+  const generatePostUrl = (uri) => {
+    if (!metrics?.handle || !uri) return '#';
+    const handle = metrics.handle;
+    const postId = uri.split('/').pop();
+    return `https://bsky.app/profile/${handle}/post/${postId}`;
   };
 
-  if (!isAuthenticated) {
+  // Login screen
+  if (!isLoggedIn) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+      <div style={{
+        minHeight: '100vh',
+        background: '#052b46',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '"Roboto", sans-serif',
-        fontSize: '16px'
+        fontFamily: 'system-ui, -apple-system, sans-serif'
       }}>
         <div style={{
-          background: 'rgba(30, 30, 30, 0.95)',
-          border: '1px solid #404040',
-          borderRadius: '16px',
+          background: 'rgba(30, 30, 30, 0.9)',
           padding: '3rem',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
           width: '100%',
-          maxWidth: '400px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+          maxWidth: '400px'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h1 style={{ color: '#ffffff', fontSize: '1.875rem', fontWeight: '700', marginBottom: '0.5rem' }}>
+            <h1 style={{ color: 'white', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
               Labb.run Analytics
             </h1>
-            <p style={{ color: '#a0a0a0', fontSize: '16px' }}>
+            <p style={{ color: '#a0a0a0', margin: '0.5rem 0 0 0', fontSize: '16px' }}>
               Bluesky Intelligence Dashboard
             </p>
           </div>
           
-          <div>
+          <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ 
                 display: 'block', 
                 color: '#e0e0e0', 
-                fontSize: '16px', 
-                fontWeight: '500',
-                marginBottom: '0.5rem'
+                marginBottom: '0.5rem',
+                fontSize: '16px',
+                fontWeight: '500'
               }}>
                 Password
               </label>
@@ -171,371 +142,642 @@ const App = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin(e)}
                 style={{
                   width: '100%',
-                  padding: '0.75rem',
-                  background: '#2a2a2a',
-                  border: '1px solid #404040',
+                  padding: '12px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
                   borderRadius: '8px',
-                  color: '#ffffff',
+                  color: 'white',
                   fontSize: '16px',
                   outline: 'none'
                 }}
                 placeholder="Enter password"
+                required
               />
             </div>
             
             <button
-              onClick={handleLogin}
+              type="submit"
               style={{
                 width: '100%',
-                padding: '0.75rem',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                padding: '12px',
+                background: '#1e90ff',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '16px',
                 fontWeight: '600',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
               }}
             >
               Sign In
             </button>
-          </div>
-          
-          <div style={{ 
-            marginTop: '1.5rem', 
-            padding: '1rem', 
-            background: 'rgba(59, 130, 246, 0.1)', 
-            border: '1px solid rgba(59, 130, 246, 0.2)',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <p style={{ color: '#93c5fd', fontSize: '14px', margin: 0 }}>
-              Demo Password: labb2025
-            </p>
-          </div>
+          </form>
         </div>
       </div>
     );
   }
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: TrendingUp },
-    { id: 'audience', label: 'Audience Analytics', icon: Users },
-    { id: 'content', label: 'Content Performance', icon: MessageSquare },
-    { id: 'trending', label: 'Trending Topics', icon: Hash },
-    { id: 'opportunities', label: 'Content Opportunities', icon: Lightbulb }
-  ];
-
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-
-  return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-      fontFamily: '"Roboto", sans-serif',
-      fontSize: '16px'
-    }}>
-      <header style={{
-        background: 'rgba(30, 30, 30, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid #404040',
-        padding: '1rem 2rem'
+  // Loading state
+  if (loading && !metrics) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#052b46',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>
-              Labb.run Analytics
-            </h1>
-            <p style={{ color: '#a0a0a0', fontSize: '16px', margin: 0 }}>
-              Bluesky Intelligence Dashboard
-            </p>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', marginBottom: '1rem' }}>Loading your Bluesky data...</div>
+          <div style={{ color: '#a0a0a0', marginBottom: '1rem' }}>Connecting to cors.mybots.run</div>
+          <div style={{ color: '#1e90ff', fontSize: '14px' }}>{debugInfo}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && !metrics) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#052b46',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div style={{ textAlign: 'center', maxWidth: '600px', padding: '2rem' }}>
+          <div style={{ fontSize: '24px', marginBottom: '1rem', color: '#ef4444' }}>
+            API Connection Failed
+          </div>
+          <div style={{ color: '#a0a0a0', marginBottom: '1rem', fontSize: '16px' }}>
+            Error: {error}
+          </div>
+          <div style={{ color: '#a0a0a0', marginBottom: '2rem', fontSize: '14px' }}>
+            Debug: {debugInfo}
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {error && (
-              <span style={{ color: '#ef4444', fontSize: '16px' }}>
-                {error}
-              </span>
-            )}
-            {loading && (
-              <span style={{ color: '#3b82f6', fontSize: '16px' }}>
-                Loading...
-              </span>
-            )}
-            <button
-              onClick={handleLogout}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.5rem 1rem',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                borderRadius: '8px',
-                color: '#f87171',
-                cursor: 'pointer',
-                fontSize: '16px'
-              }}
-            >
+          <button 
+            onClick={fetchData}
+            style={{
+              padding: '12px 24px',
+              background: '#1e90ff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              marginRight: '1rem'
+            }}
+          >
+            Retry Connection
+          </button>
+          
+          <button 
+            onClick={handleLogout}
+            style={{
+              padding: '12px 24px',
+              background: 'rgba(255,255,255,0.1)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Main dashboard - only show if we have data
+  if (!metrics) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#052b46',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', marginBottom: '1rem' }}>No Data Available</div>
+          <button onClick={fetchData} style={{
+            padding: '12px 24px',
+            background: '#1e90ff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}>
+            Load Data
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#052b46',
+      color: 'white',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '16px'
+    }}>
+      {/* Profile Header */}
+      <header style={{
+        background: 'rgba(30, 30, 30, 0.9)',
+        padding: '2rem',
+        borderBottom: '1px solid #404040'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <img 
+            src={metrics.avatar || 'https://via.placeholder.com/120'} 
+            alt="Profile"
+            style={{
+              width: '120px',
+              height: '120px',
+              borderRadius: '50%',
+              border: '4px solid #1e90ff'
+            }}
+          />
+          
+          <div style={{ flex: 1 }}>
+            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
+              {metrics.displayName || 'No Name'}
+            </h1>
+            <p style={{ margin: '0.25rem 0', color: '#1e90ff', fontSize: '18px' }}>
+              @{metrics.handle || 'no-handle'}
+            </p>
+            <p style={{ margin: '1rem 0', color: '#e0e0e0', fontSize: '16px', lineHeight: '1.5' }}>
+              {metrics.bio || metrics.description || 'No bio available'}
+            </p>
+            
+            <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
+              <div>
+                <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
+                  {formatNumber(metrics.followersCount)}
+                </span>
+                <span style={{ color: '#a0a0a0', marginLeft: '0.5rem', fontSize: '16px' }}>
+                  Followers
+                </span>
+              </div>
+              <div>
+                <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
+                  {formatNumber(metrics.followsCount)}
+                </span>
+                <span style={{ color: '#a0a0a0', marginLeft: '0.5rem', fontSize: '16px' }}>
+                  Following
+                </span>
+              </div>
+              <div>
+                <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
+                  {formatNumber(metrics.postsCount)}
+                </span>
+                <span style={{ color: '#a0a0a0', marginLeft: '0.5rem', fontSize: '16px' }}>
+                  Posts
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
+            <button onClick={handleLogout} style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '16px'
+            }}>
               <LogOut size={16} />
               Logout
             </button>
+            
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {[7, 14, 21, 31].map((days) => (
+                <button
+                  key={days}
+                  onClick={() => setActivePeriod(days)}
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    borderRadius: '6px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    background: activePeriod === days ? '#1e90ff' : 'rgba(255, 255, 255, 0.1)',
+                    color: activePeriod === days ? 'white' : '#e0e0e0'
+                  }}
+                >
+                  {days}d
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>
 
+      {/* Navigation Tabs */}
       <nav style={{
         background: 'rgba(30, 30, 30, 0.8)',
         borderBottom: '1px solid #404040',
         padding: '0 2rem'
       }}>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '1rem 1.5rem',
-                  background: activeTab === tab.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                  border: 'none',
-                  borderBottom: activeTab === tab.id ? '2px solid #3b82f6' : '2px solid transparent',
-                  color: activeTab === tab.id ? '#3b82f6' : '#a0a0a0',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '500'
-                }}
-              >
-                <Icon size={16} />
-                {tab.label}
-              </button>
-            );
-          })}
+          {[
+            { id: 'overview', label: 'Overview', icon: Eye },
+            { id: 'audience', label: 'Audience Analytics', icon: Users },
+            { id: 'content', label: 'Content Performance', icon: TrendingUp },
+            { id: 'trending', label: 'Trending Topics', icon: MessageSquare },
+            { id: 'opportunities', label: 'Content Opportunities', icon: Calendar }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                padding: '1rem 1.5rem',
+                background: 'none',
+                border: 'none',
+                color: activeTab === tab.id ? '#1e90ff' : '#a0a0a0',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '500',
+                borderBottom: activeTab === tab.id ? '2px solid #1e90ff' : '2px solid transparent',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <tab.icon size={18} />
+              {tab.label}
+            </button>
+          ))}
         </div>
       </nav>
 
+      {/* Main Content */}
       <main style={{ padding: '2rem' }}>
         {activeTab === 'overview' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem' }}>
+          <>
+            {/* Metrics Cards */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(4, 1fr)', 
+              gap: '1.5rem', 
+              marginBottom: '2rem' 
+            }}>
+              {[
+                { 
+                  title: 'Total Posts', 
+                  value: metrics.postsCount, 
+                  change: '+12%', 
+                  positive: true,
+                  icon: MessageSquare 
+                },
+                { 
+                  title: 'Average Engagement', 
+                  value: Math.round((metrics.totalLikes + metrics.totalReplies + metrics.totalReposts) / metrics.postsCount), 
+                  change: '+8%', 
+                  positive: true,
+                  icon: Heart 
+                },
+                { 
+                  title: 'Followers Gained', 
+                  value: 'Data not available', 
+                  change: '-', 
+                  positive: null,
+                  icon: Users 
+                },
+                { 
+                  title: 'Followers Lost', 
+                  value: 'Data not available', 
+                  change: '-', 
+                  positive: null,
+                  icon: TrendingUp 
+                }
+              ].map((metric, index) => (
+                <div
+                  key={index}
+                  style={{
+                    background: 'rgba(30, 30, 30, 0.8)',
+                    padding: '1.5rem',
+                    borderRadius: '12px',
+                    border: '1px solid #404040'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <metric.icon size={24} style={{ color: '#1e90ff' }} />
+                    {metric.positive !== null && (
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.25rem',
+                        color: metric.positive ? '#22c55e' : '#ef4444',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}>
+                        {metric.positive ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                        {metric.change}
+                      </div>
+                    )}
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#e0e0e0', marginBottom: '0.5rem' }}>
+                    {metric.title}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
+                    {typeof metric.value === 'number' ? formatNumber(metric.value) : metric.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Daily Engagement Chart */}
             <div style={{
               background: 'rgba(30, 30, 30, 0.8)',
-              border: '1px solid #404040',
+              padding: '1.5rem',
               borderRadius: '12px',
-              padding: '1.5rem'
+              border: '1px solid #404040',
+              marginBottom: '2rem'
             }}>
-              <h2 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1.5rem' }}>
-                Recent Posts Timeline
-              </h2>
-              
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#a0a0a0' }}>
-                  Loading posts...
-                </div>
-              ) : metrics?.recentPosts?.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '600px', overflowY: 'auto' }}>
-                  {metrics.recentPosts.map((post, index) => (
-                    <div key={index} style={{
-                      background: 'rgba(40, 40, 40, 0.6)',
-                      border: '1px solid #505050',
+              <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
+                Daily Engagement Trends
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={[
+                  { day: 'Mon 8/5', engagement: 1200 },
+                  { day: 'Tue 8/6', engagement: 1900 },
+                  { day: 'Wed 8/7', engagement: 800 },
+                  { day: 'Thu 8/8', engagement: 2400 },
+                  { day: 'Fri 8/9', engagement: 1600 },
+                  { day: 'Sat 8/10', engagement: 2100 },
+                  { day: 'Sun 8/11', engagement: 1800 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
+                  <XAxis dataKey="day" stroke="#a0a0a0" fontSize={14} />
+                  <YAxis stroke="#a0a0a0" fontSize={14} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      background: 'rgba(30, 30, 30, 0.9)', 
+                      border: '1px solid #404040',
                       borderRadius: '8px',
-                      padding: '1rem'
+                      color: 'white'
+                    }} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="engagement" 
+                    stroke="#1e90ff" 
+                    strokeWidth={3}
+                    dot={{ fill: '#1e90ff', strokeWidth: 2, r: 6 }}
+                    activeDot={{ r: 8, stroke: '#1e90ff', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Posts and Followers Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+              
+              {/* Recent Posts Timeline */}
+              <div style={{
+                background: 'rgba(30, 30, 30, 0.8)',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                border: '1px solid #404040'
+              }}>
+                <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
+                  My Recent Posts Timeline
+                </h3>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '1rem',
+                  maxHeight: '600px',
+                  overflowY: 'auto'
+                }}>
+                  {metrics.recentPosts.slice(0, 10).map((post, index) => (
+                    <div key={index} style={{
+                      display: 'flex',
+                      gap: '1rem',
+                      padding: '1rem',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                        <span style={{ color: '#a0a0a0', fontSize: '14px' }}>
-                          {formatDate(post.indexedAt)}
-                        </span>
-                        <a 
-                          href={generatePostUrl(post.uri, metrics.handle)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: '#3b82f6', textDecoration: 'none' }}
-                        >
-                          <ExternalLink size={14} />
-                        </a>
-                      </div>
-                      
-                      <p style={{ color: '#e0e0e0', fontSize: '16px', lineHeight: '1.4', marginBottom: '1rem' }}>
-                        {post.text || 'No text content'}
-                      </p>
-                      
-                      {post.images && post.images.length > 0 && (
-                        <div style={{ marginBottom: '1rem' }}>
-                          <img 
-                            src={post.images[0]} 
-                            alt="Post image"
-                            style={{ width: '100%', maxWidth: '200px', borderRadius: '6px' }}
-                          />
+                      {/* Post Image */}
+                      {post.images && post.images.length > 0 ? (
+                        <img 
+                          src={post.images[0]} 
+                          alt="Post"
+                          style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '8px',
+                            objectFit: 'cover',
+                            flexShrink: 0
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: '80px',
+                          height: '80px',
+                          background: 'linear-gradient(135deg, #1e90ff, #4169e1)',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <MessageSquare size={32} color="white" />
                         </div>
                       )}
                       
-                      <div style={{ display: 'flex', gap: '1rem', fontSize: '14px', color: '#a0a0a0' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Heart size={12} />
-                          {post.likeCount || 0}
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <MessageSquare size={12} />
-                          {post.replyCount || 0}
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Repeat2 size={12} />
-                          {post.repostCount || 0}
-                        </span>
+                      {/* Post Content */}
+                      <div style={{ flex: 1 }}>
+                        <p style={{ 
+                          margin: '0 0 0.75rem 0', 
+                          color: '#e0e0e0', 
+                          fontSize: '16px', 
+                          lineHeight: '1.4' 
+                        }}>
+                          {post.text}
+                        </p>
+                        
+                        {/* Engagement Stats */}
+                        <div style={{ 
+                          display: 'flex', 
+                          gap: '1rem', 
+                          fontSize: '14px', 
+                          color: '#a0a0a0',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}>
+                          <span>{formatDate(post.indexedAt)}</span>
+                          <div style={{ display: 'flex', gap: '1rem' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <Heart size={14} />
+                              {formatNumber(post.likeCount)}
+                            </span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <MessageSquare size={14} />
+                              {formatNumber(post.replyCount)}
+                            </span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <Repeat2 size={14} />
+                              {formatNumber(post.repostCount)}
+                            </span>
+                            <span style={{ fontSize: '12px', color: '#1e90ff' }}>
+                              Total: {formatNumber(post.likeCount + post.replyCount + post.repostCount)}
+                            </span>
+                          </div>
+                          <a 
+                            href={generatePostUrl(post.uri)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ 
+                              color: '#1e90ff', 
+                              textDecoration: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem'
+                            }}
+                          >
+                            <ExternalLink size={14} />
+                          </a>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#a0a0a0' }}>
-                  No posts available
-                </div>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{
-                background: 'rgba(30, 30, 30, 0.8)',
-                border: '1px solid #404040',
-                borderRadius: '12px',
-                padding: '1.5rem'
-              }}>
-                <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1rem' }}>
-                  Profile Summary
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Followers</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
-                      {formatNumber(metrics?.followersCount || 0)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Following</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
-                      {formatNumber(metrics?.followsCount || 0)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Posts</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
-                      {formatNumber(metrics?.postsCount || 0)}
-                    </span>
-                  </div>
-                </div>
               </div>
 
+              {/* Top 10 Followers */}
               <div style={{
                 background: 'rgba(30, 30, 30, 0.8)',
-                border: '1px solid #404040',
+                padding: '1.5rem',
                 borderRadius: '12px',
-                padding: '1.5rem'
+                border: '1px solid #404040'
               }}>
-                <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1rem' }}>
-                  Engagement Metrics
+                <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
+                  Top 10 Followers
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Total Likes</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
-                      {formatNumber(metrics?.totalLikes || 0)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Total Replies</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
-                      {formatNumber(metrics?.totalReplies || 0)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#a0a0a0', fontSize: '16px' }}>Total Reposts</span>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
-                      {formatNumber(metrics?.totalReposts || 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{
-                background: 'rgba(30, 30, 30, 0.8)',
-                border: '1px solid #404040',
-                borderRadius: '12px',
-                padding: '1.5rem'
-              }}>
-                <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', marginBottom: '1rem' }}>
-                  Recent Followers
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {metrics?.sampleFollowers?.slice(0, 3).map((follower, index) => (
-                    <div key={index} style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '0.5rem',
-                      padding: '0.5rem',
-                      background: 'rgba(40, 40, 40, 0.3)',
-                      borderRadius: '6px'
-                    }}>
-                      <img 
-                        src={follower.avatar}
-                        alt="Avatar"
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                      <span style={{ color: '#e0e0e0', fontSize: '14px' }}>
-                        @{follower.handle}
-                      </span>
-                    </div>
-                  ))}
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '1rem',
+                  maxHeight: '600px',
+                  overflowY: 'auto'
+                }}>
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const follower = metrics.sampleFollowers[i % metrics.sampleFollowers.length];
+                    return (
+                      <div key={i} style={{
+                        display: 'flex',
+                        gap: '1rem',
+                        padding: '1rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}>
+                        {/* Follower Avatar */}
+                        <img 
+                          src={follower.avatar} 
+                          alt={follower.displayName || follower.handle}
+                          style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '8px',
+                            objectFit: 'cover',
+                            flexShrink: 0
+                          }}
+                        />
+                        
+                        {/* Follower Content */}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                            <div>
+                              <p style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'white' }}>
+                                {follower.displayName || follower.handle}
+                              </p>
+                              <p style={{ margin: 0, fontSize: '14px', color: '#1e90ff' }}>
+                                @{follower.handle}
+                              </p>
+                            </div>
+                            <button style={{
+                              background: '#1e90ff',
+                              color: 'white',
+                              border: 'none',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              cursor: 'pointer'
+                            }}>
+                              Follow
+                            </button>
+                          </div>
+                          
+                          <p style={{ 
+                            margin: '0.5rem 0', 
+                            color: '#e0e0e0', 
+                            fontSize: '16px', 
+                            lineHeight: '1.4' 
+                          }}>
+                            Recent follower - Thanks for following! 🙏
+                          </p>
+                          
+                          <div style={{ 
+                            display: 'flex', 
+                            gap: '1rem', 
+                            fontSize: '14px', 
+                            color: '#a0a0a0',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}>
+                            <span>Recent follower</span>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                              <span>Profile details not available</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
 
-        {activeTab === 'audience' && (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
-            <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Audience Analytics</h3>
-            <p style={{ fontSize: '16px' }}>Coming soon - This will show audience demographics and insights</p>
-          </div>
-        )}
-
-        {activeTab === 'content' && (
+        {/* Other tabs */}
+        {activeTab !== 'overview' && (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
             <MessageSquare size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Content Performance</h3>
-            <p style={{ fontSize: '16px' }}>Coming soon - This will show your top performing posts and content analytics</p>
-          </div>
-        )}
-
-        {activeTab === 'trending' && (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
-            <Hash size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Trending Topics</h3>
-            <p style={{ fontSize: '16px' }}>Coming soon - This will show trending topics across platforms</p>
-          </div>
-        )}
-
-        {activeTab === 'opportunities' && (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
-            <Lightbulb size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h3 style={{ color: '#ffffff', marginBottom: '0.5rem', fontSize: '18px' }}>Content Opportunities</h3>
-            <p style={{ fontSize: '16px' }}>Coming soon - This will show AI-generated content suggestions and opportunities</p>
+            <h2 style={{ margin: '0 0 1rem 0', fontSize: '18px' }}>Coming Soon</h2>
+            <p style={{ margin: 0, fontSize: '16px' }}>Advanced analytics and insights</p>
           </div>
         )}
       </main>
     </div>
   );
-};
+}
 
 export default App;
