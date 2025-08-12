@@ -7,20 +7,67 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Brand colors
+        // Custom Brand Colors - Based on your palette
+        primary: {
+          50: '#e6f0f7',
+          100: '#cce0ef',
+          200: '#99c1de',
+          300: '#66a2ce',
+          400: '#3383bd',
+          500: '#002945', // Your primary color
+          600: '#002038',
+          700: '#00182a',
+          800: '#00101c',
+          900: '#00080e',
+        },
+        // Secondary brand colors from your palette
         brand: {
-          25: 'rgb(240 250 255)',
-          50: 'rgb(225 245 255)',
-          100: 'rgb(195 235 255)',
-          200: 'rgb(145 215 255)',
-          300: 'rgb(95 185 245)',
-          400: 'rgb(45 155 225)',
-          500: 'rgb(20 125 195)',
-          600: 'rgb(0 41 69)',
-          700: 'rgb(0 33 55)',
-          800: 'rgb(0 25 41)',
-          900: 'rgb(0 17 28)',
-          950: 'rgb(0 8 14)',
+          50: '#e8eef9',
+          100: '#d1ddf3',
+          200: '#a3bbe7',
+          300: '#7599db',
+          400: '#4777cf',
+          500: '#2B54BE', // Your secondary brand color
+          600: '#224398',
+          700: '#1a3272',
+          800: '#11214c',
+          900: '#091126',
+        },
+        accent: {
+          50: '#e7ecf8',
+          100: '#cfd8f1',
+          200: '#9fb1e3',
+          300: '#6f8ad5',
+          400: '#3f63c7',
+          500: '#3A5393', // Your accent color
+          600: '#2e4276',
+          700: '#233259',
+          800: '#17213c',
+          900: '#0c111e',
+        },
+        electric: {
+          50: '#e6f0ff',
+          100: '#cce0ff',
+          200: '#99c1ff',
+          300: '#66a2ff',
+          400: '#3383ff',
+          500: '#0E4CE8', // Your electric blue
+          600: '#0b3dba',
+          700: '#082e8b',
+          800: '#051e5d',
+          900: '#030f2e',
+        },
+        slate: {
+          50: '#ebedf0',
+          100: '#d7dbe1',
+          200: '#afb7c3',
+          300: '#8793a5',
+          400: '#5f6f87',
+          500: '#3B4869', // Your slate color
+          600: '#2f3a54',
+          700: '#232b3f',
+          800: '#181c2a',
+          900: '#0c0e15',
         },
         // Gray colors (main neutral palette)
         gray: {
