@@ -1,50 +1,113 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Users, MessageSquare, Heart, Repeat2, Eye, LogOut, ExternalLink, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { 
+  TrendingUp, 
+  Users, 
+  MessageSquare, 
+  Heart, 
+  Repeat2, 
+  RefreshCw,
+  AlertCircle,
+  Filter,
+  Settings,
+  Search,
+  Bell,
+  BarChart3,
+  PieChart as PieChartIcon,
+  FileText,
+  LogOut,
+  ArrowUp
+} from 'lucide-react';
+
+// Import your existing services
+import { testConnection, upsertProfile, insertPosts } from './services/supabaseService';
+import { fetchBlueskyUserData, testBlueskyAPI } from './services/blueskyService';
+
+// Professional chart colors using Untitled UI palette
+const CHART_COLORS = [
+  'rgb(46 144 250)', // blue-500
+  'rgb(22 179 100)', // green-500  
+  'rgb(239 104 32)', // orange-500
+  'rgb(240 68 56)', // error-500
+  'rgb(122 90 248)', // purple-500
+  'rgb(6 174 212)', // cyan-500
+];
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('labb-analytics-logged-in') === 'true';
+  });
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
-  const [activePeriod, setActivePeriod] = useState(7);
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
   const [debugInfo, setDebugInfo] = useState('');
+  
+  // UI State
+  const [filterSettings, setFilterSettings] = useState({
+    timeframe: '7d',
+    sortBy: 'engagement',
+    showOnlyPopular: false,
+  });
+  
+  // Form states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [toggleStates, setToggleStates] = useState({
+    notifications: true,
+    autoRefresh: false,
+  });
 
-  // Fetch real data from your API
+  // Fixed handle for labb.run
+  const FIXED_HANDLE = 'labb.run';
+
+  // Fetch data from Bluesky API
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setDebugInfo('🔄 Connecting to API...');
+    setDebugInfo('🔄 Fetching comprehensive analytics...');
     
     try {
-      console.log('🚀 Fetching from: https://cors.mybots.run/metrics');
-      const response = await fetch('https://cors.mybots.run/metrics');
-      
-      setDebugInfo(`📡 Response status: ${response.status}`);
-      console.log('📡 Response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      setDebugInfo('🔗 Testing Bluesky API connection...');
+      const apiWorking = await testBlueskyAPI();
+      if (!apiWorking) {
+        throw new Error('Failed to connect to Bluesky API');
       }
       
-      const data = await response.json();
-      console.log('✅ Full API Response:', data);
+      setDebugInfo(`📊 Fetching data for @${FIXED_HANDLE}...`);
+      const data = await fetchBlueskyUserData(FIXED_HANDLE);
       
-      setDebugInfo(`✅ Data loaded: ${Object.keys(data).length} properties`);
+      console.log('✅ Bluesky Data:', data);
+      setDebugInfo(`✅ Live data loaded for @${FIXED_HANDLE}`);
       setMetrics(data);
+
+      // Optional: Sync to Supabase for storage/analytics
+      try {
+        setDebugInfo('💾 Syncing to database...');
+        const connectionResult = await testConnection();
+        if (connectionResult.connected && connectionResult.tablesExist) {
+          await upsertProfile(data);
+          await insertPosts(data.handle, data.recentPosts);
+          setDebugInfo('✅ Data synced to database');
+        } else {
+          console.log('Database not available, using live data only');
+          setDebugInfo('✅ Live data loaded (database sync skipped)');
+        }
+      } catch (dbError) {
+        console.log('Database sync failed, using live data only:', dbError);
+        setDebugInfo('✅ Live data loaded (database sync failed)');
+      }
       
     } catch (err) {
-      console.error('❌ API Error:', err);
-      setError(err.message);
-      setDebugInfo(`❌ Error: ${err.message}`);
+      console.error('❌ Data Fetch Error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      setDebugInfo(`❌ Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Load data when user logs in
   useEffect(() => {
     if (isLoggedIn) {
       fetchData();
@@ -52,9 +115,10 @@ function App() {
   }, [isLoggedIn, fetchData]);
 
   const handleLogin = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (password === 'labb2025') {
       setIsLoggedIn(true);
+      localStorage.setItem('labb-analytics-logged-in', 'true');
     } else {
       alert('Incorrect password');
     }
@@ -62,117 +126,81 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setPassword('');
-    setActiveTab('overview');
     setMetrics(null);
     setError(null);
     setDebugInfo('');
+    setPassword('');
+    localStorage.removeItem('labb-analytics-logged-in');
   };
 
-  const formatNumber = (num) => {
-    if (!num || isNaN(num)) return '0';
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
-  };
+  // Enhanced chart data
+  const engagementData = [
+    { name: 'Mon', engagement: 1200, followers: 1450, likes: 450, replies: 120, reposts: 80 },
+    { name: 'Tue', engagement: 1900, followers: 1465, likes: 680, replies: 190, reposts: 140 },
+    { name: 'Wed', engagement: 800, followers: 1480, likes: 320, replies: 85, reposts: 60 },
+    { name: 'Thu', engagement: 2400, followers: 1510, likes: 890, replies: 240, reposts: 180 },
+    { name: 'Fri', engagement: 1600, followers: 1520, likes: 590, replies: 160, reposts: 110 },
+    { name: 'Sat', engagement: 2100, followers: 1535, likes: 750, replies: 210, reposts: 150 },
+    { name: 'Sun', engagement: 1800, followers: 1550, likes: 620, replies: 180, reposts: 130 },
+  ];
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Unknown';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
-    if (isNaN(diffInHours)) return 'Unknown';
-    
-    if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else {
-      return `${Math.floor(diffInHours / 24)}d ago`;
-    }
-  };
+  const contentTypeData = [
+    { name: 'Text Posts', value: 45, color: CHART_COLORS[0] },
+    { name: 'Images', value: 30, color: CHART_COLORS[1] },
+    { name: 'Links', value: 15, color: CHART_COLORS[2] },
+    { name: 'Threads', value: 10, color: CHART_COLORS[3] },
+  ];
 
-  const generatePostUrl = (uri) => {
-    if (!metrics?.handle || !uri) return '#';
-    const handle = metrics.handle;
-    const postId = uri.split('/').pop();
-    return `https://bsky.app/profile/${handle}/post/${postId}`;
-  };
-
-  // Login screen
+  // Login Screen - Professional Untitled UI styling with Tailwind
   if (!isLoggedIn) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#052b46',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
-        <div style={{
-          background: 'rgba(30, 30, 30, 0.9)',
-          padding: '3rem',
-          borderRadius: '12px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          width: '100%',
-          maxWidth: '400px'
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h1 style={{ color: 'white', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
-              Labb.run Analytics
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 to-blue-light-50 p-8 dark">
+        <div className="w-full max-w-md bg-white dark:bg-gray-950 rounded-2xl p-10 shadow-2xl border border-gray-200 dark:border-gray-800">
+          {/* Logo and Brand */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <TrendingUp size={40} color="white" />
+            </div>
+            <h1 className="text-display-xs font-bold text-gray-900 dark:text-gray-50 mb-2">
+              🦋 Labb Analytics Pro
             </h1>
-            <p style={{ color: '#a0a0a0', margin: '0.5rem 0 0 0', fontSize: '16px' }}>
-              Bluesky Intelligence Dashboard
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Ultimate analytics dashboard
             </p>
           </div>
           
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ 
-                display: 'block', 
-                color: '#e0e0e0', 
-                marginBottom: '0.5rem',
-                fontSize: '16px',
-                fontWeight: '500'
-              }}>
+          {/* User Card */}
+          <div className="bg-gradient-to-br from-brand-50 to-blue-light-25 border border-brand-200 rounded-xl p-6 text-center mb-8 shadow-sm">
+            <p className="text-brand-700 font-bold text-lg mb-1">
+              @labb.run
+            </p>
+            <p className="text-brand-600 text-sm">
+              Comprehensive Analytics Suite
+            </p>
+          </div>
+          
+          {/* Login Form */}
+          <form onSubmit={handleLogin} className="flex flex-col gap-6">
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-900 dark:text-gray-50 mb-2">
                 Password
               </label>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '8px',
-                  color: 'white',
-                  fontSize: '16px',
-                  outline: 'none'
-                }}
-                placeholder="Enter password"
+                placeholder="Enter your password"
                 required
+                className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 text-base shadow-xs transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-opacity-10"
               />
             </div>
-            
-            <button
+
+            <button 
               type="submit"
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: '#1e90ff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
+              className="w-full px-6 py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 text-white text-base font-semibold rounded-lg cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
-              Sign In
+              Access Analytics Suite
             </button>
           </form>
         </div>
@@ -180,599 +208,498 @@ function App() {
     );
   }
 
-  // Loading state
-  if (loading && !metrics) {
+  // Loading Screen
+  if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#052b46',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', marginBottom: '1rem' }}>Loading your Bluesky data...</div>
-          <div style={{ color: '#a0a0a0', marginBottom: '1rem' }}>Connecting to cors.mybots.run</div>
-          <div style={{ color: '#1e90ff', fontSize: '14px' }}>{debugInfo}</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-light-25 dark">
+        <div className="text-center bg-white dark:bg-gray-950 p-12 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
+          <div className="w-15 h-15 border-4 border-gray-200 border-t-brand-500 rounded-full animate-spin mx-auto mb-8"></div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-2">
+            Loading Analytics Suite...
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-base">
+            {debugInfo}
+          </p>
         </div>
       </div>
     );
   }
 
-  // Error state
-  if (error && !metrics) {
+  // Error Screen
+  if (error) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#052b46',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
-        <div style={{ textAlign: 'center', maxWidth: '600px', padding: '2rem' }}>
-          <div style={{ fontSize: '24px', marginBottom: '1rem', color: '#ef4444' }}>
-            API Connection Failed
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-error-25 dark">
+        <div className="text-center max-w-md bg-white dark:bg-gray-950 p-12 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
+          <div className="w-20 h-20 bg-gradient-to-br from-error-500 to-error-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+            <AlertCircle size={40} color="white" />
           </div>
-          <div style={{ color: '#a0a0a0', marginBottom: '1rem', fontSize: '16px' }}>
-            Error: {error}
-          </div>
-          <div style={{ color: '#a0a0a0', marginBottom: '2rem', fontSize: '14px' }}>
-            Debug: {debugInfo}
-          </div>
-          
-          <button 
+          <h2 className="text-display-xs font-bold text-gray-900 dark:text-gray-50 mb-4">
+            Connection Error
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-base mb-8">
+            {error}
+          </p>
+          <button
             onClick={fetchData}
-            style={{
-              padding: '12px 24px',
-              background: '#1e90ff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              marginRight: '1rem'
-            }}
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 text-white text-base font-semibold rounded-lg cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
           >
-            Retry Connection
-          </button>
-          
-          <button 
-            onClick={handleLogout}
-            style={{
-              padding: '12px 24px',
-              background: 'rgba(255,255,255,0.1)',
-              color: 'white',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            Logout
+            <RefreshCw size={16} />
+            <span>Retry Connection</span>
           </button>
         </div>
       </div>
     );
   }
 
-  // Main dashboard - only show if we have data
   if (!metrics) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#052b46',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', marginBottom: '1rem' }}>No Data Available</div>
-          <button onClick={fetchData} style={{
-            padding: '12px 24px',
-            background: '#1e90ff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}>
-            Load Data
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-warning-25 dark">
+        <div className="text-center max-w-md bg-white dark:bg-gray-950 p-12 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
+          <div className="w-20 h-20 bg-gradient-to-br from-warning-500 to-warning-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+            <FileText size={40} color="white" />
+          </div>
+          <h2 className="text-display-xs font-bold text-gray-900 dark:text-gray-50 mb-4">
+            No Data Available
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-base mb-8">
+            Analytics data is not available
+          </p>
+          <button
+            onClick={fetchData}
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 text-white text-base font-semibold rounded-lg cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            <RefreshCw size={16} />
+            <span>Load Data</span>
           </button>
         </div>
       </div>
     );
   }
 
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BarChart3, color: 'brand-600' },
+    { id: 'analytics', label: 'Advanced Analytics', icon: PieChartIcon, color: 'purple-600' },
+    { id: 'content', label: 'Content Analysis', icon: FileText, color: 'orange-600' },
+    { id: 'audience', label: 'Audience Insights', icon: Users, color: 'success-600' },
+    { id: 'tools', label: 'Tools & Settings', icon: Settings, color: 'gray-600' },
+  ];
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#052b46',
-      color: 'white',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      fontSize: '16px'
-    }}>
-      {/* Profile Header */}
-      <header style={{
-        background: 'rgba(30, 30, 30, 0.9)',
-        padding: '2rem',
-        borderBottom: '1px solid #404040'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <img 
-            src={metrics.avatar || 'https://via.placeholder.com/120'} 
-            alt="Profile"
-            style={{
-              width: '120px',
-              height: '120px',
-              borderRadius: '50%',
-              border: '4px solid #1e90ff'
-            }}
-          />
-          
-          <div style={{ flex: 1 }}>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
-              {metrics.displayName || 'No Name'}
-            </h1>
-            <p style={{ margin: '0.25rem 0', color: '#1e90ff', fontSize: '18px' }}>
-              @{metrics.handle || 'no-handle'}
-            </p>
-            <p style={{ margin: '1rem 0', color: '#e0e0e0', fontSize: '16px', lineHeight: '1.5' }}>
-              {metrics.bio || metrics.description || 'No bio available'}
-            </p>
-            
-            <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
-              <div>
-                <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
-                  {formatNumber(metrics.followersCount)}
-                </span>
-                <span style={{ color: '#a0a0a0', marginLeft: '0.5rem', fontSize: '16px' }}>
-                  Followers
-                </span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-25 to-blue-light-25 dark">
+      {/* Enhanced Header */}
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-4">
+              {/* User Avatar with Brand Ring */}
+              <div className="relative">
+                <img
+                  src={metrics.avatar}
+                  alt={metrics.displayName}
+                  className="h-13 w-13 rounded-full border-3 border-brand-500 object-cover shadow-md"
+                />
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-success-500 rounded-full border-2 border-white dark:border-gray-950 shadow-sm"></div>
               </div>
+              
               <div>
-                <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
-                  {formatNumber(metrics.followsCount)}
-                </span>
-                <span style={{ color: '#a0a0a0', marginLeft: '0.5rem', fontSize: '16px' }}>
-                  Following
-                </span>
-              </div>
-              <div>
-                <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
-                  {formatNumber(metrics.postsCount)}
-                </span>
-                <span style={{ color: '#a0a0a0', marginLeft: '0.5rem', fontSize: '16px' }}>
-                  Posts
-                </span>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">
+                  {metrics.displayName}
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  @{metrics.handle} • Analytics Suite
+                </p>
               </div>
             </div>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
-            <button onClick={handleLogout} style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              color: 'white',
-              padding: '8px 12px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '16px'
-            }}>
-              <LogOut size={16} />
-              Logout
-            </button>
-            
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {[7, 14, 21, 31].map((days) => (
-                <button
-                  key={days}
-                  onClick={() => setActivePeriod(days)}
-                  style={{
-                    padding: '8px 12px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    borderRadius: '6px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    background: activePeriod === days ? '#1e90ff' : 'rgba(255, 255, 255, 0.1)',
-                    color: activePeriod === days ? 'white' : '#e0e0e0'
-                  }}
+
+            <div className="flex items-center gap-4">
+              {/* Enhanced Search */}
+              <div className="relative">
+                <Search size={16} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search analytics..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-70 pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-50 shadow-xs transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-opacity-10"
+                />
+              </div>
+
+              {/* Notification Toggle */}
+              <div className="flex items-center gap-3">
+                <Bell size={18} className="text-gray-500 dark:text-gray-400" />
+                <div 
+                  onClick={() => setToggleStates(prev => ({ ...prev, notifications: !prev.notifications }))}
+                  className={`relative w-11 h-6 rounded-full cursor-pointer transition-all duration-200 shadow-xs ${
+                    toggleStates.notifications ? 'bg-brand-500' : 'bg-gray-300 dark:bg-gray-700'
+                  }`}
                 >
-                  {days}d
-                </button>
-              ))}
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-200 shadow-sm ${
+                    toggleStates.notifications ? 'left-5.5' : 'left-0.5'
+                  }`}></div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className={`flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-700 dark:text-gray-300 text-sm font-medium cursor-pointer shadow-xs transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                  loading ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
+              >
+                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                <span>Refresh</span>
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-700 dark:text-gray-300 text-sm font-medium cursor-pointer shadow-xs transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <nav style={{
-        background: 'rgba(30, 30, 30, 0.8)',
-        borderBottom: '1px solid #404040',
-        padding: '0 2rem'
-      }}>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {[
-            { id: 'overview', label: 'Overview', icon: Eye },
-            { id: 'audience', label: 'Audience Analytics', icon: Users },
-            { id: 'content', label: 'Content Performance', icon: TrendingUp },
-            { id: 'trending', label: 'Trending Topics', icon: MessageSquare },
-            { id: 'opportunities', label: 'Content Opportunities', icon: Calendar }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '1rem 1.5rem',
-                background: 'none',
-                border: 'none',
-                color: activeTab === tab.id ? '#1e90ff' : '#a0a0a0',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: '500',
-                borderBottom: activeTab === tab.id ? '2px solid #1e90ff' : '2px solid transparent',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <tab.icon size={18} />
-              {tab.label}
-            </button>
-          ))}
+      {/* Enhanced Navigation Tabs */}
+      <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 shadow-xs">
+        <div className="max-w-7xl mx-auto px-8">
+          <nav className="flex gap-2 py-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-3 px-5 py-3.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? `bg-${tab.color} text-white shadow-md`
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-50'
+                }`}
+              >
+                <tab.icon size={18} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
-      </nav>
+      </div>
 
       {/* Main Content */}
-      <main style={{ padding: '2rem' }}>
+      <main className="max-w-7xl mx-auto px-8 py-8">
+        {/* Enhanced Filters */}
+        <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-6 mb-8 shadow-sm">
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-brand-100 dark:bg-brand-900 rounded-md">
+                <Filter size={18} className="text-brand-600" />
+              </div>
+              <span className="text-base font-semibold text-gray-900 dark:text-gray-50">
+                Analytics Filters
+              </span>
+            </div>
+
+            <select
+              value={filterSettings.timeframe}
+              onChange={(e) => setFilterSettings(prev => ({ ...prev, timeframe: e.target.value }))}
+              className="px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 text-sm font-medium shadow-xs cursor-pointer"
+            >
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="popular-posts"
+                checked={filterSettings.showOnlyPopular}
+                onChange={(e) => setFilterSettings(prev => ({ ...prev, showOnlyPopular: e.target.checked }))}
+                className="w-4.5 h-4.5 text-brand-500 cursor-pointer"
+              />
+              <label 
+                htmlFor="popular-posts" 
+                className="text-sm text-gray-900 dark:text-gray-50 font-medium cursor-pointer"
+              >
+                Show only popular posts
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
         {activeTab === 'overview' && (
-          <>
-            {/* Metrics Cards */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(4, 1fr)', 
-              gap: '1.5rem', 
-              marginBottom: '2rem' 
-            }}>
+          <div className="flex flex-col gap-8">
+            {/* Enhanced Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
               {[
                 { 
-                  title: 'Total Posts', 
-                  value: metrics.postsCount, 
-                  change: '+12%', 
-                  positive: true,
-                  icon: MessageSquare 
+                  title: 'Total Followers', 
+                  value: metrics.followersCount, 
+                  change: '+12.5%', 
+                  icon: Users, 
+                  colorClass: 'blue'
                 },
                 { 
-                  title: 'Average Engagement', 
-                  value: Math.round((metrics.totalLikes + metrics.totalReplies + metrics.totalReposts) / metrics.postsCount), 
-                  change: '+8%', 
-                  positive: true,
-                  icon: Heart 
+                  title: 'Total Likes', 
+                  value: metrics.totalLikes, 
+                  change: '+8.2%', 
+                  icon: Heart, 
+                  colorClass: 'error'
                 },
                 { 
-                  title: 'Followers Gained', 
-                  value: 'Data not available', 
-                  change: '-', 
-                  positive: null,
-                  icon: Users 
+                  title: 'Total Replies', 
+                  value: metrics.totalReplies, 
+                  change: '+15.3%', 
+                  icon: MessageSquare, 
+                  colorClass: 'success'
                 },
                 { 
-                  title: 'Followers Lost', 
-                  value: 'Data not available', 
-                  change: '-', 
-                  positive: null,
-                  icon: TrendingUp 
-                }
-              ].map((metric, index) => (
-                <div
-                  key={index}
-                  style={{
-                    background: 'rgba(30, 30, 30, 0.8)',
-                    padding: '1.5rem',
-                    borderRadius: '12px',
-                    border: '1px solid #404040'
-                  }}
+                  title: 'Total Reposts', 
+                  value: metrics.totalReposts, 
+                  change: '+6.1%', 
+                  icon: Repeat2, 
+                  colorClass: 'violet'
+                },
+              ].map((stat, index) => (
+                <div 
+                  key={stat.title} 
+                  className={`bg-gradient-to-br from-${stat.colorClass}-50 to-white dark:from-${stat.colorClass}-900 dark:to-gray-950 border border-${stat.colorClass}-200 dark:border-${stat.colorClass}-800 rounded-xl p-8 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <metric.icon size={24} style={{ color: '#1e90ff' }} />
-                    {metric.positive !== null && (
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.25rem',
-                        color: metric.positive ? '#22c55e' : '#ef4444',
-                        fontSize: '14px',
-                        fontWeight: '500'
-                      }}>
-                        {metric.positive ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
-                        {metric.change}
-                      </div>
-                    )}
+                  {/* Decorative gradient */}
+                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-${stat.colorClass}-500 to-${stat.colorClass}-600`}></div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">
+                        {stat.title}
+                      </p>
+                      <p className="text-display-xs font-extrabold text-gray-900 dark:text-gray-50">
+                        {stat.value.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className={`p-4 rounded-xl bg-${stat.colorClass}-500 shadow-md`}>
+                      <stat.icon size={28} color="white" />
+                    </div>
                   </div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#e0e0e0', marginBottom: '0.5rem' }}>
-                    {metric.title}
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: 'white' }}>
-                    {typeof metric.value === 'number' ? formatNumber(metric.value) : metric.value}
-                  </p>
+                  
+                  <div className="mt-6 flex items-center gap-2">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-success-100 dark:bg-success-900 rounded-md">
+                      <ArrowUp size={12} className="text-success-600" />
+                      <span className="text-xs font-bold text-success-600">
+                        {stat.change}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      vs last period
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Daily Engagement Chart */}
-            <div style={{
-              background: 'rgba(30, 30, 30, 0.8)',
-              padding: '1.5rem',
-              borderRadius: '12px',
-              border: '1px solid #404040',
-              marginBottom: '2rem'
-            }}>
-              <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
-                Daily Engagement Trends
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={[
-                  { day: 'Mon 8/5', engagement: 1200 },
-                  { day: 'Tue 8/6', engagement: 1900 },
-                  { day: 'Wed 8/7', engagement: 800 },
-                  { day: 'Thu 8/8', engagement: 2400 },
-                  { day: 'Fri 8/9', engagement: 1600 },
-                  { day: 'Sat 8/10', engagement: 2100 },
-                  { day: 'Sun 8/11', engagement: 1800 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                  <XAxis dataKey="day" stroke="#a0a0a0" fontSize={14} />
-                  <YAxis stroke="#a0a0a0" fontSize={14} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      background: 'rgba(30, 30, 30, 0.9)', 
-                      border: '1px solid #404040',
-                      borderRadius: '8px',
-                      color: 'white'
-                    }} 
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="engagement" 
-                    stroke="#1e90ff" 
-                    strokeWidth={3}
-                    dot={{ fill: '#1e90ff', strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8, stroke: '#1e90ff', strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {/* Enhanced Charts */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              {/* Engagement Chart */}
+              <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-8 shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-success-500"></div>
+                
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-50 mb-1">
+                      Engagement Over Time
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Track your daily engagement metrics
+                    </p>
+                  </div>
+                  <button className="text-sm text-brand-600 bg-brand-50 dark:bg-brand-900 border border-brand-200 dark:border-brand-800 px-4 py-2 rounded-md font-semibold transition-all duration-200 hover:bg-brand-100 dark:hover:bg-brand-800">
+                    View Details
+                  </button>
+                </div>
+                
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart data={engagementData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="name" 
+                      stroke="#6b7280" 
+                      fontSize={12}
+                      fontWeight={500}
+                    />
+                    <YAxis 
+                      stroke="#6b7280" 
+                      fontSize={12}
+                      fontWeight={500}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '0.5rem',
+                        color: '#111827',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="engagement" 
+                      stroke={CHART_COLORS[0]} 
+                      strokeWidth={3}
+                      dot={{ fill: CHART_COLORS[0], strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: CHART_COLORS[0], strokeWidth: 2, fill: 'white' }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="followers" 
+                      stroke={CHART_COLORS[1]} 
+                      strokeWidth={3}
+                      dot={{ fill: CHART_COLORS[1], strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: CHART_COLORS[1], strokeWidth: 2, fill: 'white' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
 
-            {/* Posts and Followers Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-              
-              {/* Recent Posts Timeline */}
-              <div style={{
-                background: 'rgba(30, 30, 30, 0.8)',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: '1px solid #404040'
-              }}>
-                <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
-                  My Recent Posts Timeline
-                </h3>
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: '1rem',
-                  maxHeight: '600px',
-                  overflowY: 'auto'
-                }}>
-                  {metrics.recentPosts.slice(0, 10).map((post, index) => (
-                    <div key={index} style={{
-                      display: 'flex',
-                      gap: '1rem',
-                      padding: '1rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
-                    }}>
-                      {/* Post Image */}
-                      {post.images && post.images.length > 0 ? (
-                        <img 
-                          src={post.images[0]} 
-                          alt="Post"
-                          style={{
-                            width: '80px',
-                            height: '80px',
-                            borderRadius: '8px',
-                            objectFit: 'cover',
-                            flexShrink: 0
-                          }}
-                        />
-                      ) : (
-                        <div style={{
-                          width: '80px',
-                          height: '80px',
-                          background: 'linear-gradient(135deg, #1e90ff, #4169e1)',
-                          borderRadius: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          <MessageSquare size={32} color="white" />
-                        </div>
-                      )}
-                      
-                      {/* Post Content */}
-                      <div style={{ flex: 1 }}>
-                        <p style={{ 
-                          margin: '0 0 0.75rem 0', 
-                          color: '#e0e0e0', 
-                          fontSize: '16px', 
-                          lineHeight: '1.4' 
-                        }}>
-                          {post.text}
+              {/* Content Distribution Chart */}
+              <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-8 shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-error-500"></div>
+                
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-50 mb-1">
+                    Content Distribution
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Breakdown of your content types
+                  </p>
+                </div>
+                
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={contentTypeData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={120}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {contentTypeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '0.5rem',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  {contentTypeData.map((item) => (
+                    <div key={item.name} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800">
+                      <div 
+                        className="w-4 h-4 rounded-full shadow-xs"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+                          {item.name}
                         </p>
-                        
-                        {/* Engagement Stats */}
-                        <div style={{ 
-                          display: 'flex', 
-                          gap: '1rem', 
-                          fontSize: '14px', 
-                          color: '#a0a0a0',
-                          flexWrap: 'wrap',
-                          alignItems: 'center',
-                          justifyContent: 'space-between'
-                        }}>
-                          <span>{formatDate(post.indexedAt)}</span>
-                          <div style={{ display: 'flex', gap: '1rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <Heart size={14} />
-                              {formatNumber(post.likeCount)}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <MessageSquare size={14} />
-                              {formatNumber(post.replyCount)}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <Repeat2 size={14} />
-                              {formatNumber(post.repostCount)}
-                            </span>
-                            <span style={{ fontSize: '12px', color: '#1e90ff' }}>
-                              Total: {formatNumber(post.likeCount + post.replyCount + post.repostCount)}
-                            </span>
-                          </div>
-                          <a 
-                            href={generatePostUrl(post.uri)} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            style={{ 
-                              color: '#1e90ff', 
-                              textDecoration: 'none',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem'
-                            }}
-                          >
-                            <ExternalLink size={14} />
-                          </a>
-                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {item.value}% of content
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* Top 10 Followers */}
-              <div style={{
-                background: 'rgba(30, 30, 30, 0.8)',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: '1px solid #404040'
-              }}>
-                <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
-                  Top 10 Followers
+            {/* Enhanced Recent Posts */}
+            <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl p-8 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-success-500 to-blue-500"></div>
+              
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-50 mb-1">
+                  Recent Posts
                 </h3>
-                <div style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: '1rem',
-                  maxHeight: '600px',
-                  overflowY: 'auto'
-                }}>
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const follower = metrics.sampleFollowers[i % metrics.sampleFollowers.length];
-                    return (
-                      <div key={i} style={{
-                        display: 'flex',
-                        gap: '1rem',
-                        padding: '1rem',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}>
-                        {/* Follower Avatar */}
-                        <img 
-                          src={follower.avatar} 
-                          alt={follower.displayName || follower.handle}
-                          style={{
-                            width: '80px',
-                            height: '80px',
-                            borderRadius: '8px',
-                            objectFit: 'cover',
-                            flexShrink: 0
-                          }}
-                        />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Your latest content performance
+                </p>
+              </div>
+              
+              <div className="flex flex-col gap-6">
+                {metrics.recentPosts.slice(0, 5).map((post, index) => (
+                  <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-25 dark:from-gray-900 dark:to-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-6 transition-all duration-200 shadow-sm hover:shadow-md">
+                    <p className="text-gray-900 dark:text-gray-50 text-base font-medium leading-relaxed mb-6">
+                      {post.text}
+                    </p>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-error-50 dark:bg-error-900 rounded-md border border-error-200 dark:border-error-800">
+                          <Heart size={16} className="text-error-500" />
+                          <span className="text-sm font-semibold text-error-700 dark:text-error-400">
+                            {post.likeCount}
+                          </span>
+                        </div>
                         
-                        {/* Follower Content */}
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                            <div>
-                              <p style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'white' }}>
-                                {follower.displayName || follower.handle}
-                              </p>
-                              <p style={{ margin: 0, fontSize: '14px', color: '#1e90ff' }}>
-                                @{follower.handle}
-                              </p>
-                            </div>
-                            <button style={{
-                              background: '#1e90ff',
-                              color: 'white',
-                              border: 'none',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              cursor: 'pointer'
-                            }}>
-                              Follow
-                            </button>
-                          </div>
-                          
-                          <p style={{ 
-                            margin: '0.5rem 0', 
-                            color: '#e0e0e0', 
-                            fontSize: '16px', 
-                            lineHeight: '1.4' 
-                          }}>
-                            Recent follower - Thanks for following! 🙏
-                          </p>
-                          
-                          <div style={{ 
-                            display: 'flex', 
-                            gap: '1rem', 
-                            fontSize: '14px', 
-                            color: '#a0a0a0',
-                            flexWrap: 'wrap',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                          }}>
-                            <span>Recent follower</span>
-                            <div style={{ display: 'flex', gap: '1rem' }}>
-                              <span>Profile details not available</span>
-                            </div>
-                          </div>
+                        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900 rounded-md border border-blue-200 dark:border-blue-800">
+                          <MessageSquare size={16} className="text-blue-500" />
+                          <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                            {post.replyCount}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 px-3 py-2 bg-success-50 dark:bg-success-900 rounded-md border border-success-200 dark:border-success-800">
+                          <Repeat2 size={16} className="text-success-500" />
+                          <span className="text-sm font-semibold text-success-700 dark:text-success-400">
+                            {post.repostCount}
+                          </span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      
+                      <a
+                        href={`https://bsky.app/profile/${metrics.handle}/post/${post.uri.split('/').pop()}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-brand-600 font-semibold no-underline px-4 py-2 bg-brand-50 dark:bg-brand-900 border border-brand-200 dark:border-brand-800 rounded-md transition-all duration-200 hover:bg-brand-100 dark:hover:bg-brand-800"
+                      >
+                        View on Bluesky →
+                      </a>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </>
+          </div>
         )}
 
-        {/* Other tabs */}
+        {/* Other Tabs Placeholder */}
         {activeTab !== 'overview' && (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#a0a0a0' }}>
-            <MessageSquare size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <h2 style={{ margin: '0 0 1rem 0', fontSize: '18px' }}>Coming Soon</h2>
-            <p style={{ margin: 0, fontSize: '16px' }}>Advanced analytics and insights</p>
+          <div className="bg-gradient-to-br from-white to-gray-25 dark:from-gray-950 dark:to-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-16 text-center shadow-xl relative overflow-hidden">
+            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-${tabs.find(tab => tab.id === activeTab)?.color || 'gray-500'} to-${tabs.find(tab => tab.id === activeTab)?.color || 'gray-500'}`}></div>
+            
+            <div className={`w-25 h-25 bg-gradient-to-br from-${tabs.find(tab => tab.id === activeTab)?.color || 'gray-500'} to-${tabs.find(tab => tab.id === activeTab)?.color || 'gray-500'} rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg`}>
+              {React.createElement(tabs.find(tab => tab.id === activeTab)?.icon || Settings, { size: 48, color: 'white' })}
+            </div>
+            
+            <h3 className="text-display-xs font-bold text-gray-900 dark:text-gray-50 mb-4">
+              {tabs.find(tab => tab.id === activeTab)?.label}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
+              Advanced analytics features coming soon with full Untitled UI pro components. 
+              This section will include comprehensive data analysis, insights, and powerful visualization tools.
+            </p>
+            <div className="inline-block px-8 py-4 bg-warning-50 dark:bg-warning-900 border border-warning-200 dark:border-warning-800 rounded-lg text-warning-700 dark:text-warning-400 text-sm font-semibold">
+              🚧 Under Development
+            </div>
           </div>
         )}
       </main>
