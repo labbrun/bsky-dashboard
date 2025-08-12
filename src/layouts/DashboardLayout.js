@@ -9,7 +9,10 @@ import {
   RefreshCw,
   LogOut,
   Menu,
-  X
+  X,
+  ChevronDown,
+  Settings,
+  User
 } from 'lucide-react';
 
 function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogout }) {
@@ -18,7 +21,8 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
     notifications: true,
     autoRefresh: false,
   });
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const location = useLocation();
 
   const navigationItems = [
@@ -26,19 +30,22 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
       path: '/',
       label: 'Overview',
       icon: BarChart3,
-      description: 'Profile stats, growth metrics, and AI insights'
+      description: 'Profile stats, growth metrics, and AI insights',
+      badge: null
     },
     {
       path: '/performance',
       label: 'Performance',
       icon: TrendingUp,
-      description: 'Content analysis, audience breakdown, and timing data'
+      description: 'Content analysis, audience breakdown, and timing data',
+      badge: 'New'
     },
     {
       path: '/insights',
       label: 'Insights & Actions',
       icon: Lightbulb,
-      description: 'AI recommendations, content ideas, and quick wins'
+      description: 'AI recommendations, content ideas, and quick wins',
+      badge: '5'
     }
   ];
 
@@ -54,71 +61,180 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
-      {/* Enhanced Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-primary-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            {/* Left section - Logo and User Info */}
-            <div className="flex items-center gap-4">
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg text-primary-600 hover:bg-primary-50"
-              >
-                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-
-              {/* Logo and brand */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-brand-500 rounded-lg flex items-center justify-center">
-                  <BarChart3 size={18} className="text-white" />
-                </div>
-                <h1 className="text-lg font-bold text-primary-900 hidden sm:block">
-                  Labb Analytics Pro
-                </h1>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className={`${isSidebarOpen ? 'w-80' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-lg`}>
+        {/* Sidebar Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className={`flex items-center gap-3 ${isSidebarOpen ? '' : 'justify-center'}`}>
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-brand-500 rounded-xl flex items-center justify-center shadow-lg">
+                <BarChart3 size={20} className="text-white" />
               </div>
-
-              {/* User info - desktop only */}
-              {metrics && (
-                <div className="hidden lg:flex items-center gap-3 ml-6 pl-6 border-l border-primary-200">
-                  <div className="relative">
-                    <img
-                      src={metrics.avatar}
-                      alt={metrics.displayName}
-                      className="w-8 h-8 rounded-full border-2 border-brand-500 object-cover"
-                    />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success-500 rounded-full border-2 border-white"></div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-primary-900">{metrics.displayName}</p>
-                    <p className="text-xs text-primary-600">@{metrics.handle}</p>
-                  </div>
+              {isSidebarOpen && (
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">Labb Analytics</h1>
+                  <p className="text-xs text-gray-500">Professional Suite</p>
                 </div>
               )}
             </div>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 lg:flex hidden"
+            >
+              {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
+        </div>
 
-            {/* Right section - Search and Actions */}
-            <div className="flex items-center gap-3">
-              {/* Search - hidden on mobile */}
-              <div className="relative hidden sm:block">
-                <Search size={14} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-500" />
-                <input
-                  type="text"
-                  placeholder="Search analytics..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-64 pl-9 pr-3 py-2 bg-primary-50 border border-primary-200 rounded-lg text-sm text-primary-900 placeholder-primary-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-opacity-10"
-                />
-              </div>
+        {/* Search */}
+        {isSidebarOpen && (
+          <div className="p-6 border-b border-gray-200">
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-opacity-10 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+        )}
 
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <div className="space-y-2">
+            {navigationItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={`group flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 relative ${
+                    isActive
+                      ? 'bg-gradient-to-r from-brand-500 to-electric-500 text-white shadow-lg shadow-brand-500/25'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <item.icon size={20} className={`${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'} transition-colors`} />
+                  {isSidebarOpen && (
+                    <>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">{item.label}</span>
+                          {item.badge && (
+                            <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                              item.badge === 'New' 
+                                ? 'bg-success-100 text-success-700' 
+                                : 'bg-brand-100 text-brand-700'
+                            }`}>
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-xs mt-0.5 ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                          {item.description}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* User Profile Section */}
+        <div className="p-4 border-t border-gray-200">
+          {metrics && isSidebarOpen ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                <div className="relative">
+                  <img
+                    src={metrics.avatar}
+                    alt={metrics.displayName}
+                    className="w-10 h-10 rounded-full border-2 border-brand-500 object-cover"
+                  />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success-500 rounded-full border-2 border-white"></div>
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-semibold text-gray-900">{metrics.displayName}</p>
+                  <p className="text-xs text-gray-500">@{metrics.handle}</p>
+                </div>
+                <ChevronDown size={16} className={`text-gray-400 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Profile Dropdown */}
+              {isProfileDropdownOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg py-2">
+                  <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
+                    <User size={16} className="text-gray-500" />
+                    <span className="text-sm text-gray-700">Profile Settings</span>
+                  </button>
+                  <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
+                    <Settings size={16} className="text-gray-500" />
+                    <span className="text-sm text-gray-700">Preferences</span>
+                  </button>
+                  <div className="border-t border-gray-100 my-2"></div>
+                  <button 
+                    onClick={onLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-error-50 transition-colors text-error-600"
+                  >
+                    <LogOut size={16} />
+                    <span className="text-sm">Sign out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Collapsed sidebar user section
+            <div className="flex justify-center">
+              {metrics ? (
+                <div className="relative">
+                  <img
+                    src={metrics.avatar}
+                    alt={metrics.displayName}
+                    className="w-10 h-10 rounded-full border-2 border-brand-500 object-cover"
+                  />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success-500 rounded-full border-2 border-white"></div>
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top Header */}
+        <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            {/* Page Title */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {navigationItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {navigationItems.find(item => item.path === location.pathname)?.description || 'Analytics Overview'}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-4">
               {/* Notification Toggle */}
               <div className="flex items-center gap-2">
-                <Bell size={16} className="text-primary-500" />
+                <Bell size={18} className="text-gray-500" />
                 <div 
                   onClick={() => setToggleStates(prev => ({ ...prev, notifications: !prev.notifications }))}
                   className={`relative w-10 h-5 rounded-full cursor-pointer transition-all duration-200 ${
-                    toggleStates.notifications ? 'bg-brand-500' : 'bg-primary-300'
+                    toggleStates.notifications ? 'bg-brand-500' : 'bg-gray-300'
                   }`}
                 >
                   <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all duration-200 shadow-sm ${
@@ -127,65 +243,34 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Refresh Button */}
               <button
                 onClick={onRefresh}
                 disabled={loading}
-                className={`flex items-center gap-2 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg text-primary-700 text-sm font-medium hover:bg-primary-100 transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm ${
                   loading ? 'opacity-60 cursor-not-allowed' : ''
                 }`}
               >
-                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-              
-              <button
-                onClick={onLogout}
-                className="flex items-center gap-2 px-3 py-2 bg-primary-50 border border-primary-200 rounded-lg text-primary-700 text-sm font-medium hover:bg-primary-100 transition-colors"
-              >
-                <LogOut size={14} />
-                <span className="hidden sm:inline">Logout</span>
+                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                <span>Refresh</span>
               </button>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Navigation */}
-      <nav className={`bg-white border-b border-primary-200 shadow-xs ${isMobileMenuOpen ? 'block' : 'hidden'} md:block`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-2 py-4">
-            {navigationItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-brand-500 text-white shadow-md'
-                      : 'text-primary-600 hover:bg-primary-50 hover:text-primary-900'
-                  }`}
-                >
-                  <item.icon size={18} />
-                  <div className="flex flex-col">
-                    <span>{item.label}</span>
-                    <span className={`text-xs font-normal ${isActive ? 'text-white/80' : 'text-primary-500'} md:hidden`}>
-                      {item.description}
-                    </span>
-                  </div>
-                </NavLink>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
+        {/* Page Content */}
+        <main className="flex-1 p-6 bg-gray-50">
+          {children}
+        </main>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }

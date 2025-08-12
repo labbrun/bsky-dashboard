@@ -99,6 +99,7 @@ export const transformBlueskyData = (profile, posts, followers) => {
     bio: profile.description || 'No bio available',
     description: profile.description || 'No bio available',
     avatar: profile.avatar || 'https://via.placeholder.com/120',
+    banner: profile.banner || null, // Add banner support
     followersCount: profile.followersCount || 0,
     followsCount: profile.followsCount || 0,
     postsCount: profile.postsCount || 0,
