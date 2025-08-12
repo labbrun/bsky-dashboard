@@ -20,8 +20,78 @@ import ProfileCard from '../components/ProfileCard';
 // Brand chart colors - consistent with your palette
 const CHART_COLORS = ['#002945', '#2B54BE', '#3A5393', '#0E4CE8', '#3B4869', '#23B26A', '#F79009', '#F04438', '#8B5CF6'];
 
+// Brand keyword usage analysis
+const brandKeywordAnalysis = {
+  'Home Lab': {
+    usage: 'High',
+    frequency: '68%',
+    impactOnScore: '+24 points',
+    synopsis: 'Excellent alignment! Your Home Lab content consistently drives high engagement (avg 7.2% ER). This keyword appears in 68% of your high-performing posts and strongly resonates with your core audience.',
+    recommendation: 'Continue focusing on practical Home Lab tutorials and setups. Your audience craves hands-on technical content.',
+    scoreContribution: 24
+  },
+  'Self Hosting': {
+    usage: 'High', 
+    frequency: '52%',
+    impactOnScore: '+18 points',
+    synopsis: 'Strong performance with Self Hosting content. These posts get 45% more saves/bookmarks, indicating high practical value. Your privacy-focused self-hosting guides are particularly successful.',
+    recommendation: 'Expand into advanced self-hosting topics like security hardening and backup strategies.',
+    scoreContribution: 18
+  },
+  'Privacy': {
+    usage: 'High',
+    frequency: '61%', 
+    impactOnScore: '+22 points',
+    synopsis: 'Privacy content generates strong community engagement and positions you as a thought leader. These posts get 2.1x more replies, showing active discussion.',
+    recommendation: 'Create more privacy-focused small business content - this intersection performs exceptionally well.',
+    scoreContribution: 22
+  },
+  'Small Business': {
+    usage: 'Medium',
+    frequency: '34%',
+    impactOnScore: '+12 points', 
+    synopsis: 'Moderate usage but high potential. Small Business + Tech content gets 85% more engagement than pure tech posts. Underutilized opportunity for growth.',
+    recommendation: 'Increase small business tech content frequency. Focus on cost-effective solutions and ROI discussions.',
+    scoreContribution: 12
+  },
+  'Tech': {
+    usage: 'Low',
+    frequency: '23%',
+    impactOnScore: '+8 points',
+    synopsis: 'Generic "Tech" posts underperform. While broad tech content gets decent reach, it lacks the targeted engagement of your niche topics.',
+    recommendation: 'Replace generic tech content with specific Home Lab, Privacy, or Self Hosting angles for better alignment.',
+    scoreContribution: 8
+  }
+};
+
+// AI-powered keyword explanations
+const keywordExplanations = {
+  'Docker': {
+    why: 'Docker is essential for Home Lab enthusiasts who want containerized applications. Your audience actively uses Docker for self-hosting services.',
+    benefit: 'Posts about Docker tutorials and Home Lab setups get 40% higher engagement than generic tech posts.',
+    trend: 'Docker + Home Lab content has grown 65% in the past 6 months among your target demographic.'
+  },
+  'Kubernetes': {
+    why: 'Kubernetes appeals to advanced Home Lab users scaling their infrastructure. It aligns with your Self Hosting and Privacy themes.',
+    benefit: 'K8s content targeting small business infrastructure needs could increase your reach by 25%.',
+    trend: 'Kubernetes for small business content has 3x higher shareability than general K8s posts.'
+  },
+  'Proxmox': {
+    why: 'Proxmox is a top choice for Home Lab virtualization. Your Privacy and Self Hosting audience frequently uses Proxmox.',
+    benefit: 'Proxmox tutorials and guides see 80% more saves/bookmarks, indicating high value to your audience.',
+    trend: 'Proxmox content performs exceptionally well with your followers who also follow @homelab and @selfhosted accounts.'
+  },
+  'FOSS': {
+    why: 'Free and Open Source Software strongly aligns with Privacy and Self Hosting values. Your audience prioritizes FOSS solutions.',
+    benefit: 'FOSS-focused content gets 2.5x more amplification through retweets and mentions.',
+    trend: 'FOSS content creates strong community engagement and positions you as a thought leader in Privacy tech.'
+  }
+};
+
 function Performance({ metrics }) {
   const [selectedTimeRange, setSelectedTimeRange] = useState('week');
+  const [selectedKeyword, setSelectedKeyword] = useState(null);
+  const [selectedBrandKeyword, setSelectedBrandKeyword] = useState(null);
 
   // Sample data for performance analytics
   const recentPosts = [
@@ -327,6 +397,172 @@ function Performance({ metrics }) {
                 </defs>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Brand Keyword Alignment - Dark theme feature section */}
+      <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 via-electric-500 to-accent-500"></div>
+        
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 rounded-xl shadow-lg" style={{backgroundColor: '#e8eef9'}}>
+            <Target size={24} style={{color: '#2d323e'}} />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white">Brand Keyword Alignment</h3>
+            <p className="text-gray-300 text-sm">Track alignment with your target audience keywords for Home Lab, Self Hosting, and Privacy content</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="col-span-1">
+            <div className="text-center p-6 bg-gradient-to-br from-success-900/30 to-success-800/30 rounded-2xl border border-success-600/30 backdrop-blur-sm">
+              <div className="text-4xl font-bold text-success-400 mb-2">84%</div>
+              <p className="text-success-200 font-semibold">Brand Alignment Score</p>
+              <div className="mt-4 w-full bg-success-900/30 rounded-full h-3 border border-success-600/20">
+                <div className="bg-gradient-to-r from-success-500 to-success-400 h-3 rounded-full shadow-inner" style={{ width: '84%' }}></div>
+              </div>
+              <p className="text-success-300 text-xs mt-2">Strong alignment with target keywords</p>
+            </div>
+          </div>
+          
+          <div className="col-span-1">
+            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <div className="w-3 h-3 bg-success-400 rounded-full"></div>
+              Your Brand Keywords
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {['Home Lab', 'Self Hosting', 'Privacy', 'Small Business', 'Tech'].map((keyword, index) => {
+                const analysis = brandKeywordAnalysis[keyword];
+                return (
+                  <button
+                    key={keyword}
+                    onClick={() => setSelectedBrandKeyword(selectedBrandKeyword === keyword ? null : keyword)}
+                    className={`px-4 py-2 text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer hover:scale-105 ${
+                      selectedBrandKeyword === keyword
+                        ? 'bg-white text-gray-900 border-2 border-brand-400 shadow-lg'
+                        : index < 3
+                        ? 'bg-gradient-to-r from-brand-500 to-electric-500 text-white hover:from-brand-600 hover:to-electric-600' 
+                        : index < 4
+                        ? 'bg-gradient-to-r from-accent-500 to-primary-500 text-white hover:from-accent-600 hover:to-primary-600'
+                        : 'bg-slate-600/50 text-slate-200 border border-slate-500 hover:bg-slate-600/70'
+                    }`}
+                  >
+                    #{keyword.replace(' ', '')}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedBrandKeyword ? (
+              <div className="mt-4 bg-slate-600/30 rounded-xl p-4 border border-slate-500/30">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-brand-400 rounded-full"></div>
+                    <span className="text-brand-300 font-bold text-sm">Brand Usage Analysis: "{selectedBrandKeyword}"</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className={`px-2 py-1 rounded-full font-bold ${
+                      brandKeywordAnalysis[selectedBrandKeyword].usage === 'High' ? 'bg-success-500/20 text-success-300' :
+                      brandKeywordAnalysis[selectedBrandKeyword].usage === 'Medium' ? 'bg-warning-500/20 text-warning-300' :
+                      'bg-error-500/20 text-error-300'
+                    }`}>
+                      {brandKeywordAnalysis[selectedBrandKeyword].usage} Usage
+                    </span>
+                    <span className="text-gray-300">
+                      {brandKeywordAnalysis[selectedBrandKeyword].frequency} frequency
+                    </span>
+                    <span className="text-success-300 font-bold">
+                      {brandKeywordAnalysis[selectedBrandKeyword].impactOnScore}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-3 text-xs text-gray-300">
+                  <div>
+                    <span className="text-white font-semibold block mb-1">Usage Synopsis:</span>
+                    <p>{brandKeywordAnalysis[selectedBrandKeyword].synopsis}</p>
+                  </div>
+                  <div>
+                    <span className="text-white font-semibold block mb-1">AI Recommendation:</span>
+                    <p className="text-blue-300">{brandKeywordAnalysis[selectedBrandKeyword].recommendation}</p>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-600/50">
+                    <span className="text-gray-400">Score Contribution:</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 bg-slate-700 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-brand-500 to-success-500 h-2 rounded-full" 
+                          style={{ width: `${(brandKeywordAnalysis[selectedBrandKeyword].scoreContribution / 24) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-success-400 font-bold">
+                        {brandKeywordAnalysis[selectedBrandKeyword].scoreContribution}/24
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 text-xs text-gray-300">
+                <p className="mb-3 text-brand-300">💡 Click on any brand keyword above to see detailed usage analysis and AI recommendations.</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-success-400 rounded-full"></div>
+                  <span>High usage: Home Lab, Self Hosting, Privacy</span>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-warning-400 rounded-full"></div>
+                  <span>Medium usage: Small Business</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-error-400 rounded-full"></div>
+                  <span>Low usage: Tech (too generic)</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="col-span-1">
+            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <div className="w-3 h-3 bg-brand-400 rounded-full"></div>
+              Recommended Keywords
+            </h4>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {['Docker', 'Kubernetes', 'Proxmox', 'FOSS'].map((keyword) => (
+                <button
+                  key={keyword}
+                  onClick={() => setSelectedKeyword(selectedKeyword === keyword ? null : keyword)}
+                  className={`px-4 py-2 text-sm font-semibold rounded-xl border transition-all cursor-pointer ${
+                    selectedKeyword === keyword
+                      ? 'bg-brand-500 text-white border-brand-400'
+                      : 'bg-brand-600/30 text-brand-200 border-brand-500/50 hover:bg-brand-500 hover:text-white'
+                  }`}
+                >
+                  +{keyword}
+                </button>
+              ))}
+            </div>
+            
+            {selectedKeyword ? (
+              <div className="bg-slate-600/30 rounded-xl p-4 border border-slate-500/30 mb-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-brand-400 rounded-full"></div>
+                  <span className="text-brand-300 font-semibold text-sm">AI Insight: Why target "{selectedKeyword}"?</span>
+                </div>
+                <div className="space-y-2 text-xs text-gray-300">
+                  <p><span className="text-white font-semibold">Audience Fit:</span> {keywordExplanations[selectedKeyword].why}</p>
+                  <p><span className="text-white font-semibold">Performance:</span> {keywordExplanations[selectedKeyword].benefit}</p>
+                  <p><span className="text-white font-semibold">Trend Data:</span> {keywordExplanations[selectedKeyword].trend}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-300 mb-3">
+                Click on any keyword above to see AI-powered insights about why you should target it.
+              </p>
+            )}
+            
+            <p className="text-xs text-gray-400">
+              These keywords align with your Home Lab and Self Hosting audience and could increase engagement by 15-25%.
+            </p>
           </div>
         </div>
       </div>

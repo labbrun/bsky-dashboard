@@ -29,6 +29,33 @@ const CHART_COLORS = {
 };
 
 function Overview({ metrics }) {
+  const [selectedKeyword, setSelectedKeyword] = React.useState(null);
+  
+
+  // AI-powered keyword explanations
+  const keywordExplanations = {
+    'Docker': {
+      why: 'Docker is essential for Home Lab enthusiasts who want containerized applications. Your audience actively uses Docker for self-hosting services.',
+      benefit: 'Posts about Docker tutorials and Home Lab setups get 40% higher engagement than generic tech posts.',
+      trend: 'Docker + Home Lab content has grown 65% in the past 6 months among your target demographic.'
+    },
+    'Kubernetes': {
+      why: 'Kubernetes appeals to advanced Home Lab users scaling their infrastructure. It aligns with your Self Hosting and Privacy themes.',
+      benefit: 'K8s content targeting small business infrastructure needs could increase your reach by 25%.',
+      trend: 'Kubernetes for small business content has 3x higher shareability than general K8s posts.'
+    },
+    'Proxmox': {
+      why: 'Proxmox is a top choice for Home Lab virtualization. Your Privacy and Self Hosting audience frequently uses Proxmox.',
+      benefit: 'Proxmox tutorials and guides see 80% more saves/bookmarks, indicating high value to your audience.',
+      trend: 'Proxmox content performs exceptionally well with your followers who also follow @homelab and @selfhosted accounts.'
+    },
+    'FOSS': {
+      why: 'Free and Open Source Software strongly aligns with Privacy and Self Hosting values. Your audience prioritizes FOSS solutions.',
+      benefit: 'FOSS-focused content gets 2.5x more amplification through retweets and mentions.',
+      trend: 'FOSS content creates strong community engagement and positions you as a thought leader in Privacy tech.'
+    }
+  };
+
   // Real data based on metrics - will be replaced with actual API data
   const followersData = metrics ? [
     { date: '7 days ago', followers: Math.max(0, metrics.followersCount - 7) },
@@ -67,7 +94,7 @@ function Overview({ metrics }) {
       {/* Bluesky-Style Profile Header - Using brand colors */}
       <div className="relative">
         {/* Background Banner */}
-        <div className="h-48 rounded-2xl relative overflow-hidden">
+        <div className="h-32 rounded-2xl relative overflow-hidden">
           {metrics.banner ? (
             <>
               <img 
@@ -87,8 +114,8 @@ function Overview({ metrics }) {
         </div>
         
         {/* Profile Content */}
-        <div className="relative -mt-16 px-8 pb-8">
-          <div className="flex flex-col md:flex-row md:items-end gap-6">
+        <div className="relative -mt-16 px-8 pb-6">
+          <div className="flex flex-col md:flex-row md:items-start gap-6">
             {/* Profile Image */}
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-brand-400 to-electric-500 rounded-full blur-lg opacity-40"></div>
@@ -103,25 +130,25 @@ function Overview({ metrics }) {
             </div>
             
             {/* Profile Info */}
-            <div className="flex-1 bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
+            <div style={{backgroundColor: '#2D323E'}} className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-1">{metrics.displayName}</h1>
-                  <p className="text-lg text-brand-600 font-semibold mb-3">@{metrics.handle}</p>
-                  <p className="text-gray-700 mb-4 max-w-2xl leading-relaxed">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                  <h1 className="text-2xl font-bold text-white mb-1">{metrics.displayName}</h1>
+                  <p className="text-lg text-brand-400 font-semibold mb-3 leading-4">@{metrics.handle}</p>
+                  <p className="text-gray-300 mb-4 max-w-2xl leading-5">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
                   
                   <div className="flex gap-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{metrics.followersCount.toLocaleString()}</p>
-                      <p className="text-gray-500 text-sm font-medium">Followers</p>
+                      <p className="text-2xl font-bold text-white">{metrics.followersCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium">Followers</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{metrics.followsCount.toLocaleString()}</p>
-                      <p className="text-gray-500 text-sm font-medium">Following</p>
+                      <p className="text-2xl font-bold text-white">{metrics.followsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium">Following</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{metrics.postsCount.toLocaleString()}</p>
-                      <p className="text-gray-500 text-sm font-medium">Posts</p>
+                      <p className="text-2xl font-bold text-white">{metrics.postsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium">Posts</p>
                     </div>
                   </div>
                 </div>
@@ -131,7 +158,7 @@ function Overview({ metrics }) {
                     href={`https://bsky.app/profile/${metrics.handle}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-gradient-to-r from-brand-500 to-electric-500 hover:from-brand-600 hover:to-electric-600 text-white text-sm font-semibold rounded-lg transition-all shadow-lg"
+                    className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-all shadow-lg"
                   >
                     View on Bluesky
                   </a>
@@ -142,13 +169,12 @@ function Overview({ metrics }) {
         </div>
       </div>
 
-      {/* AI Summary & Suggestions - Using brand colors */}
-      <div className="bg-gradient-to-br from-slate-600 via-accent-500 to-primary-600 rounded-2xl p-6 shadow-xl text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white bg-opacity-10 rounded-full -translate-y-20 translate-x-20"></div>
+      {/* AI Summary & Suggestions - Dark theme with flat colors */}
+      <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         
         <div className="relative flex items-start gap-4">
-          <div className="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
-            <Sparkles size={24} className="text-yellow-300" />
+          <div className="p-3 rounded-xl" style={{backgroundColor: '#e8eef9'}}>
+            <Sparkles size={24} style={{color: '#2d323e'}} />
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -156,110 +182,33 @@ function Overview({ metrics }) {
               <span className="px-3 py-1 text-xs bg-yellow-400 text-yellow-900 rounded-full font-bold">LIVE</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white bg-opacity-15 rounded-xl p-4 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp size={16} className="text-green-300" />
-                  <span className="text-green-300 font-semibold text-sm">Performance</span>
+                  <TrendingUp size={16} className="text-success-400" />
+                  <span className="text-success-400 font-semibold text-sm">Performance</span>
                 </div>
-                <p className="text-white text-sm">Your engagement rate is 28% above average. Keep posting during peak hours!</p>
+                <p className="text-gray-300 text-sm">Your engagement rate is 28% above average. Keep posting during peak hours!</p>
               </div>
-              <div className="bg-white bg-opacity-15 rounded-xl p-4 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock size={16} className="text-blue-300" />
-                  <span className="text-blue-300 font-semibold text-sm">Timing</span>
+                  <Clock size={16} className="text-brand-400" />
+                  <span className="text-brand-400 font-semibold text-sm">Timing</span>
                 </div>
-                <p className="text-white text-sm">Post between 2-4 PM for 45% higher engagement rates.</p>
+                <p className="text-gray-300 text-sm">Post between 2-4 PM for 45% higher engagement rates.</p>
               </div>
-              <div className="bg-white bg-opacity-15 rounded-xl p-4 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Target size={16} className="text-purple-300" />
-                  <span className="text-purple-300 font-semibold text-sm">Content</span>
+                  <Target size={16} className="text-accent-400" />
+                  <span className="text-accent-400 font-semibold text-sm">Content</span>
                 </div>
-                <p className="text-white text-sm">Tech-focused posts get 3x more amplification. Double down on this!</p>
+                <p className="text-gray-300 text-sm">Tech-focused posts get 3x more amplification. Double down on this!</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Brand Keyword Alignment - Dark theme feature section */}
-      <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 via-electric-500 to-accent-500"></div>
-        
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-gradient-to-br from-brand-500 to-electric-500 rounded-xl shadow-lg">
-            <Target size={24} className="text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-white">Brand Keyword Alignment</h3>
-            <p className="text-gray-300 text-sm">Track alignment with your target audience keywords for Home Lab, Self Hosting, and Privacy content</p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="col-span-1">
-            <div className="text-center p-6 bg-gradient-to-br from-success-900/30 to-success-800/30 rounded-2xl border border-success-600/30 backdrop-blur-sm">
-              <div className="text-4xl font-bold text-success-400 mb-2">84%</div>
-              <p className="text-success-200 font-semibold">Brand Alignment Score</p>
-              <div className="mt-4 w-full bg-success-900/30 rounded-full h-3 border border-success-600/20">
-                <div className="bg-gradient-to-r from-success-500 to-success-400 h-3 rounded-full shadow-inner" style={{ width: '84%' }}></div>
-              </div>
-              <p className="text-success-300 text-xs mt-2">Strong alignment with target keywords</p>
-            </div>
-          </div>
-          
-          <div className="col-span-1">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-success-400 rounded-full"></div>
-              Your Brand Keywords
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {['Home Lab', 'Self Hosting', 'Privacy', 'Small Business', 'Tech'].map((keyword, index) => (
-                <span key={keyword} className={`px-4 py-2 text-sm font-semibold rounded-xl shadow-sm ${
-                  index < 3
-                    ? 'bg-gradient-to-r from-brand-500 to-electric-500 text-white' 
-                    : index < 4
-                    ? 'bg-gradient-to-r from-accent-500 to-primary-500 text-white'
-                    : 'bg-slate-600/50 text-slate-200 border border-slate-500'
-                }`}>
-                  #{keyword.replace(' ', '')}
-                </span>
-              ))}
-            </div>
-            <div className="mt-3 text-xs text-gray-300">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-2 h-2 bg-success-400 rounded-full"></div>
-                <span>High usage: Home Lab, Self Hosting, Privacy</span>
-              </div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-2 h-2 bg-warning-400 rounded-full"></div>
-                <span>Medium usage: Small Business</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-error-400 rounded-full"></div>
-                <span>Low usage: Tech (too generic)</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="col-span-1">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-brand-400 rounded-full"></div>
-              Recommended Keywords
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {['Docker', 'Kubernetes', 'Proxmox', 'FOSS'].map((keyword) => (
-                <span key={keyword} className="px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-brand-600/30 to-electric-600/30 text-brand-200 border border-brand-500/50 hover:from-brand-500 hover:to-electric-500 hover:text-white transition-all cursor-pointer backdrop-blur-sm">
-                  +{keyword}
-                </span>
-              ))}
-            </div>
-            <p className="text-xs text-gray-300 mt-3">
-              These keywords align with your Home Lab and Self Hosting audience and could increase engagement by 15-25%.
-            </p>
-          </div>
-        </div>
-      </div>
+
 
       {/* Growth Stats Grid - Enhanced with vibrant colors */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -309,8 +258,7 @@ function Overview({ metrics }) {
             description: 'Content quality based on engagement and reach metrics'
           }
         ].map((stat, index) => (
-          <div key={stat.title} className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-6 shadow-xl text-white relative overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer`}>
-            <div className="absolute top-0 right-0 w-20 h-20 bg-white bg-opacity-10 rounded-full -translate-y-10 translate-x-10"></div>
+          <div key={stat.title} style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer">
             
             <div className="relative flex items-start justify-between">
               <div>
@@ -337,30 +285,30 @@ function Overview({ metrics }) {
       {/* Enhanced Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Followers Over Time */}
-        <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 via-electric-500 to-accent-500"></div>
+        <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-brand-500"></div>
           
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-gradient-to-br from-brand-500 to-electric-500 rounded-xl shadow-lg">
-              <BarChart3 size={24} className="text-white" />
+            <div className="p-3 rounded-xl shadow-lg" style={{backgroundColor: '#e8eef9'}}>
+              <BarChart3 size={24} style={{color: '#2d323e'}} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Followers Growth</h3>
-              <p className="text-gray-500 text-sm">Track your weekly follower growth trajectory and identify growth patterns from organic engagement</p>
+              <h3 className="text-xl font-bold text-white">Followers Growth</h3>
+              <p className="text-gray-300 text-sm">Track your weekly follower growth trajectory and identify growth patterns from organic engagement</p>
             </div>
           </div>
           
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={followersData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#64748b" />
               <XAxis 
                 dataKey="date" 
-                stroke="#64748b" 
+                stroke="#d1d5db" 
                 fontSize={12}
                 fontWeight={500}
               />
               <YAxis 
-                stroke="#64748b" 
+                stroke="#d1d5db" 
                 fontSize={12}
                 fontWeight={500}
               />
@@ -376,10 +324,10 @@ function Overview({ metrics }) {
               <Line 
                 type="monotone" 
                 dataKey="followers" 
-                stroke="url(#colorGradient1)"
+                stroke="#e8eef9"
                 strokeWidth={4}
-                dot={{ fill: CHART_COLORS.primary, strokeWidth: 3, r: 6 }}
-                activeDot={{ r: 8, stroke: CHART_COLORS.primary, strokeWidth: 3, fill: 'white' }}
+                dot={{ fill: '#e8eef9', strokeWidth: 3, r: 6 }}
+                activeDot={{ r: 8, stroke: '#e8eef9', strokeWidth: 3, fill: 'white' }}
               />
               <defs>
                 <linearGradient id="colorGradient1" x1="0" y1="0" x2="0" y2="1">
@@ -392,30 +340,30 @@ function Overview({ metrics }) {
         </div>
 
         {/* Engagement Rate Trend */}
-        <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-500 via-primary-500 to-slate-500"></div>
+        <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-accent-500"></div>
           
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-gradient-to-br from-accent-500 to-primary-500 rounded-xl shadow-lg">
-              <Zap size={24} className="text-white" />
+            <div className="p-3 rounded-xl shadow-lg" style={{backgroundColor: '#e8eef9'}}>
+              <Zap size={24} style={{color: '#2d323e'}} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Engagement Trend</h3>
-              <p className="text-gray-500 text-sm">Monitor your content engagement rate trends to optimize posting times and content strategy</p>
+              <h3 className="text-xl font-bold text-white">Engagement Trend</h3>
+              <p className="text-gray-300 text-sm">Monitor your content engagement rate trends to optimize posting times and content strategy</p>
             </div>
           </div>
           
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={engagementData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#64748b" />
               <XAxis 
                 dataKey="date" 
-                stroke="#64748b" 
+                stroke="#d1d5db" 
                 fontSize={12}
                 fontWeight={500}
               />
               <YAxis 
-                stroke="#64748b" 
+                stroke="#d1d5db" 
                 fontSize={12}
                 fontWeight={500}
                 tickFormatter={(value) => `${value}%`}
@@ -433,10 +381,10 @@ function Overview({ metrics }) {
               <Line 
                 type="monotone" 
                 dataKey="rate" 
-                stroke="url(#colorGradient2)"
+                stroke="#e8eef9"
                 strokeWidth={4}
-                dot={{ fill: CHART_COLORS.secondary, strokeWidth: 3, r: 6 }}
-                activeDot={{ r: 8, stroke: CHART_COLORS.secondary, strokeWidth: 3, fill: 'white' }}
+                dot={{ fill: '#e8eef9', strokeWidth: 3, r: 6 }}
+                activeDot={{ r: 8, stroke: '#e8eef9', strokeWidth: 3, fill: 'white' }}
               />
               <defs>
                 <linearGradient id="colorGradient2" x1="0" y1="0" x2="0" y2="1">

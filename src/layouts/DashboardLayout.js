@@ -73,7 +73,7 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
               </div>
               {isSidebarOpen && (
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Labb Analytics</h1>
+                  <h1 className="text-lg font-bold text-gray-900">@labb.run BlueSky Analytics Dashboard</h1>
                   <p className="text-xs text-gray-500">Professional Suite</p>
                 </div>
               )}
@@ -114,9 +114,10 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
                   to={item.path}
                   className={`group flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 relative ${
                     isActive
-                      ? 'bg-gradient-to-r from-brand-500 to-electric-500 text-white shadow-lg shadow-brand-500/25'
+                      ? 'text-white shadow-lg' 
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                   }`}
+                  style={isActive ? { backgroundColor: '#0c2146' } : {}}
                 >
                   <item.icon size={20} className={`${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'} transition-colors`} />
                   {isSidebarOpen && (
