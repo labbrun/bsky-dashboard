@@ -402,7 +402,7 @@ function Performance({ metrics }) {
       </div>
 
       {/* Brand Keyword Alignment - Dark theme feature section */}
-      <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+      <div style={{backgroundColor: '#0c2146'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 via-electric-500 to-accent-500"></div>
         
         <div className="flex items-center gap-4 mb-6">
@@ -434,7 +434,7 @@ function Performance({ metrics }) {
             </h4>
             <div className="flex flex-wrap gap-2">
               {['Home Lab', 'Self Hosting', 'Privacy', 'Small Business', 'Tech'].map((keyword, index) => {
-                const analysis = brandKeywordAnalysis[keyword];
+                // const analysis = brandKeywordAnalysis[keyword]; // Available for future use
                 return (
                   <button
                     key={keyword}

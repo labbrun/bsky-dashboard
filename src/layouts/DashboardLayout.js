@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   BarChart3,
   TrendingUp,
@@ -24,6 +24,7 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navigationItems = [
     {
@@ -67,17 +68,30 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
         {/* Sidebar Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <div className={`flex items-center gap-3 ${isSidebarOpen ? '' : 'justify-center'}`}>
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-brand-500 rounded-xl flex items-center justify-center shadow-lg">
-                <BarChart3 size={20} className="text-white" />
+            <button 
+              onClick={() => navigate('/')}
+              className={`flex items-center gap-3 hover:opacity-80 transition-opacity ${isSidebarOpen ? '' : 'justify-center'}`}
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-brand-500 rounded-xl flex items-center justify-center shadow-lg p-2">
+                <img 
+                  src={require('../assets/bluesky-logo.png')} 
+                  alt="Bluesky Logo" 
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    // Fallback to chart icon if logo doesn't load
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <BarChart3 size={20} className="text-white" style={{display: 'none'}} />
               </div>
               {isSidebarOpen && (
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">@labb.run BlueSky Analytics Dashboard</h1>
-                  <p className="text-xs text-gray-500">Professional Suite</p>
+                  <h1 className="text-lg font-bold text-gray-900">Bluesky Dashboard</h1>
+                  <p className="text-xs text-gray-500">Analytics & Insights</p>
                 </div>
               )}
-            </div>
+            </button>
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 lg:flex hidden"

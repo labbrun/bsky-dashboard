@@ -1,5 +1,7 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import CelebrationOverlay from '../components/CelebrationOverlay';
+import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
 import { 
   TrendingUp, 
   Users, 
@@ -29,11 +31,26 @@ const CHART_COLORS = {
 };
 
 function Overview({ metrics }) {
-  const [selectedKeyword, setSelectedKeyword] = React.useState(null);
+  // const [selectedKeyword, setSelectedKeyword] = React.useState(null); // Moved to Performance page
+  const [showCelebration, setShowCelebration] = React.useState(false);
+  const [celebrationMessage, setCelebrationMessage] = React.useState('');
+
+  // Check for celebration conditions on component mount
+  React.useEffect(() => {
+    if (metrics && shouldShowCelebration()) {
+      const celebrations = checkCelebrationConditions(metrics);
+      if (celebrations.length > 0) {
+        const message = formatCelebrationMessage(celebrations);
+        setCelebrationMessage(message);
+        setShowCelebration(true);
+        markCelebrationShown();
+      }
+    }
+  }, [metrics]);
   
 
-  // AI-powered keyword explanations
-  const keywordExplanations = {
+  // AI-powered keyword explanations (moved to Performance page)
+  /*const keywordExplanations = {
     'Docker': {
       why: 'Docker is essential for Home Lab enthusiasts who want containerized applications. Your audience actively uses Docker for self-hosting services.',
       benefit: 'Posts about Docker tutorials and Home Lab setups get 40% higher engagement than generic tech posts.',
@@ -54,7 +71,7 @@ function Overview({ metrics }) {
       benefit: 'FOSS-focused content gets 2.5x more amplification through retweets and mentions.',
       trend: 'FOSS content creates strong community engagement and positions you as a thought leader in Privacy tech.'
     }
-  };
+  };*/
 
   // Real data based on metrics - will be replaced with actual API data
   const followersData = metrics ? [
@@ -91,6 +108,13 @@ function Overview({ metrics }) {
 
   return (
     <div className="space-y-8">
+      {/* Celebration Overlay */}
+      {showCelebration && (
+        <CelebrationOverlay 
+          message={celebrationMessage}
+          onComplete={() => setShowCelebration(false)}
+        />
+      )}
       {/* Bluesky-Style Profile Header - Using brand colors */}
       <div className="relative">
         {/* Background Banner */}
@@ -130,7 +154,7 @@ function Overview({ metrics }) {
             </div>
             
             {/* Profile Info */}
-            <div style={{backgroundColor: '#2D323E'}} className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700">
+            <div style={{backgroundColor: '#0c2146'}} className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex-1">
                   <h1 className="text-2xl font-bold text-white mb-1">{metrics.displayName}</h1>
@@ -170,7 +194,7 @@ function Overview({ metrics }) {
       </div>
 
       {/* AI Summary & Suggestions - Dark theme with flat colors */}
-      <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
+      <div style={{backgroundColor: '#0c2146'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         
         <div className="relative flex items-start gap-4">
           <div className="p-3 rounded-xl" style={{backgroundColor: '#e8eef9'}}>
@@ -191,15 +215,15 @@ function Overview({ metrics }) {
               </div>
               <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock size={16} className="text-brand-400" />
-                  <span className="text-brand-400 font-semibold text-sm">Timing</span>
+                  <Clock size={16} className="text-success-400" />
+                  <span className="text-success-400 font-semibold text-sm">Timing</span>
                 </div>
                 <p className="text-gray-300 text-sm">Post between 2-4 PM for 45% higher engagement rates.</p>
               </div>
               <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Target size={16} className="text-accent-400" />
-                  <span className="text-accent-400 font-semibold text-sm">Content</span>
+                  <Target size={16} className="text-success-400" />
+                  <span className="text-success-400 font-semibold text-sm">Content</span>
                 </div>
                 <p className="text-gray-300 text-sm">Tech-focused posts get 3x more amplification. Double down on this!</p>
               </div>
@@ -258,7 +282,7 @@ function Overview({ metrics }) {
             description: 'Content quality based on engagement and reach metrics'
           }
         ].map((stat, index) => (
-          <div key={stat.title} style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer">
+          <div key={stat.title} style={{backgroundColor: '#0c2146'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer">
             
             <div className="relative flex items-start justify-between">
               <div>
@@ -285,7 +309,7 @@ function Overview({ metrics }) {
       {/* Enhanced Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Followers Over Time */}
-        <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+        <div style={{backgroundColor: '#0c2146'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-brand-500"></div>
           
           <div className="flex items-center gap-4 mb-6">
@@ -340,7 +364,7 @@ function Overview({ metrics }) {
         </div>
 
         {/* Engagement Rate Trend */}
-        <div style={{backgroundColor: '#2D323E'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+        <div style={{backgroundColor: '#0c2146'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-accent-500"></div>
           
           <div className="flex items-center gap-4 mb-6">
