@@ -13,7 +13,6 @@ function ProfileCard({ handle, showRecentPost = false, className = '' }) {
         const data = await fetchProfileData(handle);
         setProfileData(data);
       } catch (error) {
-        console.error('Error loading profile:', error);
       } finally {
         setLoading(false);
       }

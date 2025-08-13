@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "WebFetch(domain:bsky.app)"
+      "WebFetch(domain:bsky.app)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

@@ -1,8 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { TrendingUp, AlertCircle, FileText, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
-// Import services
+// Configuration
+import { APP_CONFIG } from './config/app.config';
+
+// Services
 import { testConnection, upsertProfile, insertPosts } from './services/supabaseService';
 import { fetchBlueskyUserData, testBlueskyAPI } from './services/blueskyService';
 
@@ -14,59 +17,44 @@ import Insights from './pages/Insights';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem('labb-analytics-logged-in') === 'true';
+    return localStorage.getItem(APP_CONFIG.auth.storageKey) === 'true';
   });
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState('');
 
-  // Fixed handle for labb.run
-  const FIXED_HANDLE = 'labb.run';
+  const FIXED_HANDLE = APP_CONFIG.api.defaultHandle;
 
   // Fetch data from Bluesky API
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setDebugInfo('🔄 Fetching comprehensive analytics...');
     
     try {
-      setDebugInfo('🔗 Testing Bluesky API connection...');
       const apiWorking = await testBlueskyAPI();
       if (!apiWorking) {
         throw new Error('Failed to connect to Bluesky API');
       }
       
-      setDebugInfo(`📊 Fetching data for @${FIXED_HANDLE}...`);
       const data = await fetchBlueskyUserData(FIXED_HANDLE);
       
-      console.log('✅ Bluesky Data:', data);
-      setDebugInfo(`✅ Live data loaded for @${FIXED_HANDLE}`);
       setMetrics(data);
 
       // Optional: Sync to Supabase for storage/analytics
       try {
-        setDebugInfo('💾 Syncing to database...');
         const connectionResult = await testConnection();
         if (connectionResult.connected && connectionResult.tablesExist) {
           await upsertProfile(data);
           await insertPosts(data.handle, data.recentPosts);
-          setDebugInfo('✅ Data synced to database');
         } else {
-          console.log('Database not available, using live data only');
-          setDebugInfo('✅ Live data loaded (database sync skipped)');
         }
       } catch (dbError) {
-        console.log('Database sync failed, using live data only:', dbError);
-        setDebugInfo('✅ Live data loaded (database sync failed)');
       }
       
     } catch (err) {
-      console.error('❌ Data Fetch Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      setDebugInfo(`❌ Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -80,9 +68,9 @@ function App() {
 
   const handleLogin = (e) => {
     e?.preventDefault();
-    if (password === 'labb2025') {
+    if (password === APP_CONFIG.auth.password) {
       setIsLoggedIn(true);
-      localStorage.setItem('labb-analytics-logged-in', 'true');
+      localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
     } else {
       alert('Incorrect password');
     }
@@ -92,9 +80,8 @@ function App() {
     setIsLoggedIn(false);
     setMetrics(null);
     setError(null);
-    setDebugInfo('');
     setPassword('');
-    localStorage.removeItem('labb-analytics-logged-in');
+    localStorage.removeItem(APP_CONFIG.auth.storageKey);
   };
 
   // Login Screen
@@ -160,12 +147,9 @@ function App() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50">
         <div className="text-center bg-white p-12 rounded-2xl shadow-xl border border-primary-200">
           <div className="w-15 h-15 border-4 border-primary-200 border-t-brand-500 rounded-full animate-spin mx-auto mb-8"></div>
-          <h2 className="text-xl font-semibold text-primary-900 mb-2">
+          <h2 className="text-xl font-semibold text-primary-900">
             Loading Analytics Suite...
           </h2>
-          <p className="text-primary-600 text-base">
-            {debugInfo}
-          </p>
         </div>
       </div>
     );

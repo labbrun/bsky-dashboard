@@ -15,7 +15,6 @@ export const getProfile = async (handle) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching profile:', error);
     throw error;
   }
 };
@@ -37,7 +36,6 @@ export const getAuthorFeed = async (handle, limit = 25, cursor = null) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching author feed:', error);
     throw error;
   }
 };
@@ -59,7 +57,6 @@ export const getFollowers = async (handle, limit = 100, cursor = null) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching followers:', error);
     throw error;
   }
 };
@@ -81,7 +78,6 @@ export const getFollows = async (handle, limit = 100, cursor = null) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching follows:', error);
     throw error;
   }
 };
@@ -126,7 +122,6 @@ export const transformBlueskyData = (profile, posts, followers) => {
 // Main function to fetch all user data
 export const fetchBlueskyUserData = async (handle) => {
   try {
-    console.log(`Fetching Bluesky data for: ${handle}`);
     
     // Fetch profile, posts, and followers in parallel
     const [profileData, feedData, followersData] = await Promise.all([
@@ -135,10 +130,6 @@ export const fetchBlueskyUserData = async (handle) => {
       getFollowers(handle, 10)
     ]);
     
-    console.log('Profile data:', profileData);
-    console.log('Feed data:', feedData);
-    console.log('Followers data:', followersData);
-    
     // Transform and return data
     const transformedData = transformBlueskyData(
       profileData,
@@ -146,11 +137,9 @@ export const fetchBlueskyUserData = async (handle) => {
       followersData.followers || []
     );
     
-    console.log('Transformed data:', transformedData);
     return transformedData;
     
   } catch (error) {
-    console.error('Error fetching Bluesky user data:', error);
     throw error;
   }
 };
@@ -161,10 +150,8 @@ export const testBlueskyAPI = async () => {
     // Test with a known public account
     const testHandle = 'bsky.app';
     const profile = await getProfile(testHandle);
-    console.log('Bluesky API test successful:', profile);
     return true;
   } catch (error) {
-    console.error('Bluesky API test failed:', error);
     return false;
   }
 };

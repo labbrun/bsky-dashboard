@@ -25,22 +25,48 @@ This is a React-based Bluesky analytics dashboard built with Create React App. T
 
 ### Application Structure
 
-#### Main Components
-- **App.js** (`src/App.js:1-783`) - Main application component containing:
-  - Authentication system with password protection
-  - Dashboard with multiple tabs (Overview, Audience Analytics, Content Performance, etc.)
-  - API integration with external metrics endpoint
-  - Profile header with user stats display
-  - Data visualization charts using Recharts
-  - Recent posts timeline with engagement metrics
-  - Followers display
+```
+src/
+├── components/           # Reusable UI components
+│   ├── ui/              # Untitled UI component library
+│   ├── CelebrationOverlay.js
+│   └── ProfileCard.js
+├── config/              # Application configuration
+│   └── app.config.js    # Centralized app settings
+├── constants/           # Application constants
+│   └── index.js         # Navigation, metrics, messages
+├── hooks/               # Custom React hooks
+├── layouts/             # Layout components
+│   └── DashboardLayout.js
+├── pages/               # Page components
+│   ├── Overview.js
+│   ├── Performance.js
+│   └── Insights.js
+├── services/            # API and data services
+│   ├── blueskyService.js
+│   ├── profileService.js
+│   └── supabaseService.js
+├── styles/              # Global styles
+│   └── untitled-ui-variables.css
+├── utils/               # Utility functions
+│   ├── celebrationUtils.js
+│   └── errorHandler.js
+├── assets/              # Static assets
+│   └── untitled-ui/     # Untitled UI design system assets
+└── App.js               # Main application component
+```
 
-#### Styling
-- **App.css** - Comprehensive dark theme CSS with custom CSS variables
-  - Dark mode color palette with variables like `--dark-bg`, `--dark-card`, etc.
-  - Custom component classes (`.dark-card`, `.dark-button-primary`, etc.)
-  - Typography system with consistent font sizes and weights
-  - Base font size: 14px (configurable via `--font-size`)
+#### Key Components
+- **App.js** - Main application with authentication and routing
+- **DashboardLayout** - Sidebar navigation and main layout
+- **UntitledUIComponents** - Reusable UI component library
+- **Pages** - Overview, Performance, and Insights analytics views
+
+#### Styling System
+- **Untitled UI Design System** - Professional component library
+- **Inter Font Family** - Primary typography
+- **CSS Variables** - Consistent spacing, colors, and shadows
+- **Tailwind CSS** - Utility-first styling framework
 
 #### Application Flow
 1. **Login Screen** - Password-protected access to dashboard

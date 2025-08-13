@@ -84,7 +84,6 @@ export const fetchUserMetrics = async (handle) => {
       })) || []
     };
   } catch (error) {
-    console.error('Error fetching user metrics from Supabase:', error);
     throw error;
   }
 };
@@ -108,7 +107,6 @@ export const upsertProfile = async (profileData) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error upserting profile:', error);
     throw error;
   }
 };
@@ -134,7 +132,6 @@ export const insertPosts = async (handle, posts) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error inserting posts:', error);
     throw error;
   }
 };
@@ -149,17 +146,14 @@ export const testConnection = async () => {
       .limit(1);
     
     if (error) {
-      console.error('Supabase connection error:', error);
       // If table doesn't exist, that's still a successful connection
       if (error.code === 'PGRST106' || error.message.includes('does not exist')) {
-        console.log('Tables do not exist yet, but connection is working');
         return { connected: true, tablesExist: false, error: error.message };
       }
       throw error;
     }
     return { connected: true, tablesExist: true };
   } catch (error) {
-    console.error('Supabase connection test failed:', error);
     return { connected: false, error: error.message };
   }
 };

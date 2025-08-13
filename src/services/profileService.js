@@ -24,7 +24,6 @@ export async function fetchProfileData(handle) {
         : null
     };
   } catch (error) {
-    console.error(`Error fetching profile data for ${handle}:`, error);
     return {
       avatar: 'https://via.placeholder.com/40',
       displayName: handle,

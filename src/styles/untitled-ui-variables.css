@@ -1,0 +1,259 @@
+/* Untitled UI PRO Variables v7.0 */
+/* Based on Untitled UI Design System */
+
+:root {
+  /* Spacing Scale */
+  --spacing-none: 0px;
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  --spacing-2xl: 20px;
+  --spacing-3xl: 24px;
+  --spacing-4xl: 32px;
+  --spacing-5xl: 40px;
+  --spacing-6xl: 48px;
+  --spacing-7xl: 64px;
+  --spacing-8xl: 80px;
+  --spacing-9xl: 96px;
+  --spacing-10xl: 128px;
+  --spacing-11xl: 160px;
+
+  /* Border Radius */
+  --radius-none: 0px;
+  --radius-xxs: 2px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0px 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08), 0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+  --shadow-2xl: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
+  --shadow-3xl: 0px 32px 64px -12px rgba(16, 24, 40, 0.14);
+
+  /* Blur */
+  --blur-sm: 8px;
+  --blur-md: 12px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+  --blur-2xl: 40px;
+  --blur-3xl: 64px;
+
+  /* Typography - Font Sizes */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --display-xs: 24px;
+  --display-sm: 30px;
+  --display-md: 36px;
+  --display-lg: 48px;
+  --display-xl: 60px;
+  --display-2xl: 72px;
+
+  /* Typography - Line Heights */
+  --line-height-xs: 18px;
+  --line-height-sm: 20px;
+  --line-height-md: 24px;
+  --line-height-lg: 28px;
+  --line-height-xl: 30px;
+  --line-height-display-xs: 32px;
+  --line-height-display-sm: 38px;
+  --line-height-display-md: 44px;
+  --line-height-display-lg: 60px;
+  --line-height-display-xl: 72px;
+  --line-height-display-2xl: 90px;
+
+  /* Typography - Font Weights */
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Component Specific Variables */
+  
+  /* Buttons */
+  --button-border-radius: var(--radius-md);
+  --button-padding-x-sm: var(--spacing-lg);
+  --button-padding-y-sm: var(--spacing-md);
+  --button-padding-x-md: var(--spacing-xl);
+  --button-padding-y-md: var(--spacing-lg);
+  --button-padding-x-lg: var(--spacing-2xl);
+  --button-padding-y-lg: var(--spacing-xl);
+  --button-padding-x-xl: var(--spacing-3xl);
+  --button-padding-y-xl: var(--spacing-2xl);
+  --button-shadow: var(--shadow-xs);
+  --button-shadow-hover: var(--shadow-sm);
+  
+  /* Cards */
+  --card-border-radius: var(--radius-lg);
+  --card-padding: var(--spacing-3xl);
+  --card-padding-sm: var(--spacing-xl);
+  --card-padding-lg: var(--spacing-4xl);
+  --card-shadow: var(--shadow-md);
+  --card-shadow-hover: var(--shadow-lg);
+  --card-border-width: 1px;
+  
+  /* Inputs */
+  --input-border-radius: var(--radius-md);
+  --input-padding-x: var(--spacing-lg);
+  --input-padding-y: var(--spacing-md);
+  --input-border-width: 1px;
+  --input-shadow: var(--shadow-xs);
+  --input-shadow-focus: 0px 0px 0px 4px rgba(158, 119, 237, 0.24);
+  
+  /* Badges */
+  --badge-border-radius: var(--radius-2xl);
+  --badge-padding-x: var(--spacing-md);
+  --badge-padding-y: var(--spacing-xxs);
+  
+  /* Avatars */
+  --avatar-size-xs: 24px;
+  --avatar-size-sm: 32px;
+  --avatar-size-md: 40px;
+  --avatar-size-lg: 48px;
+  --avatar-size-xl: 56px;
+  --avatar-size-2xl: 64px;
+  --avatar-border-radius: var(--radius-full);
+  
+  /* Navigation */
+  --nav-height: 64px;
+  --nav-padding-x: var(--spacing-3xl);
+  --nav-item-padding-x: var(--spacing-xl);
+  --nav-item-padding-y: var(--spacing-md);
+  
+  /* Sidebar */
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 80px;
+  --sidebar-padding: var(--spacing-3xl);
+  
+  /* Modal */
+  --modal-border-radius: var(--radius-xl);
+  --modal-padding: var(--spacing-3xl);
+  --modal-width-sm: 400px;
+  --modal-width-md: 600px;
+  --modal-width-lg: 800px;
+  --modal-width-xl: 1024px;
+  --modal-shadow: var(--shadow-xl);
+  
+  /* Table */
+  --table-border-radius: var(--radius-lg);
+  --table-cell-padding-x: var(--spacing-3xl);
+  --table-cell-padding-y: var(--spacing-xl);
+  --table-header-height: 44px;
+  --table-row-height: 72px;
+  
+  /* Tooltips */
+  --tooltip-border-radius: var(--radius-md);
+  --tooltip-padding-x: var(--spacing-lg);
+  --tooltip-padding-y: var(--spacing-md);
+  --tooltip-shadow: var(--shadow-lg);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-slower: 500ms ease;
+  
+  /* Z-index Scale */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  --z-max: 9999;
+}
+
+/* Utility Classes */
+.untitled-shadow-xs { box-shadow: var(--shadow-xs); }
+.untitled-shadow-sm { box-shadow: var(--shadow-sm); }
+.untitled-shadow-md { box-shadow: var(--shadow-md); }
+.untitled-shadow-lg { box-shadow: var(--shadow-lg); }
+.untitled-shadow-xl { box-shadow: var(--shadow-xl); }
+.untitled-shadow-2xl { box-shadow: var(--shadow-2xl); }
+.untitled-shadow-3xl { box-shadow: var(--shadow-3xl); }
+
+.untitled-transition-fast { transition: all var(--transition-fast); }
+.untitled-transition-base { transition: all var(--transition-base); }
+.untitled-transition-slow { transition: all var(--transition-slow); }
+.untitled-transition-slower { transition: all var(--transition-slower); }
+
+/* Component Classes */
+.untitled-card {
+  background: white;
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow);
+  border: var(--card-border-width) solid rgb(234, 236, 240);
+  transition: all var(--transition-base);
+}
+
+.untitled-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+.untitled-button {
+  border-radius: var(--button-border-radius);
+  padding: var(--button-padding-y-md) var(--button-padding-x-md);
+  font-weight: var(--font-semibold);
+  box-shadow: var(--button-shadow);
+  transition: all var(--transition-fast);
+  font-size: var(--text-sm);
+  line-height: var(--line-height-sm);
+}
+
+.untitled-button:hover {
+  box-shadow: var(--button-shadow-hover);
+}
+
+.untitled-input {
+  border-radius: var(--input-border-radius);
+  padding: var(--input-padding-y) var(--input-padding-x);
+  border: var(--input-border-width) solid rgb(208, 213, 221);
+  box-shadow: var(--input-shadow);
+  transition: all var(--transition-fast);
+  font-size: var(--text-md);
+  line-height: var(--line-height-md);
+}
+
+.untitled-input:focus {
+  outline: none;
+  border-color: rgb(158, 119, 237);
+  box-shadow: var(--input-shadow-focus);
+}
+
+.untitled-badge {
+  border-radius: var(--badge-border-radius);
+  padding: var(--badge-padding-y) var(--badge-padding-x);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  display: inline-flex;
+  align-items: center;
+}
+
+.untitled-avatar {
+  border-radius: var(--avatar-border-radius);
+  object-fit: cover;
+}
+
+.untitled-avatar-md {
+  width: var(--avatar-size-md);
+  height: var(--avatar-size-md);
+}
