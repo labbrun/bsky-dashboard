@@ -1,3 +1,6 @@
+// Application Entry Point
+// Renders the main App component to the DOM root element
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

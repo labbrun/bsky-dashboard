@@ -11,7 +11,7 @@ export const APP_CONFIG = {
   // Authentication
   auth: {
     storageKey: 'labb-analytics-logged-in',
-    password: 'labb2025', // In production, this should be environment variable
+    password: process.env.REACT_APP_AUTH_PASSWORD || 'dev-password-2025', // Use environment variable in production
   },
   
   // UI Configuration

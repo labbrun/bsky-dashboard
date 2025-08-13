@@ -2,6 +2,7 @@
 // Provides real-time access to updated customer avatar and target audience data
 
 import { LABBRUN_CUSTOMER_AVATAR } from '../config/labbrun-customer-avatar.config';
+import logger from '../services/loggingService';
 
 // External file paths
 const EXTERNAL_FILES = {
@@ -42,7 +43,7 @@ export class CustomerDataLoader {
       
     } catch (error) {
       // Fallback to default config if external files can't be accessed
-      console.warn('Using default customer avatar config:', error.message);
+      logger.warn('Using default customer avatar config', { error: error.message });
       return LABBRUN_CUSTOMER_AVATAR;
     }
   }
@@ -81,7 +82,7 @@ export class CustomerDataLoader {
       // 3. Update the cached configuration
       
     } catch (error) {
-      console.error('Failed to load external customer data:', error);
+      logger.error('Failed to load external customer data', { error: error.message, stack: error.stack });
       cachedCustomerData = LABBRUN_CUSTOMER_AVATAR;
     } finally {
       this.isLoading = false;
@@ -190,30 +191,7 @@ export const getCurrentCustomerAvatar = () => customerDataLoader.getCustomerData
 export const refreshCustomerData = () => customerDataLoader.refresh();
 export const getAIContext = () => customerDataLoader.getAIContext();
 
-// Hook for React components
-export const useCustomerData = () => {
-  const [customerData, setCustomerData] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      const data = await customerDataLoader.getCustomerData();
-      setCustomerData(data);
-      setLoading(false);
-    };
-
-    loadData();
-  }, []);
-
-  const refresh = async () => {
-    setLoading(true);
-    const data = await customerDataLoader.refresh();
-    setCustomerData(data);
-    setLoading(false);
-  };
-
-  return { customerData, loading, refresh };
-};
+// Note: React hooks moved to components that use them directly
+// This eliminates the import dependency issue
 
 export default CustomerDataLoader;

@@ -1,3 +1,6 @@
+// Supabase Client Configuration
+// Creates and exports configured Supabase client for database operations
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://placeholder.supabase.co'

@@ -69,13 +69,17 @@ export const handleError = (error) => {
   };
 };
 
-// Log errors in development only
+import logger from '../services/loggingService';
+
+// Log errors using centralized logging service
 export const logError = (error, context = '') => {
-  if (process.env.NODE_ENV === 'development') {
-    console.group(`🔴 Error ${context ? `in ${context}` : ''}`);
-    console.error('Message:', error.message);
-    console.error('Stack:', error.stack);
-    console.error('Details:', error);
-    console.groupEnd();
-  }
+  logger.error(
+    `${context ? `${context}: ` : ''}${error.message}`,
+    {
+      stack: error.stack,
+      details: error,
+      errorType: error.name || 'Error'
+    },
+    context
+  );
 };

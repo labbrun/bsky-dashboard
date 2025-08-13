@@ -1,3 +1,6 @@
+// Application Constants
+// Centralized constants for navigation, metrics, time ranges, messages, and thresholds
+
 // Navigation Items
 export const NAVIGATION_ITEMS = [
   { 
