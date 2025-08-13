@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   TrendingUp, 
@@ -11,11 +11,78 @@ import {
   Package,
   ArrowRight,
   Star,
-  Calendar
+  Calendar,
+  Target,
+  MessageSquare,
+  Award,
+  RefreshCw,
+  Settings,
+  AlertCircle
 } from 'lucide-react';
 
+// Import AI insights system
+import AIInsightsGenerator, { 
+  INSIGHT_CATEGORIES, 
+  getInsightIcon, 
+  getInsightColor 
+} from '../services/aiInsightsService';
+import { CUSTOMER_AVATAR } from '../config/customer-avatar.config';
+import { LABBRUN_CUSTOMER_AVATAR } from '../config/labbrun-customer-avatar.config';
+
 function Insights({ metrics }) {
-  // Sample insights data
+  const [aiInsights, setAiInsights] = useState({});
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(INSIGHT_CATEGORIES.CONTENT_STRATEGY);
+  const [customerSegment, setCustomerSegment] = useState('labbrun-primary');
+  const [insightsGenerator, setInsightsGenerator] = useState(null);
+
+  // Initialize AI insights generator
+  useEffect(() => {
+    const generator = new AIInsightsGenerator(customerSegment);
+    setInsightsGenerator(generator);
+  }, [customerSegment]);
+
+  // Generate AI insights when metrics are available
+  useEffect(() => {
+    if (metrics && insightsGenerator && Object.keys(aiInsights).length === 0) {
+      generateAllInsights();
+    }
+  }, [metrics, insightsGenerator]);
+
+  const generateAllInsights = async () => {
+    if (!insightsGenerator || !metrics) return;
+
+    setLoadingInsights(true);
+    const categories = Object.values(INSIGHT_CATEGORIES);
+    const insights = {};
+
+    for (const category of categories) {
+      try {
+        insights[category] = await insightsGenerator.generateMockInsights(metrics, category);
+      } catch (error) {
+        insights[category] = {
+          title: 'Insights Unavailable',
+          insights: [{
+            type: 'error',
+            title: 'Unable to generate insights',
+            description: 'Please try again later or check your data.',
+            actionable: false
+          }],
+          metrics: []
+        };
+      }
+    }
+
+    setAiInsights(insights);
+    setLoadingInsights(false);
+  };
+
+  const refreshInsights = async () => {
+    setAiInsights({});
+    await generateAllInsights();
+  };
+
+  // Sample insights data (kept as fallback)
   const topPerformers = [
     {
       topic: "AI Development",
@@ -181,6 +248,28 @@ function Insights({ metrics }) {
     }
   ];
 
+  // Get current customer avatar info
+  const currentAvatar = customerSegment === 'labbrun-primary' 
+    ? {
+        id: 'labbrun-primary',
+        name: 'LabbRun Primary Audience (Alex Carter)',
+        description: LABBRUN_CUSTOMER_AVATAR.primaryAvatar.description,
+        demographics: LABBRUN_CUSTOMER_AVATAR.primaryAvatar.demographics,
+        psychographics: {
+          values: LABBRUN_CUSTOMER_AVATAR.primaryAvatar.values.slice(0, 3),
+          interests: ['Self-hosting', 'Home labs', 'Cost optimization', 'Privacy & security'],
+          painPoints: LABBRUN_CUSTOMER_AVATAR.primaryAvatar.painPoints,
+          goals: LABBRUN_CUSTOMER_AVATAR.primaryAvatar.goals.shortTerm
+        },
+        contentPreferences: {
+          formats: ['Step-by-step tutorials', 'Tool reviews', 'Cost comparisons', 'Problem-solving guides'],
+          tone: 'Practical, educational, peer-to-peer',
+          topics: ['Self-hosting', 'Home automation', 'Business efficiency', 'Privacy tools']
+        }
+      }
+    : CUSTOMER_AVATAR.segments.find(s => s.id === customerSegment) || CUSTOMER_AVATAR.segments[0];
+  const currentInsights = aiInsights[selectedCategory];
+
   if (!metrics) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -195,33 +284,181 @@ function Insights({ metrics }) {
 
   return (
     <div className="space-y-8">
-      {/* AI Summary & Suggestions */}
+      {/* Header with Customer Avatar Context */}
       <div className="bg-gradient-to-br from-accent-50 to-electric-50 border border-accent-200 rounded-xl p-6">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-accent-500 rounded-lg">
-            <Sparkles size={20} className="text-white" />
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-accent-500 rounded-lg">
+              <Sparkles size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-primary-900">AI Insights Dashboard</h1>
+              <p className="text-primary-600 text-sm">Personalized recommendations for {currentAvatar.name}</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-primary-900 mb-3">Strategic Insights</h2>
-            <div className="space-y-3">
-              <div className="flex items-start gap-2">
-                <Star size={16} className="text-success-500 mt-1 flex-shrink-0" />
-                <p className="text-primary-700">Your technical AI threads consistently outperform other content by 45%. Double down on this format.</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <Clock size={16} className="text-brand-500 mt-1 flex-shrink-0" />
-                <p className="text-primary-700">Posting between 2-4 PM on weekdays yields 38% higher engagement rates. Optimize your scheduling.</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <Users size={16} className="text-electric-500 mt-1 flex-shrink-0" />
-                <p className="text-primary-700">Your mutual follower network is highly engaged. Focus on building relationships with key amplifiers.</p>
-              </div>
+          <div className="flex items-center gap-2">
+            <select 
+              value={customerSegment}
+              onChange={(e) => setCustomerSegment(e.target.value)}
+              className="text-sm border border-accent-300 rounded-lg px-3 py-2 bg-white"
+            >
+              <option value="labbrun-primary">LabbRun Primary (Home Lab & Self-Hosting)</option>
+              {CUSTOMER_AVATAR.segments.map(segment => (
+                <option key={segment.id} value={segment.id}>{segment.name}</option>
+              ))}
+            </select>
+            <button 
+              onClick={refreshInsights}
+              disabled={loadingInsights}
+              className="p-2 text-accent-600 hover:bg-accent-100 rounded-lg transition-colors disabled:opacity-50"
+              title="Refresh insights"
+            >
+              <RefreshCw size={16} className={loadingInsights ? 'animate-spin' : ''} />
+            </button>
+          </div>
+        </div>
+        
+        <div className="bg-white/50 rounded-lg p-4 mb-4">
+          <h3 className="font-semibold text-primary-900 mb-2">Target Audience Context</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="font-medium text-primary-700">Demographics:</span>
+              <p className="text-primary-600">{currentAvatar.demographics.ageRange}, {currentAvatar.demographics.occupation}</p>
+            </div>
+            <div>
+              <span className="font-medium text-primary-700">Key Values:</span>
+              <p className="text-primary-600">{currentAvatar.psychographics.values.join(', ')}</p>
+            </div>
+            <div>
+              <span className="font-medium text-primary-700">Content Preferences:</span>
+              <p className="text-primary-600">{currentAvatar.contentPreferences.formats.slice(0, 2).join(', ')}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Performance Analysis */}
+      {/* Insight Categories Navigation */}
+      <div className="bg-white border border-primary-200 rounded-xl p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-primary-900 mb-4">Insight Categories</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          {Object.values(INSIGHT_CATEGORIES).map(category => {
+            const IconComponent = {
+              FileText,
+              Users,
+              MessageSquare,
+              TrendingUp,
+              Target,
+              Clock,
+              Award
+            }[getInsightIcon(category)] || Lightbulb;
+            
+            const isActive = selectedCategory === category;
+            const color = getInsightColor(category);
+            
+            return (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`p-3 rounded-lg border-2 transition-all text-center ${
+                  isActive 
+                    ? `border-${color}-500 bg-${color}-50 text-${color}-700` 
+                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                }`}
+              >
+                <IconComponent size={20} className="mx-auto mb-1" />
+                <p className="text-xs font-medium capitalize">
+                  {category.replace('_', ' ')}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* AI-Generated Insights */}
+      {currentInsights && (
+        <div className="bg-white border border-primary-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-primary-900">{currentInsights.title}</h2>
+            {loadingInsights && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>}
+          </div>
+          
+          {/* Key Metrics */}
+          {currentInsights.metrics && currentInsights.metrics.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {currentInsights.metrics.map((metric, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">{metric.label}</p>
+                  <p className="text-lg font-bold text-primary-900">{metric.value}</p>
+                  {metric.trend && (
+                    <div className="flex items-center gap-1 mt-1">
+                      {metric.trend === 'up' ? (
+                        <TrendingUp size={12} className="text-success-500" />
+                      ) : metric.trend === 'down' ? (
+                        <TrendingDown size={12} className="text-error-500" />
+                      ) : null}
+                      <span className={`text-xs ${
+                        metric.trend === 'up' ? 'text-success-600' :
+                        metric.trend === 'down' ? 'text-error-600' : 'text-gray-600'
+                      }`}>{metric.trend}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Insights List */}
+          <div className="space-y-4">
+            {currentInsights.insights.map((insight, index) => {
+              const bgColor = {
+                finding: 'bg-blue-50 border-blue-200',
+                recommendation: 'bg-green-50 border-green-200', 
+                opportunity: 'bg-purple-50 border-purple-200',
+                error: 'bg-red-50 border-red-200'
+              }[insight.type] || 'bg-gray-50 border-gray-200';
+              
+              const iconColor = {
+                finding: 'text-blue-600',
+                recommendation: 'text-green-600',
+                opportunity: 'text-purple-600', 
+                error: 'text-red-600'
+              }[insight.type] || 'text-gray-600';
+              
+              return (
+                <div key={index} className={`border rounded-lg p-4 ${bgColor}`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`p-1 rounded ${iconColor}`}>
+                      {insight.type === 'finding' && <Lightbulb size={16} />}
+                      {insight.type === 'recommendation' && <Star size={16} />}
+                      {insight.type === 'opportunity' && <Zap size={16} />}
+                      {insight.type === 'error' && <AlertCircle size={16} />}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-primary-900 mb-1">{insight.title}</h4>
+                      <p className="text-primary-700 mb-2">{insight.description}</p>
+                      {insight.priority && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            insight.priority === 'high' ? 'bg-red-100 text-red-700' :
+                            insight.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>{insight.priority} priority</span>
+                          {insight.timeline && (
+                            <span className="text-gray-600">Timeline: {insight.timeline}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Legacy Performance Analysis (kept as backup) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Top Performers */}
         <div className="bg-white border border-primary-200 rounded-xl p-6 shadow-sm">
