@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Users, FileText, ExternalLink } from 'lucide-react';
 import { fetchProfileData, generateCommentUrl } from '../services/profileService';
+import { Card, Button, Avatar, Skeleton } from '../components/ui/UntitledUIComponents';
 
 function ProfileCard({ handle, showRecentPost = false, className = '' }) {
   const [profileData, setProfileData] = useState(null);
@@ -25,40 +26,39 @@ function ProfileCard({ handle, showRecentPost = false, className = '' }) {
 
   if (loading) {
     return (
-      <div className={`bg-white rounded-2xl p-6 shadow-lg border border-gray-200 animate-pulse ${className}`}>
+      <Card className={`${className}`} padding="sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+          <Skeleton variant="avatar" />
           <div className="flex-1">
-            <div className="h-4 bg-gray-300 rounded mb-2 w-3/4"></div>
-            <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+            <Skeleton variant="title" className="mb-2 w-3/4" />
+            <Skeleton variant="text" className="w-1/2" />
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (!profileData) {
     return (
-      <div className={`bg-gray-100 rounded-2xl p-6 shadow-lg border border-gray-200 ${className}`}>
+      <Card className={`bg-gray-50 ${className}`} padding="sm">
         <div className="text-center text-gray-500">
           <p>Profile unavailable</p>
           <p className="text-sm">@{handle}</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className={`bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 ${className}`}>
+    <Card className={`bg-gradient-to-br from-white to-gray-50 ${className}`} padding="sm" hover={true}>
       <div className="flex items-start gap-4">
-        <div className="relative">
-          <img
-            src={profileData.avatar}
-            alt={profileData.displayName}
-            className="w-12 h-12 rounded-full border-2 border-brand-500 object-cover shadow-md"
-          />
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success-500 rounded-full border-2 border-white"></div>
-        </div>
+        <Avatar
+          src={profileData.avatar}
+          alt={profileData.displayName}
+          size="lg"
+          status="online"
+          className="border-2 border-brand-500"
+        />
         
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-bold text-gray-900 truncate">{profileData.displayName}</h3>
@@ -92,27 +92,40 @@ function ProfileCard({ handle, showRecentPost = false, className = '' }) {
           <h4 className="text-sm font-semibold text-gray-700 mb-2">Most recent post:</h4>
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-gray-700 text-sm mb-3 line-clamp-3">{profileData.recentPost.text}</p>
+            
+            {profileData.recentPost.images && profileData.recentPost.images.length > 0 && (
+              <div className="mb-3 flex gap-2 overflow-x-auto">
+                {profileData.recentPost.images.map((image, idx) => (
+                  <img 
+                    key={idx}
+                    src={image.thumb || image.fullsize || image}
+                    alt={image.alt || `Post image ${idx + 1}`}
+                    className="h-20 w-auto object-cover rounded-lg border border-gray-200 flex-shrink-0"
+                  />
+                ))}
+              </div>
+            )}
+            
             <div className="flex items-center justify-between">
               <div className="flex gap-4 text-xs text-gray-500">
                 <span>{profileData.recentPost.likeCount} likes</span>
                 <span>{profileData.recentPost.replyCount} replies</span>
                 <span>{profileData.recentPost.repostCount} reposts</span>
               </div>
-              <a
-                href={generateCommentUrl(profileData.handle, profileData.recentPost.uri)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-3 py-1 bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold rounded-lg transition-colors"
+              <Button
+                size="sm"
+                variant="primary"
+                icon={<MessageSquare size={12} />}
+                onClick={() => window.open(generateCommentUrl(profileData.handle, profileData.recentPost.uri), '_blank')}
               >
-                <MessageSquare size={12} />
                 Comment
                 <ExternalLink size={10} />
-              </a>
+              </Button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

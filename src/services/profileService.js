@@ -16,10 +16,11 @@ export async function fetchProfileData(handle) {
         ? {
             text: data.recentPosts[0].text,
             uri: data.recentPosts[0].uri,
-            timestamp: data.recentPosts[0].createdAt,
+            timestamp: data.recentPosts[0].indexedAt || data.recentPosts[0].createdAt,
             likeCount: data.recentPosts[0].likeCount,
             replyCount: data.recentPosts[0].replyCount,
-            repostCount: data.recentPosts[0].repostCount
+            repostCount: data.recentPosts[0].repostCount,
+            images: data.recentPosts[0].images || []
           }
         : null
     };

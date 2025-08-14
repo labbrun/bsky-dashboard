@@ -2,6 +2,9 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AlertCircle, RefreshCw, TrendingUp, FileText } from 'lucide-react';
 
+// Import Untitled UI styles
+import './styles/untitled-ui-variables.css';
+
 // Configuration
 import { APP_CONFIG } from './config/app.config';
 
@@ -11,9 +14,12 @@ import { fetchBlueskyUserData, testBlueskyAPI } from './services/blueskyService'
 
 // Import layout and pages
 import DashboardLayout from './layouts/DashboardLayout';
-import Overview from './pages/Overview';
-import Performance from './pages/Performance';
+import OverviewV2 from './pages/OverviewV2';
+import PerformanceV2 from './pages/PerformanceV2';
 import Insights from './pages/Insights';
+
+// Import Untitled UI components
+import { Button, Card } from './components/ui/UntitledUIComponents';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -88,7 +94,7 @@ function App() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50 p-8">
-        <div className="w-full max-w-md bg-white rounded-2xl p-10 shadow-2xl border border-primary-200">
+        <Card className="w-full max-w-md" padding="xl">
           {/* Logo and Brand */}
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-brand-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -125,18 +131,20 @@ function App() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full px-4 py-3.5 border border-primary-300 rounded-lg bg-white text-primary-900 text-base shadow-xs transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-opacity-20"
+                className="untitled-input w-full"
               />
             </div>
 
-            <button 
+            <Button 
               type="submit"
-              className="w-full px-6 py-3.5 bg-gradient-to-r from-primary-500 to-brand-500 hover:from-primary-600 hover:to-brand-600 text-white text-base font-semibold rounded-lg cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+              variant="primary"
+              size="lg"
+              className="w-full"
             >
               Access Analytics Suite
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -145,12 +153,12 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50">
-        <div className="text-center bg-white p-12 rounded-2xl shadow-xl border border-primary-200">
+        <Card className="text-center">
           <div className="w-15 h-15 border-4 border-primary-200 border-t-brand-500 rounded-full animate-spin mx-auto mb-8"></div>
           <h2 className="text-xl font-semibold text-primary-900">
             Loading Analytics Suite...
           </h2>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -159,7 +167,7 @@ function App() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-error-25">
-        <div className="text-center max-w-md bg-white p-12 rounded-2xl shadow-xl border border-primary-200">
+        <Card className="text-center max-w-md">
           <div className="w-20 h-20 bg-gradient-to-br from-error-500 to-error-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg">
             <AlertCircle size={40} color="white" />
           </div>
@@ -169,14 +177,15 @@ function App() {
           <p className="text-primary-600 text-base mb-8">
             {error}
           </p>
-          <button
+          <Button
             onClick={fetchData}
-            className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-brand-500 to-electric-500 hover:from-brand-600 hover:to-electric-600 text-white text-base font-semibold rounded-lg cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            variant="primary"
+            size="lg"
+            icon={<RefreshCw size={16} />}
           >
-            <RefreshCw size={16} />
-            <span>Retry Connection</span>
-          </button>
-        </div>
+            Retry Connection
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -184,7 +193,7 @@ function App() {
   if (!metrics) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-warning-25">
-        <div className="text-center max-w-md bg-white p-12 rounded-2xl shadow-xl border border-primary-200">
+        <Card className="text-center max-w-md">
           <div className="w-20 h-20 bg-gradient-to-br from-warning-500 to-warning-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg">
             <FileText size={40} color="white" />
           </div>
@@ -194,14 +203,15 @@ function App() {
           <p className="text-primary-600 text-base mb-8">
             Analytics data is not available
           </p>
-          <button
+          <Button
             onClick={fetchData}
-            className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-brand-500 to-electric-500 hover:from-brand-600 hover:to-electric-600 text-white text-base font-semibold rounded-lg cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            variant="primary"
+            size="lg"
+            icon={<RefreshCw size={16} />}
           >
-            <RefreshCw size={16} />
-            <span>Load Data</span>
-          </button>
-        </div>
+            Load Data
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -219,11 +229,11 @@ function App() {
         <Routes>
           <Route 
             path="/" 
-            element={<Overview metrics={metrics} />} 
+            element={<OverviewV2 metrics={metrics} />} 
           />
           <Route 
             path="/performance" 
-            element={<Performance metrics={metrics} />} 
+            element={<PerformanceV2 metrics={metrics} />} 
           />
           <Route 
             path="/insights" 

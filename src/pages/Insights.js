@@ -16,7 +16,6 @@ import {
   MessageSquare,
   Award,
   RefreshCw,
-  Settings,
   AlertCircle
 } from 'lucide-react';
 

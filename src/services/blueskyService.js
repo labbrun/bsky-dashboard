@@ -102,15 +102,81 @@ export const transformBlueskyData = (profile, posts, followers) => {
     totalLikes,
     totalReplies,
     totalReposts,
-    recentPosts: posts.map(post => ({
-      uri: post.uri,
-      text: post.record?.text || '',
-      likeCount: post.likeCount || 0,
-      replyCount: post.replyCount || 0,
-      repostCount: post.repostCount || 0,
-      indexedAt: post.indexedAt,
-      images: post.record?.embed?.images || []
-    })),
+    recentPosts: posts.map((post, index) => {
+      // Enhanced image detection for Bluesky embed structures
+      let images = [];
+      
+      
+      // PRIMARY: Check for images in post.embed.images (processed/viewed posts)
+      if (post.embed?.images) {
+        images = post.embed.images.map(img => ({
+          thumb: img.thumb,
+          fullsize: img.fullsize,
+          alt: img.alt || ''
+        }));
+      }
+      // SECONDARY: Check for images in post.record.embed.images (raw posts)
+      else if (post.record?.embed?.images) {
+        images = post.record.embed.images.map(img => ({
+          thumb: img.thumb,
+          fullsize: img.fullsize,
+          alt: img.alt || ''
+        }));
+      }
+      // EXTERNAL: Check for external link thumbnails in post.embed.external
+      else if (post.embed?.external?.thumb) {
+        images = [{
+          thumb: post.embed.external.thumb,
+          fullsize: post.embed.external.thumb,
+          alt: post.embed.external.title || ''
+        }];
+      }
+      // EXTERNAL RECORD: Check for external image embeds in record
+      else if (post.record?.embed?.external?.thumb) {
+        images = [{
+          thumb: post.record.embed.external.thumb,
+          fullsize: post.record.embed.external.thumb,
+          alt: post.record.embed.external.title || ''
+        }];
+      }
+      // QUOTED POSTS: Check for quoted post images
+      else if (post.record?.embed?.record?.embeds?.[0]?.images) {
+        images = post.record.embed.record.embeds[0].images.map(img => ({
+          thumb: img.thumb,
+          fullsize: img.fullsize,
+          alt: img.alt || ''
+        }));
+      }
+      // REPLY PARENT IMAGES: Check for images in reply parent post
+      else if (post.reply?.parent?.embed?.external?.thumb) {
+        images = [{
+          thumb: post.reply.parent.embed.external.thumb,
+          fullsize: post.reply.parent.embed.external.thumb,
+          alt: post.reply.parent.embed.external.title || 'Reply parent image'
+        }];
+      }
+      // REPLY ROOT IMAGES: Check for images in reply root post
+      else if (post.reply?.root?.embed?.external?.thumb) {
+        images = [{
+          thumb: post.reply.root.embed.external.thumb,
+          fullsize: post.reply.root.embed.external.thumb,
+          alt: post.reply.root.embed.external.title || 'Reply root image'
+        }];
+      }
+      else {
+      }
+
+
+      return {
+        uri: post.uri,
+        text: post.record?.text || '',
+        likeCount: post.likeCount || 0,
+        replyCount: post.replyCount || 0,
+        repostCount: post.repostCount || 0,
+        indexedAt: post.indexedAt,
+        images
+      };
+    }),
     sampleFollowers: followers.map(follower => ({
       handle: follower.handle,
       displayName: follower.displayName || follower.handle,
@@ -149,7 +215,7 @@ export const testBlueskyAPI = async () => {
   try {
     // Test with a known public account
     const testHandle = 'bsky.app';
-    const profile = await getProfile(testHandle);
+    await getProfile(testHandle);
     return true;
   } catch (error) {
     return false;
