@@ -1,6 +1,7 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
+import TypingEffect from '../components/TypingEffect';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
 import { 
   TrendingUp, 
@@ -41,6 +42,8 @@ function OverviewV2({ metrics }) {
   const [showCelebration, setShowCelebration] = React.useState(false);
   const [celebrationMessage, setCelebrationMessage] = React.useState('');
   const [timeRange, setTimeRange] = React.useState('7'); // '7' for 7 days, '30' for 30 days
+  const [hasTyped, setHasTyped] = React.useState(false);
+  const [currentObservation, setCurrentObservation] = React.useState('');
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -53,7 +56,31 @@ function OverviewV2({ metrics }) {
         markCelebrationShown();
       }
     }
+  }, [metrics]);
+  
+  // Generate AI observations based on real data and time range
+  const getAIObservation = React.useMemo(() => {
+    if (!metrics) return '';
+    
+    const postsWithImages = metrics.recentPosts?.filter(p => p.images?.length > 0).length || 0;
+    const totalPosts = metrics.recentPosts?.length || 0;
+    const avgEngagement = totalPosts > 0 ? ((metrics.totalLikes + metrics.totalReplies + metrics.totalReposts) / totalPosts).toFixed(1) : 0;
+    const techPosts = metrics.recentPosts?.filter(p => p.text?.toLowerCase().includes('tech') || p.text?.toLowerCase().includes('ai')).length || 0;
+    
+    if (timeRange === '7') {
+      return `Based on your last 7 days of activity, you're doing well with visual content—${postsWithImages} out of ${totalPosts} posts include images, which typically drive higher engagement. Your average of ${avgEngagement} engagements per post shows solid audience connection. Consider posting more consistently during weekday afternoons when your tech-focused audience is most active. Your ${techPosts} tech-related posts are performing well, so doubling down on AI and development content could boost your reach further.`;
+    } else {
+      return `Over the past 30 days, your content strategy shows strong technical focus with ${techPosts} tech-related posts resonating well with your audience. Your ${metrics.followersCount} followers are highly engaged, giving you an average of ${avgEngagement} interactions per post. The ${postsWithImages}/${totalPosts} posts with images demonstrate good visual content habits. For the next month, consider increasing your posting frequency to 2-3x per week and experiment with more behind-the-scenes development content—your audience clearly values your technical insights and would likely engage with more personal takes on your homelab and privacy-focused projects.`;
+    }
   }, [metrics, timeRange]);
+  
+  // Update observation when time range changes
+  React.useEffect(() => {
+    if (metrics) {
+      const newObservation = getAIObservation;
+      setCurrentObservation(newObservation);
+    }
+  }, [metrics, timeRange, getAIObservation]);
 
   // Real data based on metrics and time range
   const followersData = React.useMemo(() => {
@@ -243,6 +270,26 @@ function OverviewV2({ metrics }) {
                 AI Insights & Recommendations
               </h2>
               <Badge variant="warning" size="sm">LIVE</Badge>
+            </div>
+            
+            {/* AI Observation Section */}
+            <div className="mb-6 p-4 rounded-xl" style={{backgroundColor: '#0c2146', border: '1px solid #4b5563'}}>
+              {hasTyped || !currentObservation ? (
+                <p className="text-sm" style={{ 
+                  fontFamily: 'Inter', 
+                  fontWeight: 400, 
+                  lineHeight: '1.5', 
+                  color: '#d5d7da' 
+                }}>
+                  {currentObservation}
+                </p>
+              ) : (
+                <TypingEffect 
+                  text={currentObservation}
+                  speed={30}
+                  onComplete={() => setHasTyped(true)}
+                />
+              )}
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
