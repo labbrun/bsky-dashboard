@@ -53,7 +53,7 @@ function OverviewV2({ metrics }) {
         markCelebrationShown();
       }
     }
-  }, [metrics]);
+  }, [metrics, timeRange]);
 
   // Real data based on metrics and time range
   const followersData = React.useMemo(() => {
@@ -61,10 +61,16 @@ function OverviewV2({ metrics }) {
     
     const days = parseInt(timeRange);
     const data = [];
+    const baseFollowers = metrics.followersCount;
     
     for (let i = days - 1; i >= 0; i--) {
-      const date = i === 0 ? 'Today' : `${i}d ago`;
-      const followers = Math.max(0, metrics.followersCount - Math.floor(Math.random() * i * 2));
+      const currentDate = new Date();
+      currentDate.setDate(currentDate.getDate() - i);
+      const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+      // More realistic follower progression based on actual count
+      const daysSinceStart = days - 1 - i;
+      const growthRate = days === 7 ? 1.5 : 3;
+      const followers = Math.max(0, baseFollowers - Math.floor(daysSinceStart * growthRate));
       data.push({ date, followers });
     }
     
@@ -72,18 +78,29 @@ function OverviewV2({ metrics }) {
   }, [metrics, timeRange]);
 
   const engagementData = React.useMemo(() => {
+    if (!metrics) return [];
+    
     const days = parseInt(timeRange);
+    
     const data = [];
-    const baseRate = 4.5;
+    // Calculate base rate from actual metrics
+    const totalEngagement = (metrics.totalLikes || 0) + (metrics.totalReplies || 0) + (metrics.totalReposts || 0);
+    const baseRate = metrics.followersCount > 0 
+      ? Math.min(8.0, Math.max(1.0, (totalEngagement / metrics.followersCount) * 100))
+      : 4.5;
     
     for (let i = days - 1; i >= 0; i--) {
-      const date = i === 0 ? 'Today' : `${i}d ago`;
-      const rate = Math.round((baseRate + (Math.random() - 0.5) * 3) * 10) / 10;
+      const currentDate = new Date();
+      currentDate.setDate(currentDate.getDate() - i);
+      const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+      // Small variations around the base rate
+      const variation = (Math.random() - 0.5) * 1.5;
+      const rate = Math.round((baseRate + variation) * 10) / 10;
       data.push({ date, rate: Math.max(1.0, Math.min(8.0, rate)) });
     }
     
     return data;
-  }, [timeRange]);
+  }, [metrics, timeRange]);
 
   if (!metrics) {
     return (
@@ -234,21 +251,21 @@ function OverviewV2({ metrics }) {
                   <TrendingUp size={16} className="text-success-400" />
                   <span className="text-success-400 font-semibold text-sm" style={{ fontFamily: 'Inter', fontWeight: 600 }}>Performance</span>
                 </div>
-                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Your engagement rate is {timeRange === '7' ? '28% above average' : '32% above average'}. Keep posting during peak hours!</p>
+                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Posts with images get more engagement ({metrics?.recentPosts?.filter(p => p.images?.length > 0).length || 0}/{metrics?.recentPosts?.length || 0} have images)</p>
               </div>
               <div style={{backgroundColor: '#0c2146'}} className="rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock size={16} className="text-success-400" />
                   <span className="text-success-400 font-semibold text-sm" style={{ fontFamily: 'Inter', fontWeight: 600 }}>Timing</span>
                 </div>
-                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Post between 2-4 PM for {timeRange === '7' ? '45%' : '48%'} higher engagement rates.</p>
+                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Your avg {((metrics?.totalLikes + metrics?.totalReplies + metrics?.totalReposts) / (metrics?.recentPosts?.length || 1)).toFixed(1)} engagements per post</p>
               </div>
               <div style={{backgroundColor: '#0c2146'}} className="rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <Target size={16} className="text-success-400" />
                   <span className="text-success-400 font-semibold text-sm" style={{ fontFamily: 'Inter', fontWeight: 600 }}>Content</span>
                 </div>
-                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Tech-focused posts get {timeRange === '7' ? '3x' : '3.2x'} more amplification. Double down on this!</p>
+                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Tech topics appear in {metrics?.recentPosts?.filter(p => p.text?.toLowerCase().includes('tech') || p.text?.toLowerCase().includes('ai')).length || 0} of your recent posts</p>
               </div>
             </div>
           </div>
@@ -343,35 +360,37 @@ function OverviewV2({ metrics }) {
       {/* Key Metrics Grid - Clean and Symmetrical */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <MetricCard
-          title="Net Followers"
-          value={`+${Math.floor(Math.random() * 50 + 10)}`}
-          description={`${timeRange}-day net follower growth`}
-          change={`+${Math.floor(Math.random() * 20 + 5)} vs last ${timeRange} days`}
-          changeType="positive"
+          title="Current Followers"
+          value={metrics?.followersCount?.toLocaleString() || '0'}
+          description="Total number of accounts\nfollowing you"
+          change={`Following ${metrics?.followsCount?.toLocaleString() || '0'} accounts`}
+          changeType="neutral"
           icon={<Users size={20} />}
         />
         <MetricCard
-          title="Posts vs Target"
-          value={timeRange === '7' ? '12/14' : '48/60'}
-          description={`Posts this ${timeRange === '7' ? 'week' : 'month'} vs target`}
-          change={timeRange === '7' ? '-2 posts' : '+8 posts'}
-          changeType={timeRange === '7' ? 'negative' : 'positive'}
+          title="Total Posts"
+          value={metrics?.postsCount?.toLocaleString() || '0'}
+          description="Total number of posts\nyou've published"
+          change={`Recent: ${metrics?.recentPosts?.length || 0} loaded`}
+          changeType="neutral"
           icon={<MessageSquare size={20} />}
         />
         <MetricCard
-          title="Engagement Rate"
-          value={timeRange === '7' ? '5.2%' : '5.8%'}
-          description="Average across all posts"
-          change={timeRange === '7' ? '+0.8%' : '+1.2%'}
+          title="Total Engagement"
+          value={((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)).toLocaleString()}
+          description="Total likes, replies, and reposts\nacross recent posts"
+          change={`${metrics?.totalLikes || 0} likes, ${metrics?.totalReplies || 0} replies, ${metrics?.totalReposts || 0} reposts`}
           changeType="positive"
           icon={<Heart size={20} />}
         />
         <MetricCard
-          title="Quality Score"
-          value={timeRange === '7' ? '82%' : '85%'}
-          description="Content quality metric"
-          change={timeRange === '7' ? '+15%' : '+18%'}
-          changeType="positive"
+          title="Avg Engagement Per Post"
+          value={metrics?.recentPosts?.length > 0 ? 
+            (((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)) / metrics.recentPosts.length).toFixed(1) :
+            '0'}
+          description="Average engagement per post\n(likes + replies + reposts)"
+          change={`Across ${metrics?.recentPosts?.length || 0} recent posts`}
+          changeType={((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)) > 0 ? "positive" : "neutral"}
           icon={<Target size={20} />}
         />
       </div>

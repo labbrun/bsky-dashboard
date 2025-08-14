@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 // Button Component
 export const Button = ({ 
@@ -209,11 +210,6 @@ export const MetricCard = ({
   className = '',
   ...props 
 }) => {
-  const changeColors = {
-    positive: 'text-success-600 bg-success-50',
-    negative: 'text-error-600 bg-error-50',
-    neutral: 'text-gray-600 bg-gray-50'
-  };
   
   return (
     <Card className={className} {...props}>
@@ -225,18 +221,18 @@ export const MetricCard = ({
                 {icon}
               </div>
             )}
-            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '1.125rem', lineHeight: '1.2rem' }}>{title}</h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mb-2">{value}</p>
           {description && (
-            <p className="text-sm text-gray-500 mb-3">{description}</p>
+            <p className="text-xs text-gray-500 mt-1 mb-3" style={{ fontFamily: 'Inter', fontWeight: 400, height: '2.4rem', lineHeight: '1.2rem', whiteSpace: 'pre-line' }}>{description}</p>
           )}
+          <p className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter', fontWeight: 700 }}>{value}</p>
           {change && (
-            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${changeColors[changeType]}`}>
-              {changeType === 'positive' && '↑'}
-              {changeType === 'negative' && '↓'}
+            <Badge variant="success" size="sm">
+              {changeType === 'positive' && <ArrowUp size={12} className="mr-1" />}
+              {changeType === 'negative' && <ArrowDown size={12} className="mr-1" />}
               {change}
-            </div>
+            </Badge>
           )}
         </div>
       </div>

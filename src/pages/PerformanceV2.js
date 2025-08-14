@@ -62,8 +62,8 @@ function PerformanceV2({ metrics }) {
               .slice(0, 3)
               .map(f => ({
                 handle: f.handle,
-                engagements: Math.floor(Math.random() * 50) + 20,
-                reach: Math.floor(Math.random() * 15000) + 5000
+                engagements: 'Data unavailable',
+                reach: 'Data unavailable'
               }));
             setTopAmplifiersData(topAmplifiers);
           }
@@ -72,9 +72,9 @@ function PerformanceV2({ metrics }) {
           // Set default values on error
           setNewFollowers(['techexplorer.bsky.social', 'airesearcher.bsky.social', 'startupfounder.bsky.social']);
           setTopAmplifiersData([
-            { handle: "airesearcher.bsky.social", engagements: 45, reach: 12500 },
-            { handle: "techwriter.bsky.social", engagements: 38, reach: 9800 },
-            { handle: "devtools.bsky.social", engagements: 32, reach: 8200 }
+            { handle: "airesearcher.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
+            { handle: "techwriter.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
+            { handle: "devtools.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' }
           ]);
         } finally {
           setLoadingFollowers(false);
@@ -173,9 +173,9 @@ function PerformanceV2({ metrics }) {
     ['techexplorer.bsky.social', 'airesearcher.bsky.social', 'startupfounder.bsky.social'];
 
   const topAmplifiers = topAmplifiersData.length > 0 ? topAmplifiersData : [
-    { handle: "airesearcher.bsky.social", engagements: 45, reach: 12500 },
-    { handle: "techwriter.bsky.social", engagements: 38, reach: 9800 },
-    { handle: "devtools.bsky.social", engagements: 32, reach: 8200 }
+    { handle: "airesearcher.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
+    { handle: "techwriter.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
+    { handle: "devtools.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' }
   ];
 
   const communityBreakdown = [
@@ -609,17 +609,21 @@ function PerformanceV2({ metrics }) {
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-600">Engagements</span>
-                            <Badge variant="primary" size="sm">{amplifier.engagements}</Badge>
+                            <Badge variant="primary" size="sm">{typeof amplifier.engagements === 'string' ? amplifier.engagements : amplifier.engagements}</Badge>
                           </div>
-                          <ProgressBar 
-                            value={amplifier.engagements} 
-                            max={50} 
-                            variant="primary" 
-                            size="sm"
-                          />
+                          {typeof amplifier.engagements === 'number' ? (
+                            <ProgressBar 
+                              value={amplifier.engagements} 
+                              max={50} 
+                              variant="primary" 
+                              size="sm"
+                            />
+                          ) : (
+                            <div className="text-xs text-gray-500 text-center py-2">{amplifier.engagements}</div>
+                          )}
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-600">Est. Reach</span>
-                            <Badge variant="brand" size="sm">{amplifier.reach.toLocaleString()}</Badge>
+                            <Badge variant="brand" size="sm">{typeof amplifier.reach === 'string' ? amplifier.reach : amplifier.reach.toLocaleString()}</Badge>
                           </div>
                         </div>
                       </Card>
