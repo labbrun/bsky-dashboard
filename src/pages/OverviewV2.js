@@ -4,6 +4,7 @@ import CelebrationOverlay from '../components/CelebrationOverlay';
 import TypingEffect from '../components/TypingEffect';
 import ProfileCard from '../components/ProfileCard';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
+import { getFollowers } from '../services/blueskyService';
 import { 
   TrendingUp, 
   Users, 
@@ -52,9 +53,9 @@ function OverviewV2({ metrics }) {
   const [timeRange, setTimeRange] = React.useState('7'); // '7' for 7 days, '30' for 30 days
   const [hasTyped, setHasTyped] = React.useState(false);
   const [currentObservation, setCurrentObservation] = React.useState('');
-  const [loadingFollowers] = React.useState(true);
-  const [newFollowers] = React.useState([]);
-  const [topAmplifiersData] = React.useState([]);
+  const [loadingFollowers, setLoadingFollowers] = React.useState(true);
+  const [newFollowers, setNewFollowers] = React.useState([]);
+  const [topAmplifiersData, setTopAmplifiersData] = React.useState([]);
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -92,6 +93,40 @@ function OverviewV2({ metrics }) {
       setCurrentObservation(newObservation);
     }
   }, [metrics, timeRange, getAIObservation]);
+
+  // Fetch audience data for Audience & Growth section
+  React.useEffect(() => {
+    const fetchAudienceData = async () => {
+      if (metrics && metrics.handle) {
+        try {
+          setLoadingFollowers(true);
+          const followersResponse = await getFollowers(metrics.handle, 10);
+          if (followersResponse && followersResponse.followers) {
+            // Get the most recent 3 followers for detailed display
+            const recentFollowers = followersResponse.followers.slice(0, 3).map(f => f.handle);
+            setNewFollowers(recentFollowers);
+            
+            // Get top amplifiers (followers with high engagement potential)
+            const topAmplifiers = followersResponse.followers
+              .slice(0, 3)
+              .map(f => ({
+                handle: f.handle,
+                engagements: 'Data unavailable', // Real engagement data would need additional API calls
+                reach: 'Data unavailable'
+              }));
+            setTopAmplifiersData(topAmplifiers);
+          }
+        } catch (error) {
+          console.error('Error fetching followers for Overview:', error);
+          // Keep default values on error - they're already set in the fallback arrays below
+        } finally {
+          setLoadingFollowers(false);
+        }
+      }
+    };
+
+    fetchAudienceData();
+  }, [metrics]);
 
   // Real data based on metrics and time range
   const followersData = React.useMemo(() => {
