@@ -64,7 +64,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [FIXED_HANDLE]);
 
   useEffect(() => {
     if (isLoggedIn) {
