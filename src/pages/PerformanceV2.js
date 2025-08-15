@@ -1,38 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
   Sparkles, 
   Clock,
   TrendingUp,
-  Users,
   BarChart3,
   Target,
   Zap,
-  Star,
-  Award,
   MessageSquare
 } from 'lucide-react';
-import ProfileCard from '../components/ProfileCard';
-import { getFollowers, getAuthorFeed } from '../services/blueskyService';
+import { getAuthorFeed } from '../services/blueskyService';
 import { getPerformanceAnalytics } from '../services/analyticsService';
 import { 
   Card, 
   Badge, 
-  ProgressBar, 
   Skeleton
 } from '../components/ui/UntitledUIComponents';
 
 // Import mesh gradients for backgrounds
 import gradient1 from '../assets/untitled-ui/Additional assets/Mesh gradients/11.jpg';
-import gradient2 from '../assets/untitled-ui/Additional assets/Mesh gradients/15.jpg';
 
-// Brand chart colors - consistent with your palette
-const CHART_COLORS = ['#002945', '#2B54BE', '#3A5393', '#0E4CE8', '#3B4869', '#23B26A', '#F79009', '#F04438', '#8B5CF6'];
 
 function PerformanceV2({ metrics }) {
-  const [newFollowers, setNewFollowers] = useState([]);
-  const [topAmplifiersData, setTopAmplifiersData] = useState([]);
-  const [loadingFollowers, setLoadingFollowers] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [expandedPosts, setExpandedPosts] = useState(new Set());
@@ -67,38 +55,6 @@ function PerformanceV2({ metrics }) {
   useEffect(() => {
     const fetchPerformanceData = async () => {
       if (metrics && metrics.handle) {
-        try {
-          // Fetch recent followers
-          setLoadingFollowers(true);
-          const followersResponse = await getFollowers(metrics.handle, 10);
-          if (followersResponse && followersResponse.followers) {
-            // Get the most recent 3 followers for detailed display
-            const recentFollowers = followersResponse.followers.slice(0, 3).map(f => f.handle);
-            setNewFollowers(recentFollowers);
-            
-            // Get top amplifiers (followers with high engagement)
-            const topAmplifiers = followersResponse.followers
-              .slice(0, 3)
-              .map(f => ({
-                handle: f.handle,
-                engagements: 'Data unavailable',
-                reach: 'Data unavailable'
-              }));
-            setTopAmplifiersData(topAmplifiers);
-          }
-        } catch (error) {
-          console.error('Error fetching followers:', error);
-          // Set default values on error
-          setNewFollowers(['techexplorer.bsky.social', 'airesearcher.bsky.social', 'startupfounder.bsky.social']);
-          setTopAmplifiersData([
-            { handle: "airesearcher.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
-            { handle: "techwriter.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
-            { handle: "devtools.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' }
-          ]);
-        } finally {
-          setLoadingFollowers(false);
-        }
-
         try {
           // Fetch recent posts
           setLoadingPosts(true);
@@ -177,22 +133,6 @@ function PerformanceV2({ metrics }) {
     { topic: 'Personal', rate: 0 }
   ];
 
-  // Use real followers data or fallback to sample handles
-  const newFollowersHandles = newFollowers.length > 0 ? newFollowers : 
-    ['techexplorer.bsky.social', 'airesearcher.bsky.social', 'startupfounder.bsky.social'];
-
-  const topAmplifiers = topAmplifiersData.length > 0 ? topAmplifiersData : [
-    { handle: "airesearcher.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
-    { handle: "techwriter.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
-    { handle: "devtools.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' }
-  ];
-
-  const communityBreakdown = [
-    { name: 'Tech Enthusiasts', value: 40, color: CHART_COLORS[0] },
-    { name: 'Entrepreneurs', value: 25, color: CHART_COLORS[1] },
-    { name: 'Developers', value: 20, color: CHART_COLORS[2] },
-    { name: 'Investors', value: 15, color: CHART_COLORS[3] }
-  ];
 
   if (!metrics) {
     return (
@@ -966,152 +906,6 @@ function PerformanceV2({ metrics }) {
 
 
 
-      {/* Audience & Growth Section with Mesh Gradient */}
-      <div 
-        className="relative rounded-2xl overflow-hidden"
-        style={{
-          backgroundImage: `url(${gradient2})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="bg-white bg-opacity-95 backdrop-blur-md p-8 rounded-2xl">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-                <Users size={24} className="text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 font-sans">Audience & Growth</h2>
-                <p className="text-gray-600">Track your community growth and engagement</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* New Followers */}
-              <Card>
-                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <Star className="text-yellow-500" size={20} />
-                  New Followers This Week
-                  {loadingFollowers && (
-                    <Badge variant="default" size="sm">Loading...</Badge>
-                  )}
-                </h3>
-                <div className="space-y-4">
-                  {loadingFollowers ? (
-                    <>
-                      <Skeleton variant="card" height={100} />
-                      <Skeleton variant="card" height={100} />
-                      <Skeleton variant="card" height={100} />
-                    </>
-                  ) : (
-                    newFollowersHandles.map((handle, index) => (
-                      <ProfileCard 
-                        key={handle}
-                        handle={handle} 
-                        showRecentPost={true}
-                        className="transform hover:scale-102 transition-transform"
-                      />
-                    ))
-                  )}
-                </div>
-              </Card>
-
-              {/* Community Breakdown */}
-              <Card>
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Community Breakdown</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={communityBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {communityBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: 'none',
-                        borderRadius: '12px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {communityBreakdown.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div 
-                        className="w-4 h-4 rounded-full shadow-sm" 
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="text-sm font-semibold text-gray-700">{item.name}: {item.value}%</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-
-            {/* Top Amplifiers */}
-            <Card>
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Award className="text-blue-500" size={20} />
-                Top Amplifiers
-                {loadingFollowers && (
-                  <Badge variant="default" size="sm">Loading...</Badge>
-                )}
-              </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {loadingFollowers ? (
-                  <>
-                    <Skeleton variant="card" height={150} />
-                    <Skeleton variant="card" height={150} />
-                    <Skeleton variant="card" height={150} />
-                  </>
-                ) : (
-                  topAmplifiers.map((amplifier, index) => (
-                    <div key={amplifier.handle} className="space-y-3">
-                      <ProfileCard 
-                        handle={amplifier.handle} 
-                        showRecentPost={false}
-                      />
-                      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200" padding="sm">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Engagements</span>
-                            <Badge variant="primary" size="sm">{typeof amplifier.engagements === 'string' ? amplifier.engagements : amplifier.engagements}</Badge>
-                          </div>
-                          {typeof amplifier.engagements === 'number' ? (
-                            <ProgressBar 
-                              value={amplifier.engagements} 
-                              max={50} 
-                              variant="primary" 
-                              size="sm"
-                            />
-                          ) : (
-                            <div className="text-xs text-gray-500 text-center py-2">{amplifier.engagements}</div>
-                          )}
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Est. Reach</span>
-                            <Badge variant="brand" size="sm">{typeof amplifier.reach === 'string' ? amplifier.reach : amplifier.reach.toLocaleString()}</Badge>
-                          </div>
-                        </div>
-                      </Card>
-                    </div>
-                  ))
-                )}
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

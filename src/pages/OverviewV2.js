@@ -1,8 +1,8 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import TypingEffect from '../components/TypingEffect';
-import ImageGallery from '../components/ImageGallery';
+import ProfileCard from '../components/ProfileCard';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
 import { 
   TrendingUp, 
@@ -16,7 +16,9 @@ import {
   CheckCircle,
   Clock,
   Zap,
-  ExternalLink
+  ExternalLink,
+  Star,
+  Award
 } from 'lucide-react';
 
 // Import Untitled UI components
@@ -24,8 +26,13 @@ import {
   Card, 
   Button, 
   Badge, 
-  MetricCard
+  MetricCard,
+  ProgressBar,
+  Skeleton
 } from '../components/ui/UntitledUIComponents';
+
+// Import mesh gradients for backgrounds
+import gradient2 from '../assets/untitled-ui/Additional assets/Mesh gradients/15.jpg';
 
 // Brand chart colors - using your custom palette
 const CHART_COLORS = {
@@ -45,6 +52,9 @@ function OverviewV2({ metrics }) {
   const [timeRange, setTimeRange] = React.useState('7'); // '7' for 7 days, '30' for 30 days
   const [hasTyped, setHasTyped] = React.useState(false);
   const [currentObservation, setCurrentObservation] = React.useState('');
+  const [loadingFollowers] = React.useState(true);
+  const [newFollowers] = React.useState([]);
+  const [topAmplifiersData] = React.useState([]);
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -129,6 +139,24 @@ function OverviewV2({ metrics }) {
     
     return data;
   }, [metrics, timeRange]);
+
+  // Community breakdown data
+  const communityBreakdown = [
+    { name: 'Tech Enthusiasts', value: 40, color: CHART_COLORS.primary },
+    { name: 'Entrepreneurs', value: 25, color: CHART_COLORS.brand },
+    { name: 'Developers', value: 20, color: CHART_COLORS.accent },
+    { name: 'Investors', value: 15, color: CHART_COLORS.electric }
+  ];
+
+  // Use real followers data or fallback to sample handles
+  const newFollowersHandles = newFollowers.length > 0 ? newFollowers : 
+    ['techexplorer.bsky.social', 'airesearcher.bsky.social', 'startupfounder.bsky.social'];
+
+  const topAmplifiers = topAmplifiersData.length > 0 ? topAmplifiersData : [
+    { handle: "airesearcher.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
+    { handle: "techwriter.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' },
+    { handle: "devtools.bsky.social", engagements: 'Data unavailable', reach: 'Data unavailable' }
+  ];
 
   if (!metrics) {
     return (
@@ -323,116 +351,6 @@ function OverviewV2({ metrics }) {
         </div>
       </div>
 
-      {/* Recent Posts Preview */}
-      <Card>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 font-sans">
-            Recent Posts & Comments
-          </h3>
-          <Button
-            variant="tertiary"
-            size="sm"
-            onClick={() => window.location.href = '/performance'}
-          >
-            View Performance
-          </Button>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {metrics.recentPosts && metrics.recentPosts.slice(0, 4).map((post, index) => {
-            // Debug logging to see post structure
-            console.log(`Post ${index}:`, {
-              text: post.text?.substring(0, 50),
-              isReply: post.isReply,
-              replyTo: post.replyTo,
-              date: post.indexedAt
-            });
-            
-            return (
-            <div key={index} className="p-4 rounded-lg bg-primary-850">
-              {/* Date at top left */}
-              <div className="mb-3">
-                <span className="text-sm font-bold font-sans text-gray-300">
-                  {new Date(post.indexedAt).toLocaleDateString('en-US', { 
-                    weekday: 'long',
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: '2-digit'
-                  }).replace(/(\w+), (\d+\/\d+\/\d+)/, '$1 ($2)')}
-                </span>
-              </div>
-              
-              <div className="flex items-start gap-6">
-                {/* Featured Image on Left */}
-                <div className="flex-shrink-0">
-                  {post.images && post.images.length > 0 ? (
-                    <div>
-                      <img 
-                        src={post.images[0].thumb || post.images[0].fullsize || post.images[0]}
-                        alt={post.images[0].alt || 'Post image'}
-                        className="w-24 h-24 object-cover rounded-xl border border-gray-600"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextElementSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div 
-                        className="w-24 h-24 bg-gray-700 rounded-xl border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
-                        style={{ display: 'none' }}
-                      >
-                        🖼️
-                      </div>
-                      {post.images.length > 1 && (
-                        <div className="text-xs text-gray-400 mt-1 text-center font-sans">
-                          +{post.images.length - 1} more
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="w-24 h-24 bg-gray-700 rounded-xl border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
-                      📝
-                    </div>
-                  )}
-                </div>
-                
-                {/* Text Content on Right */}
-                <div className="flex-1 min-w-0">
-                  {/* Show reply context if this is a comment */}
-                  {post.isReply && post.replyTo && (
-                    <div className="mb-3 p-3 rounded-lg border border-gray-600 bg-white/5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-gray-400 font-sans">
-                          💬 Replying to @{post.replyTo.author.handle}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-300 italic font-sans leading-5">
-                        "{post.replyTo.text.length > 100 ? post.replyTo.text.substring(0, 100) + '...' : post.replyTo.text}"
-                      </p>
-                    </div>
-                  )}
-                  
-                  <p className="text-sm mb-3 font-sans text-gray-300 leading-6">
-                    {post.text}
-                  </p>
-                  
-                  <div className="flex items-center gap-4 mt-2">
-                    <Badge variant="default" size="sm">
-                      {post.likeCount} likes
-                    </Badge>
-                    <Badge variant="default" size="sm">
-                      {post.replyCount} replies
-                    </Badge>
-                    <Badge variant="default" size="sm">
-                      {post.repostCount} reposts
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-            );
-          })}
-        </div>
-      </Card>
 
       {/* Key Metrics Grid - Clean and Symmetrical */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -573,6 +491,153 @@ function OverviewV2({ metrics }) {
             </LineChart>
           </ResponsiveContainer>
         </Card>
+      </div>
+
+      {/* Audience & Growth Section with Mesh Gradient */}
+      <div 
+        className="relative rounded-2xl overflow-hidden"
+        style={{
+          backgroundImage: `url(${gradient2})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="bg-white bg-opacity-95 backdrop-blur-md p-8 rounded-2xl">
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+                <Users size={24} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 font-sans">Audience & Growth</h2>
+                <p className="text-gray-600">Track your community growth and engagement</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* New Followers */}
+              <Card>
+                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Star className="text-yellow-500" size={20} />
+                  New Followers This Week
+                  {loadingFollowers && (
+                    <Badge variant="default" size="sm">Loading...</Badge>
+                  )}
+                </h3>
+                <div className="space-y-4">
+                  {loadingFollowers ? (
+                    <>
+                      <Skeleton variant="card" height={100} />
+                      <Skeleton variant="card" height={100} />
+                      <Skeleton variant="card" height={100} />
+                    </>
+                  ) : (
+                    newFollowersHandles.map((handle, index) => (
+                      <ProfileCard 
+                        key={handle}
+                        handle={handle} 
+                        showRecentPost={true}
+                        className="transform hover:scale-102 transition-transform"
+                      />
+                    ))
+                  )}
+                </div>
+              </Card>
+
+              {/* Community Breakdown */}
+              <Card>
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Community Breakdown</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={communityBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {communityBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {communityBreakdown.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full shadow-sm" 
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-sm font-semibold text-gray-700">{item.name}: {item.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
+            {/* Top Amplifiers */}
+            <Card>
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Award className="text-blue-500" size={20} />
+                Top Amplifiers
+                {loadingFollowers && (
+                  <Badge variant="default" size="sm">Loading...</Badge>
+                )}
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {loadingFollowers ? (
+                  <>
+                    <Skeleton variant="card" height={150} />
+                    <Skeleton variant="card" height={150} />
+                    <Skeleton variant="card" height={150} />
+                  </>
+                ) : (
+                  topAmplifiers.map((amplifier, index) => (
+                    <div key={amplifier.handle} className="space-y-3">
+                      <ProfileCard 
+                        handle={amplifier.handle} 
+                        showRecentPost={false}
+                      />
+                      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200" padding="sm">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Engagements</span>
+                            <Badge variant="primary" size="sm">{typeof amplifier.engagements === 'string' ? amplifier.engagements : amplifier.engagements}</Badge>
+                          </div>
+                          {typeof amplifier.engagements === 'number' ? (
+                            <ProgressBar 
+                              value={amplifier.engagements} 
+                              max={50} 
+                              variant="primary" 
+                              size="sm"
+                            />
+                          ) : (
+                            <div className="text-xs text-gray-500 text-center py-2">{amplifier.engagements}</div>
+                          )}
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Est. Reach</span>
+                            <Badge variant="brand" size="sm">{typeof amplifier.reach === 'string' ? amplifier.reach : amplifier.reach.toLocaleString()}</Badge>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
       </div>
 
     </div>
