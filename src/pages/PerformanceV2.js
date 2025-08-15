@@ -132,7 +132,6 @@ function PerformanceV2({ metrics }) {
                 author: post.author
               };
             });
-            setRecentPostsData(posts);
             
             // Generate analytics data
             const analytics = getPerformanceAnalytics(posts, metrics);
