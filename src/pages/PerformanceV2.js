@@ -1,30 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
   Sparkles, 
   Clock,
   TrendingUp,
   Users,
-  Calendar,
   BarChart3,
-  Hash,
   Target,
   Zap,
   Star,
-  ArrowUp,
-  ArrowDown,
-  ExternalLink,
-  Award
+  Award,
+  MessageSquare
 } from 'lucide-react';
 import ProfileCard from '../components/ProfileCard';
 import { getFollowers, getAuthorFeed } from '../services/blueskyService';
-import { generateBlueskyPostUrl } from '../services/profileService';
+import { getPerformanceAnalytics } from '../services/analyticsService';
 import { 
   Card, 
-  Button, 
   Badge, 
-  MetricCard, 
-  Table, 
   ProgressBar, 
   Skeleton
 } from '../components/ui/UntitledUIComponents';
@@ -37,12 +30,38 @@ import gradient2 from '../assets/untitled-ui/Additional assets/Mesh gradients/15
 const CHART_COLORS = ['#002945', '#2B54BE', '#3A5393', '#0E4CE8', '#3B4869', '#23B26A', '#F79009', '#F04438', '#8B5CF6'];
 
 function PerformanceV2({ metrics }) {
-  const [selectedTimeRange, setSelectedTimeRange] = useState('week');
   const [newFollowers, setNewFollowers] = useState([]);
   const [topAmplifiersData, setTopAmplifiersData] = useState([]);
-  const [recentPostsData, setRecentPostsData] = useState([]);
   const [loadingFollowers, setLoadingFollowers] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [expandedPosts, setExpandedPosts] = useState(new Set());
+  const [expandedComments, setExpandedComments] = useState(new Set());
+
+  // Helper functions for expanding/collapsing posts
+  const togglePostExpansion = (postId) => {
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleCommentExpansion = (commentId) => {
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
 
   // Fetch real data on component mount
   useEffect(() => {
@@ -114,6 +133,11 @@ function PerformanceV2({ metrics }) {
               };
             });
             setRecentPostsData(posts);
+            
+            // Generate analytics data
+            const analytics = getPerformanceAnalytics(posts, metrics);
+            setAnalyticsData(analytics);
+            console.log('Analytics data generated:', analytics);
           }
         } catch (error) {
           console.error('Error fetching posts:', error);
@@ -136,36 +160,22 @@ function PerformanceV2({ metrics }) {
     return 'General';
   };
 
-  // Use real data if available, otherwise use sample data
-  const recentPosts = recentPostsData.length > 0 ? recentPostsData : [
-    {
-      id: 1,
-      text: "Loading recent posts...",
-      timestamp: new Date().toISOString(),
-      format: "Text",
-      likes: 0,
-      replies: 0,
-      reposts: 0,
-      engagementRate: 0,
-      amplification: 0,
-      topic: "General"
-    }
+
+  // Use real analytics data or fallback to sample data
+  const engagementByFormat = analyticsData?.engagementByFormat || [
+    { format: 'Text + Image', rate: 0 },
+    { format: 'Text', rate: 0 },
+    { format: 'Link', rate: 0 },
+    { format: 'Reply', rate: 0 },
+    { format: 'Quote Post', rate: 0 }
   ];
 
-  const engagementByFormat = [
-    { format: 'Video', rate: 8.5 },
-    { format: 'Thread', rate: 7.2 },
-    { format: 'Image', rate: 5.8 },
-    { format: 'Text', rate: 4.2 },
-    { format: 'Link', rate: 3.6 }
-  ];
-
-  const engagementByTopic = [
-    { topic: 'Personal', rate: 7.8 },
-    { topic: 'AI', rate: 6.8 },
-    { topic: 'Tech', rate: 5.4 },
-    { topic: 'Startup', rate: 4.9 },
-    { topic: 'Industry', rate: 4.1 }
+  const engagementByTopic = analyticsData?.engagementByTopic || [
+    { topic: 'AI & Tech', rate: 0 },
+    { topic: 'Home Lab', rate: 0 },
+    { topic: 'Privacy & Security', rate: 0 },
+    { topic: 'Small Business', rate: 0 },
+    { topic: 'Personal', rate: 0 }
   ];
 
   // Use real followers data or fallback to sample handles
@@ -188,101 +198,15 @@ function PerformanceV2({ metrics }) {
   if (!metrics) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <Card className="text-center max-w-md">
+        <Card className="text-center max-w-md bg-primary-850 border-gray-700">
           <BarChart3 size={48} className="text-warning-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900">Loading Performance Data</h2>
-          <p className="text-gray-600 mt-2">Analyzing your content and audience metrics...</p>
+          <h2 className="text-xl font-semibold text-white">Loading Performance Data</h2>
+          <p className="text-gray-300 mt-2">Analyzing your content and audience metrics...</p>
         </Card>
       </div>
     );
   }
 
-  // Table columns configuration for Untitled UI Table
-  const postTableColumns = [
-    {
-      header: 'Post',
-      accessor: null,
-      render: (post) => (
-        <div className="max-w-xs">
-          <p className="text-sm text-gray-900 line-clamp-2">{post.text}</p>
-          {post.images && post.images.length > 0 && (
-            <div className="flex gap-2 mt-2">
-              {post.images.slice(0, 2).map((image, idx) => (
-                <img 
-                  key={idx}
-                  src={image.thumb || image.fullsize} 
-                  alt={`Content ${idx + 1}`}
-                  className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                />
-              ))}
-              {post.images.length > 2 && (
-                <div className="w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                  <span className="text-xs text-gray-600 font-semibold">+{post.images.length - 2}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )
-    },
-    {
-      header: 'Format',
-      accessor: null,
-      render: (post) => <Badge variant="primary" size="sm">{post.format}</Badge>
-    },
-    {
-      header: 'Topic',
-      accessor: null,
-      render: (post) => <Badge variant="brand" size="sm">{post.topic}</Badge>
-    },
-    {
-      header: 'Time',
-      accessor: null,
-      render: (post) => <span className="text-sm text-gray-600">{new Date(post.timestamp).toLocaleDateString()}</span>
-    },
-    {
-      header: 'ER',
-      accessor: null,
-      render: (post) => (
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-bold ${
-            post.engagementRate > 6 ? 'text-green-600' : 
-            post.engagementRate > 4 ? 'text-yellow-600' : 'text-red-600'
-          }`}>
-            {post.engagementRate}%
-          </span>
-          {post.engagementRate > 6 ? <ArrowUp size={14} className="text-green-500" /> : 
-           post.engagementRate < 4 ? <ArrowDown size={14} className="text-red-500" /> : null}
-        </div>
-      )
-    },
-    {
-      header: 'Engagement',
-      accessor: null,
-      render: (post) => (
-        <div className="flex gap-3 text-xs">
-          <span className="text-red-600 font-semibold">{post.likes} ❤️</span>
-          <span className="text-blue-600 font-semibold">{post.replies} 💬</span>
-          <span className="text-green-600 font-semibold">{post.reposts} 🔄</span>
-        </div>
-      )
-    },
-    {
-      header: 'Actions',
-      accessor: null,
-      render: (post) => (
-        <Button
-          size="sm"
-          variant="primary"
-          icon={<ExternalLink size={12} />}
-          iconPosition="right"
-          onClick={() => window.open(post.uri ? generateBlueskyPostUrl(post.author?.handle || metrics?.handle || 'labb.run', post.uri) : '#', '_blank')}
-        >
-          View
-        </Button>
-      )
-    }
-  ];
 
   return (
     <div className="space-y-8">
@@ -295,199 +219,753 @@ function PerformanceV2({ metrics }) {
           backgroundPosition: 'center'
         }}
       >
-        <Card className="bg-white bg-opacity-95 backdrop-blur-md border-0" padding="xl">
+        <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
-              <Sparkles size={24} className="text-white" />
+            <div className="p-3 bg-white/10 rounded-xl">
+              <Sparkles size={24} className="text-warning-400" />
             </div>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter', fontWeight: 700 }}>Performance Intelligence</h2>
-              <Badge variant="warning" size="lg" className="mb-4">AI POWERED</Badge>
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-bold font-sans">
+                  AI Performance Intelligence
+                </h2>
+                <Badge variant="warning" size="sm">LIVE</Badge>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                <MetricCard
-                  title="Content Insight"
-                  value="68%"
-                  description="Video performs better than text"
-                  change="+12% this week"
-                  changeType="positive"
-                  icon={<TrendingUp size={20} />}
-                />
-                <MetricCard
-                  title="Peak Time"
-                  value="2-4 PM"
-                  description="Optimal posting window"
-                  change="Weekdays"
-                  changeType="neutral"
-                  icon={<Clock size={20} />}
-                />
-                <MetricCard
-                  title="Amplification"
-                  value="3.2x"
-                  description="From mutual followers"
-                  change="+0.5x"
-                  changeType="positive"
-                  icon={<Users size={20} />}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Performance</span>
+                  </div>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Your engagement rate is 28% above average. Keep posting during peak hours!</p>
+                </div>
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Timing</span>
+                  </div>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Post between 2-4 PM for 45% higher engagement rates.</p>
+                </div>
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Content</span>
+                  </div>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Tech-focused posts get 3x more amplification. Double down on this!</p>
+                </div>
               </div>
             </div>
           </div>
-        </Card>
-      </div>
-
-      {/* Key Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Posting Frequency"
-          value="12/14"
-          description="Posts this week vs target"
-          change="+2 vs last week"
-          changeType="positive"
-          icon={<Calendar size={20} />}
-        />
-        <MetricCard
-          title="Avg First-Hour ER"
-          value="3.8%"
-          description="Engagement rate"
-          change="+0.5%"
-          changeType="positive"
-          icon={<Zap size={20} />}
-        />
-        <MetricCard
-          title="Time to 10 Engagements"
-          value="47m"
-          description="Speed of engagement"
-          change="-12m"
-          changeType="positive"
-          icon={<Target size={20} />}
-        />
-        <MetricCard
-          title="Mutuals Rate"
-          value="23%"
-          description="Followers who follow back"
-          change="+2%"
-          changeType="positive"
-          icon={<Hash size={20} />}
-        />
+        </div>
       </div>
 
       {/* Content Performance Section */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-            <BarChart3 size={24} className="text-white" />
+      <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-white/10 rounded-xl">
+            <BarChart3 size={24} className="text-warning-400" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 700 }}>Content Performance</h2>
-            <p className="text-gray-600">Analyze your posts, formats, and engagement patterns</p>
-          </div>
-        </div>
-        
-        {/* Recent Posts Table using Untitled UI Table Component */}
-        <Card padding="none">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold">Recent Posts Performance</h3>
-              <select 
-                value={selectedTimeRange}
-                onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="untitled-input bg-white bg-opacity-20 border-white border-opacity-30 text-white placeholder-white"
-              >
-                <option value="week" className="text-gray-900">Last Week</option>
-                <option value="month" className="text-gray-900">Last Month</option>
-                <option value="quarter" className="text-gray-900">Last Quarter</option>
-              </select>
-            </div>
-          </div>
-          
-          {loadingPosts ? (
-            <div className="p-8">
-              <Skeleton variant="text" className="mb-4" />
-              <Skeleton variant="text" className="mb-4" />
-              <Skeleton variant="text" />
-            </div>
-          ) : (
-            <Table columns={postTableColumns} data={recentPosts} />
-          )}
-        </Card>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* ER by Format */}
-          <Card>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow-lg">
-                <Zap size={24} className="text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Engagement by Format</h3>
-                <p className="text-gray-600 text-sm">Which content types perform best</p>
-              </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-2xl font-bold font-sans">
+                Content Performance
+              </h2>
+              <Badge variant="warning" size="sm">LIVE</Badge>
             </div>
             
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={engagementByFormat} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={(value) => `${value}%`} />
-                <YAxis type="category" dataKey="format" stroke="#64748b" fontSize={12} width={80} />
-                <Tooltip 
-                  formatter={(value) => [`${value}%`, 'Engagement Rate']}
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Bar dataKey="rate" fill="url(#colorGradient)" radius={[0, 8, 8, 0]} />
-                <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={1}/>
-                    <stop offset="95%" stopColor="#06B6D4" stopOpacity={1}/>
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
+            <div className="space-y-6">
+              {/* Overview Boxes in 3x2 Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {/* Content Overview */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Content Overview</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white mb-1 font-sans">
+                    {metrics?.recentPosts?.filter(p => !p.isReply).length || 0} posts
+                  </p>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-2">Total posts • Reach: 2,847 accounts</p>
+                  <p className="text-xs font-sans text-success-400">
+                    Avg ER: {analyticsData?.summary?.avgEngagement ? (analyticsData.summary.avgEngagement / (metrics?.followersCount || 1) * 100).toFixed(1) : 0}%
+                  </p>
+                </div>
 
-          {/* ER by Topic */}
-          <Card>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl shadow-lg">
-                <Hash size={24} className="text-white" />
+                {/* Engagement by Format */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Engagement by Format</span>
+                  </div>
+                  <div className="space-y-2">
+                    {engagementByFormat.slice(0, 3).map((item, idx) => {
+                      const totalPosts = metrics?.recentPosts?.length || 1;
+                      const formatPosts = metrics?.recentPosts?.filter(p => p.format === item.format).length || 0;
+                      const percentage = ((formatPosts / totalPosts) * 100).toFixed(1);
+                      
+                      return (
+                        <div key={idx} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-300 font-sans">{item.format}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-success-400 font-sans">{percentage}%</span>
+                            <div className="w-16 bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-success-400 h-2 rounded-full"
+                                style={{ width: `${Math.min(percentage, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Comments Overview */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Comments Overview</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white mb-1 font-sans">
+                    {metrics?.recentPosts?.filter(p => p.isReply).length || 0} comments
+                  </p>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-2">Total comments • Reach: 1,234 accounts</p>
+                  <p className="text-xs font-sans text-success-400">
+                    Avg ER: {analyticsData?.summary?.avgEngagement ? (analyticsData.summary.avgEngagement / (metrics?.followersCount || 1) * 100).toFixed(1) : 0}%
+                  </p>
+                </div>
+
+                {/* Engagement by Topic */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Engagement by Topic</span>
+                  </div>
+                  <div className="space-y-2">
+                    {engagementByTopic.slice(0, 3).map((item, idx) => {
+                      const totalPosts = metrics?.recentPosts?.length || 1;
+                      const topicPosts = item.count || 0;
+                      const percentage = ((topicPosts / totalPosts) * 100).toFixed(1);
+                      
+                      return (
+                        <div key={idx} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-300 font-sans">{item.topic}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-success-400 font-sans">{percentage}%</span>
+                            <div className="w-16 bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-success-400 h-2 rounded-full"
+                                style={{ width: `${Math.min(percentage, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Avg First-Hour ER */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Avg First-Hour ER</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white mb-1 font-sans">3.8%</p>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-2">Engagement rate in first hour • Speed metric</p>
+                  <p className="text-xs font-sans text-success-400">
+                    +0.5% improvement
+                  </p>
+                </div>
+
+                {/* Time to 10 Engagements */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Time to 10 Engagements</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white mb-1 font-sans">47m</p>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-2">Speed of engagement • Average time</p>
+                  <p className="text-xs font-sans text-success-400">
+                    -12m faster
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Engagement by Topic</h3>
-                <p className="text-gray-600 text-sm">Your most engaging content themes</p>
+
+              {/* Recent and Popular Posts Side by Side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Recent Posts Section */}
+                <div className="space-y-4">
+                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                    <h3 className="text-lg font-semibold text-white font-sans mb-4">Last 5 posts</h3>
+                    {loadingPosts ? (
+                      <div className="space-y-4">
+                        <Skeleton variant="card" height={100} />
+                        <Skeleton variant="card" height={100} />
+                        <Skeleton variant="card" height={100} />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {metrics?.recentPosts?.filter(post => !post.isReply).slice(0, 5).map((post, index) => {
+                          const postId = post.uri || `post-${index}`;
+                          const isExpanded = expandedPosts.has(postId);
+                          const totalEngagement = (post.likeCount || 0) + (post.replyCount || 0) + (post.repostCount || 0);
+                          const engagementRate = metrics?.followersCount > 0 
+                            ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
+                            : 0;
+                          
+                          // Debug logging to match Overview page
+                          console.log(`Performance Post ${index}:`, {
+                            text: post.text?.substring(0, 50),
+                            isReply: post.isReply,
+                            replyTo: post.replyTo,
+                            date: post.indexedAt,
+                            hasImages: !!post.images,
+                            imageCount: post.images?.length || 0,
+                            images: post.images
+                          });
+                          
+                          return (
+                            <div key={postId} className="bg-primary-850 border border-gray-600 rounded-lg p-4">
+                              <div className="flex items-start gap-4">
+                                {/* Image Section - Using exact Overview page logic */}
+                                <div className="flex-shrink-0">
+                                  {post.images && post.images.length > 0 ? (
+                                    <div>
+                                      <img 
+                                        src={post.images[0].thumb || post.images[0].fullsize || post.images[0]}
+                                        alt={post.images[0].alt || 'Post image'}
+                                        className="w-16 h-16 object-cover rounded-lg border border-gray-600"
+                                        onError={(e) => {
+                                          console.log('Image failed to load:', e.target.src);
+                                          e.target.style.display = 'none';
+                                          e.target.nextElementSibling.style.display = 'flex';
+                                        }}
+                                        onLoad={() => {
+                                          console.log('Image loaded successfully:', post.images[0].thumb || post.images[0].fullsize);
+                                        }}
+                                      />
+                                      <div 
+                                        className="w-16 h-16 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
+                                        style={{ display: 'none' }}
+                                      >
+                                        🖼️
+                                      </div>
+                                      {post.images.length > 1 && (
+                                        <div className="text-xs text-gray-400 mt-1 text-center font-sans">
+                                          +{post.images.length - 1} more
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="w-16 h-16 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
+                                      📝
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Content Section */}
+                                <div className="flex-1">
+                                  <div className="mb-2">
+                                    <p className={`text-sm text-gray-300 font-sans leading-relaxed ${
+                                      isExpanded ? '' : 'line-clamp-2'
+                                    }`}>
+                                      {post.text || 'No text content'}
+                                    </p>
+                                    {post.text && post.text.length > 100 && (
+                                      <button
+                                        onClick={() => togglePostExpansion(postId)}
+                                        className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                      >
+                                        {isExpanded ? 'Show less' : 'Show more'}
+                                      </button>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex gap-3 text-xs">
+                                      <span className="text-red-400 font-sans">{post.likeCount || 0} ❤️</span>
+                                      <span className="text-blue-400 font-sans">{post.replyCount || 0} 💬</span>
+                                      <span className="text-green-400 font-sans">{post.repostCount || 0} 🔄</span>
+                                    </div>
+                                    <div className="text-xs text-success-400 font-sans font-semibold">
+                                      ER: {engagementRate}%
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="text-xs text-gray-400 font-sans">
+                                      {post.indexedAt ? new Date(post.indexedAt).toLocaleDateString() : 'No date'}
+                                    </div>
+                                    <div className="text-xs text-gray-500 font-sans">
+                                      Format: {post.format || 'Unknown'}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {(!metrics?.recentPosts || metrics.recentPosts.filter(post => !post.isReply).length === 0) && (
+                          <div className="text-center text-gray-400 font-sans py-8">
+                            No recent posts found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  
+                  {/* 2 Most Popular Posts */}
+                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                    <h3 className="text-lg font-semibold text-white font-sans mb-4">2 Most Popular Posts</h3>
+                    {loadingPosts ? (
+                      <div className="space-y-4">
+                        <Skeleton variant="card" height={80} />
+                        <Skeleton variant="card" height={80} />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {metrics?.recentPosts?.filter(post => !post.isReply)
+                          .sort((a, b) => {
+                            const aEngagement = (a.likeCount || 0) + (a.replyCount || 0) + (a.repostCount || 0);
+                            const bEngagement = (b.likeCount || 0) + (b.replyCount || 0) + (b.repostCount || 0);
+                            return bEngagement - aEngagement;
+                          })
+                          .slice(0, 2).map((post, index) => {
+                          const postId = `popular-${post.uri || index}`;
+                          const isExpanded = expandedPosts.has(postId);
+                          const totalEngagement = (post.likeCount || 0) + (post.replyCount || 0) + (post.repostCount || 0);
+                          const engagementRate = metrics?.followersCount > 0 
+                            ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
+                            : 0;
+                          
+                          return (
+                            <div key={postId} className="bg-primary-850 border border-gray-600 rounded-lg p-4">
+                              <div className="flex items-start gap-4">
+                                {/* Image Section */}
+                                <div className="flex-shrink-0">
+                                  {post.images && post.images.length > 0 ? (
+                                    <div>
+                                      <img 
+                                        src={post.images[0].thumb || post.images[0].fullsize || post.images[0]}
+                                        alt={post.images[0].alt || 'Post image'}
+                                        className="w-16 h-16 object-cover rounded-lg border border-gray-600"
+                                        onError={(e) => {
+                                          e.target.style.display = 'none';
+                                          e.target.nextElementSibling.style.display = 'flex';
+                                        }}
+                                      />
+                                      <div 
+                                        className="w-16 h-16 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
+                                        style={{ display: 'none' }}
+                                      >
+                                        🖼️
+                                      </div>
+                                      {post.images.length > 1 && (
+                                        <div className="text-xs text-gray-400 mt-1 text-center font-sans">
+                                          +{post.images.length - 1} more
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="w-16 h-16 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
+                                      📝
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Content Section */}
+                                <div className="flex-1">
+                                  <div className="mb-2">
+                                    <p className={`text-sm text-gray-300 font-sans leading-relaxed ${
+                                      isExpanded ? '' : 'line-clamp-2'
+                                    }`}>
+                                      {post.text || 'No text content'}
+                                    </p>
+                                    {post.text && post.text.length > 100 && (
+                                      <button
+                                        onClick={() => togglePostExpansion(postId)}
+                                        className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                      >
+                                        {isExpanded ? 'Show less' : 'Show more'}
+                                      </button>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex gap-3 text-xs">
+                                      <span className="text-red-400 font-sans">{post.likeCount || 0} ❤️</span>
+                                      <span className="text-blue-400 font-sans">{post.replyCount || 0} 💬</span>
+                                      <span className="text-green-400 font-sans">{post.repostCount || 0} 🔄</span>
+                                    </div>
+                                    <div className="text-xs text-success-400 font-sans font-semibold">
+                                      ER: {engagementRate}%
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="text-xs text-gray-400 font-sans">
+                                      {post.indexedAt ? new Date(post.indexedAt).toLocaleDateString() : 'No date'}
+                                    </div>
+                                    <div className="text-xs text-warning-400 font-sans">
+                                      🏆 Popular
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {(!metrics?.recentPosts || metrics.recentPosts.filter(post => !post.isReply).length < 2) && (
+                          <div className="text-center text-gray-400 font-sans py-8">
+                            Not enough posts for popularity ranking
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Comments Section */}
+                <div className="space-y-4">
+                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                    <h3 className="text-lg font-semibold text-white font-sans mb-4">Last 5 comments</h3>
+                    {loadingPosts ? (
+                      <div className="space-y-4">
+                        <Skeleton variant="card" height={100} />
+                        <Skeleton variant="card" height={100} />
+                        <Skeleton variant="card" height={100} />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {metrics?.recentPosts?.filter(post => post.isReply && post.replyTo).slice(0, 5).map((comment, index) => {
+                          const commentId = comment.uri || `comment-${index}`;
+                          const isExpanded = expandedComments.has(commentId);
+                          const totalEngagement = (comment.likeCount || 0) + (comment.replyCount || 0) + (comment.repostCount || 0);
+                          const engagementRate = metrics?.followersCount > 0 
+                            ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
+                            : 0;
+                          
+                          return (
+                            <div key={commentId} className="bg-primary-850 border border-gray-600 rounded-lg p-4">
+                              {/* Original Post Context */}
+                              {comment.replyTo && (
+                                <div className="mb-3 p-3 rounded-lg border border-gray-600 bg-white/5">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-xs font-semibold text-gray-400 font-sans">
+                                      💬 Replying to @{comment.replyTo.author.handle}
+                                    </span>
+                                  </div>
+                                  <p className={`text-xs text-gray-300 italic font-sans leading-5 ${
+                                    isExpanded ? '' : 'line-clamp-2'
+                                  }`}>
+                                    "{comment.replyTo.text}"
+                                  </p>
+                                  {comment.replyTo.text && comment.replyTo.text.length > 80 && (
+                                    <button
+                                      onClick={() => toggleCommentExpansion(commentId)}
+                                      className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                    >
+                                      {isExpanded ? 'Show less original' : 'Show more original'}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Comment Content */}
+                              <div className="flex items-start gap-4">
+                                {/* Image Section - Check for comment images */}
+                                <div className="flex-shrink-0">
+                                  {comment.images && comment.images.length > 0 ? (
+                                    <div>
+                                      <img 
+                                        src={comment.images[0].thumb || comment.images[0].fullsize || comment.images[0]}
+                                        alt={comment.images[0].alt || 'Comment image'}
+                                        className="w-12 h-12 object-cover rounded-lg border border-gray-600"
+                                        onError={(e) => {
+                                          e.target.style.display = 'none';
+                                          e.target.nextElementSibling.style.display = 'flex';
+                                        }}
+                                      />
+                                      <div 
+                                        className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
+                                        style={{ display: 'none' }}
+                                      >
+                                        💬
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
+                                      💬
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <div className="mb-2">
+                                    <p className={`text-sm text-gray-300 font-sans leading-relaxed ${
+                                      isExpanded ? '' : 'line-clamp-2'
+                                    }`}>
+                                      {comment.text || 'No comment text'}
+                                    </p>
+                                    {comment.text && comment.text.length > 100 && (
+                                      <button
+                                        onClick={() => toggleCommentExpansion(commentId)}
+                                        className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                      >
+                                        {isExpanded ? 'Show less' : 'Show more'}
+                                      </button>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex gap-3 text-xs">
+                                      <span className="text-red-400 font-sans">{comment.likeCount || 0} ❤️</span>
+                                      <span className="text-blue-400 font-sans">{comment.replyCount || 0} 💬</span>
+                                      <span className="text-green-400 font-sans">{comment.repostCount || 0} 🔄</span>
+                                    </div>
+                                    <div className="text-xs text-success-400 font-sans font-semibold">
+                                      ER: {engagementRate}%
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="text-xs text-gray-400 font-sans">
+                                      {comment.indexedAt ? new Date(comment.indexedAt).toLocaleDateString() : 'No date'}
+                                    </div>
+                                    <div className="text-xs text-gray-500 font-sans">
+                                      Format: {comment.format || 'Reply'}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {(!metrics?.recentPosts || metrics.recentPosts.filter(post => post.isReply && post.replyTo).length === 0) && (
+                          <div className="text-center text-gray-400 font-sans py-8">
+                            No recent comments found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* 2 Most Popular Comments */}
+                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                    <h3 className="text-lg font-semibold text-white font-sans mb-4">2 Most Popular Comments</h3>
+                    {loadingPosts ? (
+                      <div className="space-y-4">
+                        <Skeleton variant="card" height={80} />
+                        <Skeleton variant="card" height={80} />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {metrics?.recentPosts?.filter(post => post.isReply && post.replyTo)
+                          .sort((a, b) => {
+                            const aEngagement = (a.likeCount || 0) + (a.replyCount || 0) + (a.repostCount || 0);
+                            const bEngagement = (b.likeCount || 0) + (b.replyCount || 0) + (b.repostCount || 0);
+                            return bEngagement - aEngagement;
+                          })
+                          .slice(0, 2).map((comment, index) => {
+                          const commentId = `popular-comment-${comment.uri || index}`;
+                          const isExpanded = expandedComments.has(commentId);
+                          const totalEngagement = (comment.likeCount || 0) + (comment.replyCount || 0) + (comment.repostCount || 0);
+                          const engagementRate = metrics?.followersCount > 0 
+                            ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
+                            : 0;
+                          
+                          return (
+                            <div key={commentId} className="bg-primary-850 border border-gray-600 rounded-lg p-4">
+                              {/* Original Post Context */}
+                              {comment.replyTo && (
+                                <div className="mb-3 p-3 rounded-lg border border-gray-600 bg-white/5">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-xs font-semibold text-gray-400 font-sans">
+                                      💬 Replying to @{comment.replyTo.author.handle}
+                                    </span>
+                                  </div>
+                                  <p className={`text-xs text-gray-300 italic font-sans leading-5 ${
+                                    isExpanded ? '' : 'line-clamp-2'
+                                  }`}>
+                                    "{comment.replyTo.text}"
+                                  </p>
+                                  {comment.replyTo.text && comment.replyTo.text.length > 80 && (
+                                    <button
+                                      onClick={() => toggleCommentExpansion(commentId)}
+                                      className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                    >
+                                      {isExpanded ? 'Show less original' : 'Show more original'}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Comment Content */}
+                              <div className="flex items-start gap-4">
+                                {/* Image Section */}
+                                <div className="flex-shrink-0">
+                                  {comment.images && comment.images.length > 0 ? (
+                                    <div>
+                                      <img 
+                                        src={comment.images[0].thumb || comment.images[0].fullsize || comment.images[0]}
+                                        alt={comment.images[0].alt || 'Comment image'}
+                                        className="w-12 h-12 object-cover rounded-lg border border-gray-600"
+                                        onError={(e) => {
+                                          e.target.style.display = 'none';
+                                          e.target.nextElementSibling.style.display = 'flex';
+                                        }}
+                                      />
+                                      <div 
+                                        className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
+                                        style={{ display: 'none' }}
+                                      >
+                                        💬
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
+                                      💬
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <div className="mb-2">
+                                    <p className={`text-sm text-gray-300 font-sans leading-relaxed ${
+                                      isExpanded ? '' : 'line-clamp-2'
+                                    }`}>
+                                      {comment.text || 'No comment text'}
+                                    </p>
+                                    {comment.text && comment.text.length > 100 && (
+                                      <button
+                                        onClick={() => toggleCommentExpansion(commentId)}
+                                        className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                      >
+                                        {isExpanded ? 'Show less' : 'Show more'}
+                                      </button>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex gap-3 text-xs">
+                                      <span className="text-red-400 font-sans">{comment.likeCount || 0} ❤️</span>
+                                      <span className="text-blue-400 font-sans">{comment.replyCount || 0} 💬</span>
+                                      <span className="text-green-400 font-sans">{comment.repostCount || 0} 🔄</span>
+                                    </div>
+                                    <div className="text-xs text-success-400 font-sans font-semibold">
+                                      ER: {engagementRate}%
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="text-xs text-gray-400 font-sans">
+                                      {comment.indexedAt ? new Date(comment.indexedAt).toLocaleDateString() : 'No date'}
+                                    </div>
+                                    <div className="text-xs text-warning-400 font-sans">
+                                      🏆 Popular
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {(!metrics?.recentPosts || metrics.recentPosts.filter(post => post.isReply && post.replyTo).length < 2) && (
+                          <div className="text-center text-gray-400 font-sans py-8">
+                            Not enough comments for popularity ranking
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
+
             </div>
-            
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={engagementByTopic} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={(value) => `${value}%`} />
-                <YAxis type="category" dataKey="topic" stroke="#64748b" fontSize={12} width={80} />
-                <Tooltip 
-                  formatter={(value) => [`${value}%`, 'Engagement Rate']}
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Bar dataKey="rate" fill="url(#colorGradient2)" radius={[0, 8, 8, 0]} />
-                <defs>
-                  <linearGradient id="colorGradient2" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={1}/>
-                    <stop offset="95%" stopColor="#EC4899" stopOpacity={1}/>
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
+          </div>
         </div>
       </div>
+
+      {/* AI Topic Insights */}
+      {analyticsData?.aiTopicInsights && (
+        <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-white/10 rounded-xl">
+              <Target size={24} className="text-warning-400" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-2xl font-bold font-sans">
+                  AI Topic Analysis & Recommendations
+                </h2>
+                <Badge variant="warning" size="sm">INSIGHTS</Badge>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Topic Targeting Accuracy */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Target size={16} className={analyticsData.aiTopicInsights.onTarget > 70 ? "text-success-400" : "text-warning-400"} />
+                    <span className={`font-semibold text-sm font-sans ${
+                      analyticsData.aiTopicInsights.onTarget > 70 ? 'text-success-400' : 'text-warning-400'
+                    }`}>
+                      Topic Targeting Accuracy
+                    </span>
+                  </div>
+                  <p className="text-3xl font-bold text-white mb-2 font-sans">
+                    {analyticsData.aiTopicInsights.onTarget}%
+                  </p>
+                  <p className="text-sm text-gray-300 font-sans mb-3">
+                    of your content aligns with target topics
+                  </p>
+                  
+                  {analyticsData.aiTopicInsights.offTarget.length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-400 font-sans mb-2">Off-target content:</p>
+                      {analyticsData.aiTopicInsights.offTarget.slice(0, 2).map((post, idx) => (
+                        <div key={idx} className="bg-white/5 rounded-lg p-2 mb-2">
+                          <p className="text-xs text-gray-300 font-sans">
+                            {post.topic}: {post.text}
+                          </p>
+                          <p className="text-xs text-warning-400 font-sans">
+                            {post.engagement} interactions
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* AI Recommendations */}
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">
+                      AI Recommendations
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {analyticsData.aiTopicInsights.recommendations.map((rec, idx) => (
+                      <div key={idx} className="bg-white/5 rounded-lg p-3">
+                        <p className="text-sm text-gray-300 font-sans leading-relaxed">
+                          {rec}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+
 
       {/* Audience & Growth Section with Mesh Gradient */}
       <div 
@@ -505,7 +983,7 @@ function PerformanceV2({ metrics }) {
                 <Users size={24} className="text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Audience & Growth</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-sans">Audience & Growth</h2>
                 <p className="text-gray-600">Track your community growth and engagement</p>
               </div>
             </div>

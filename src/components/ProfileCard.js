@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Users, FileText, ExternalLink } from 'lucide-react';
 import { fetchProfileData, generateCommentUrl } from '../services/profileService';
 import { Card, Button, Avatar, Skeleton } from '../components/ui/UntitledUIComponents';
+import ImageGallery from './ImageGallery';
 
 function ProfileCard({ handle, showRecentPost = false, className = '' }) {
   const [profileData, setProfileData] = useState(null);
@@ -93,18 +94,12 @@ function ProfileCard({ handle, showRecentPost = false, className = '' }) {
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-gray-700 text-sm mb-3 line-clamp-3">{profileData.recentPost.text}</p>
             
-            {profileData.recentPost.images && profileData.recentPost.images.length > 0 && (
-              <div className="mb-3 flex gap-2 overflow-x-auto">
-                {profileData.recentPost.images.map((image, idx) => (
-                  <img 
-                    key={idx}
-                    src={image.thumb || image.fullsize || image}
-                    alt={image.alt || `Post image ${idx + 1}`}
-                    className="h-20 w-auto object-cover rounded-lg border border-gray-200 flex-shrink-0"
-                  />
-                ))}
-              </div>
-            )}
+            <ImageGallery 
+              images={profileData.recentPost.images}
+              size="lg"
+              maxImages={3}
+              className="mb-3"
+            />
             
             <div className="flex items-center justify-between">
               <div className="flex gap-4 text-xs text-gray-500">

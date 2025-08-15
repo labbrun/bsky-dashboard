@@ -337,8 +337,8 @@ function Insights({ metrics }) {
       </div>
 
       {/* Insight Categories Navigation */}
-      <div className="bg-white border border-primary-200 rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-primary-900 mb-4">Insight Categories</h2>
+      <div style={{backgroundColor: '#0c2146'}} className="border border-gray-700 rounded-xl p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-white mb-4">Insight Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {Object.values(INSIGHT_CATEGORIES).map(category => {
             const IconComponent = {

@@ -83,8 +83,9 @@ export const getFollows = async (handle, limit = 100, cursor = null) => {
 };
 
 // Transform Bluesky API data to match our dashboard format
-export const transformBlueskyData = (profile, posts, followers) => {
-  // Calculate engagement totals from posts
+export const transformBlueskyData = (profile, feedItems, followers) => {
+  // Extract posts from feed items and calculate engagement totals
+  const posts = feedItems.map(item => item.post);
   const totalLikes = posts.reduce((sum, post) => sum + (post.likeCount || 0), 0);
   const totalReplies = posts.reduce((sum, post) => sum + (post.replyCount || 0), 0);
   const totalReposts = posts.reduce((sum, post) => sum + (post.repostCount || 0), 0);
@@ -102,70 +103,132 @@ export const transformBlueskyData = (profile, posts, followers) => {
     totalLikes,
     totalReplies,
     totalReposts,
-    recentPosts: posts.map((post, index) => {
+    recentPosts: feedItems.map((feedItem, index) => {
+      const post = feedItem.post;
       // Enhanced image detection for Bluesky embed structures
       let images = [];
       
+      // Comprehensive image extraction with debugging
+      console.log('Processing post images for:', post.record?.text?.substring(0, 50));
       
       // PRIMARY: Check for images in post.embed.images (processed/viewed posts)
-      if (post.embed?.images) {
+      if (post.embed?.images && Array.isArray(post.embed.images)) {
         images = post.embed.images.map(img => ({
           thumb: img.thumb,
           fullsize: img.fullsize,
           alt: img.alt || ''
         }));
+        console.log('Found embed.images:', images.length);
       }
       // SECONDARY: Check for images in post.record.embed.images (raw posts)
-      else if (post.record?.embed?.images) {
+      else if (post.record?.embed?.images && Array.isArray(post.record.embed.images)) {
         images = post.record.embed.images.map(img => ({
           thumb: img.thumb,
           fullsize: img.fullsize,
           alt: img.alt || ''
         }));
+        console.log('Found record.embed.images:', images.length);
       }
       // EXTERNAL: Check for external link thumbnails in post.embed.external
       else if (post.embed?.external?.thumb) {
         images = [{
           thumb: post.embed.external.thumb,
           fullsize: post.embed.external.thumb,
-          alt: post.embed.external.title || ''
+          alt: post.embed.external.title || 'External link thumbnail'
         }];
+        console.log('Found external thumb in embed');
       }
       // EXTERNAL RECORD: Check for external image embeds in record
       else if (post.record?.embed?.external?.thumb) {
         images = [{
           thumb: post.record.embed.external.thumb,
           fullsize: post.record.embed.external.thumb,
-          alt: post.record.embed.external.title || ''
+          alt: post.record.embed.external.title || 'External link thumbnail'
         }];
+        console.log('Found external thumb in record');
       }
       // QUOTED POSTS: Check for quoted post images
       else if (post.record?.embed?.record?.embeds?.[0]?.images) {
         images = post.record.embed.record.embeds[0].images.map(img => ({
           thumb: img.thumb,
           fullsize: img.fullsize,
-          alt: img.alt || ''
+          alt: img.alt || 'Quoted post image'
         }));
+        console.log('Found quoted post images:', images.length);
+      }
+      // QUOTED POST EXTERNAL: Check for external images in quoted posts
+      else if (post.record?.embed?.record?.embed?.external?.thumb) {
+        images = [{
+          thumb: post.record.embed.record.embed.external.thumb,
+          fullsize: post.record.embed.record.embed.external.thumb,
+          alt: post.record.embed.record.embed.external.title || 'Quoted post external image'
+        }];
+        console.log('Found quoted post external image');
       }
       // REPLY PARENT IMAGES: Check for images in reply parent post
-      else if (post.reply?.parent?.embed?.external?.thumb) {
-        images = [{
-          thumb: post.reply.parent.embed.external.thumb,
-          fullsize: post.reply.parent.embed.external.thumb,
-          alt: post.reply.parent.embed.external.title || 'Reply parent image'
-        }];
+      else if (feedItem.reply?.parent?.embed?.images?.[0]) {
+        images = feedItem.reply.parent.embed.images.map(img => ({
+          thumb: img.thumb,
+          fullsize: img.fullsize,
+          alt: img.alt || 'Reply parent image'
+        }));
+        console.log('Found parent reply images:', images.length);
       }
       // REPLY ROOT IMAGES: Check for images in reply root post
-      else if (post.reply?.root?.embed?.external?.thumb) {
-        images = [{
-          thumb: post.reply.root.embed.external.thumb,
-          fullsize: post.reply.root.embed.external.thumb,
-          alt: post.reply.root.embed.external.title || 'Reply root image'
-        }];
+      else if (feedItem.reply?.root?.embed?.images?.[0]) {
+        images = feedItem.reply.root.embed.images.map(img => ({
+          thumb: img.thumb,
+          fullsize: img.fullsize,
+          alt: img.alt || 'Reply root image'
+        }));
+        console.log('Found root reply images:', images.length);
       }
-      else {
+      // ALTERNATIVE PATHS: Check alternative image paths
+      else if (post.value?.embed?.images) {
+        images = post.value.embed.images.map(img => ({
+          thumb: img.thumb,
+          fullsize: img.fullsize,
+          alt: img.alt || 'Alternative path image'
+        }));
+        console.log('Found value.embed images:', images.length);
+      }
+      
+      // Final fallback - log structure for debugging
+      if (images.length === 0 && (post.embed || post.record?.embed)) {
+        console.log('No images found, post structure:', {
+          hasEmbed: !!post.embed,
+          embedKeys: post.embed ? Object.keys(post.embed) : [],
+          hasRecordEmbed: !!post.record?.embed,
+          recordEmbedKeys: post.record?.embed ? Object.keys(post.record.embed) : [],
+          postText: post.record?.text?.substring(0, 50)
+        });
       }
 
+
+      // Debug logging for replies - check both feedItem.reply and post.reply
+      if (feedItem.reply || post.reply) {
+        console.log('Found a reply post:', {
+          postText: post.record?.text,
+          hasFeedReply: !!feedItem.reply,
+          hasPostReply: !!post.reply,
+          feedItemReply: feedItem.reply,
+          postReply: post.reply
+        });
+      }
+
+      // Determine post format based on content
+      let format = 'Text';
+      if (images.length > 0) {
+        format = 'Text + Image';
+      } else if (post.embed?.external || post.record?.embed?.external) {
+        format = 'Link';
+      } else if (post.record?.text && post.record.text.length > 280) {
+        format = 'Long Text';
+      } else if (feedItem.reply?.parent || feedItem.reply?.root) {
+        format = 'Reply';
+      } else if (post.record?.embed?.record) {
+        format = 'Quote Post';
+      }
 
       return {
         uri: post.uri,
@@ -174,7 +237,17 @@ export const transformBlueskyData = (profile, posts, followers) => {
         replyCount: post.replyCount || 0,
         repostCount: post.repostCount || 0,
         indexedAt: post.indexedAt,
-        images
+        images,
+        format, // Add format detection
+        isReply: !!(feedItem.reply?.parent || feedItem.reply?.root || post.reply?.parent || post.reply?.root),
+        replyTo: feedItem.reply?.parent || post.reply?.parent ? {
+          uri: (feedItem.reply?.parent || post.reply?.parent).uri,
+          text: (feedItem.reply?.parent || post.reply?.parent).record?.text || '',
+          author: {
+            handle: (feedItem.reply?.parent || post.reply?.parent).author?.handle || '',
+            displayName: (feedItem.reply?.parent || post.reply?.parent).author?.displayName || ''
+          }
+        } : null
       };
     }),
     sampleFollowers: followers.map(follower => ({
@@ -196,10 +269,10 @@ export const fetchBlueskyUserData = async (handle) => {
       getFollowers(handle, 10)
     ]);
     
-    // Transform and return data
+    // Transform and return data (pass full feed items to preserve reply context)
     const transformedData = transformBlueskyData(
       profileData,
-      feedData.feed?.map(item => item.post) || [],
+      feedData.feed || [],
       followersData.followers || []
     );
     

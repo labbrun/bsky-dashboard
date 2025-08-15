@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm install:*)",
       "WebFetch(domain:bsky.app)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(npm start)"
     ],
     "deny": []
   }

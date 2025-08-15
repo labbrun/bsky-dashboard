@@ -245,10 +245,10 @@ function Performance({ metrics }) {
   if (!metrics) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="text-center bg-white rounded-2xl p-12 shadow-lg border border-gray-200">
+        <div className="text-center rounded-2xl p-12 shadow-lg border border-gray-700" style={{backgroundColor: '#0c2146'}}>
           <BarChart3 size={48} className="text-warning-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900">Loading Performance Data</h2>
-          <p className="text-gray-600 mt-2">Analyzing your content and audience metrics...</p>
+          <h2 className="text-xl font-semibold text-white">Loading Performance Data</h2>
+          <p className="text-gray-300 mt-2">Analyzing your content and audience metrics...</p>
         </div>
       </div>
     );
@@ -256,40 +256,39 @@ function Performance({ metrics }) {
 
   return (
     <div className="space-y-8">
-      {/* AI Performance Insights - Enhanced with vibrant gradient */}
-      <div className="bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-600 rounded-2xl p-6 shadow-xl text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white bg-opacity-10 rounded-full -translate-y-20 translate-x-20"></div>
+      {/* AI Performance Insights - Dark theme consistent with Overview */}
+      <div style={{backgroundColor: '#13336b'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         
         <div className="relative flex items-start gap-4">
-          <div className="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
-            <Sparkles size={24} className="text-yellow-300" />
+          <div className="p-3 rounded-xl" style={{backgroundColor: '#e8eef9'}}>
+            <Sparkles size={24} style={{color: '#2d323e'}} />
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              Performance Intelligence
-              <span className="px-3 py-1 text-xs bg-yellow-400 text-yellow-900 rounded-full font-bold">AI POWERED</span>
+              AI Performance Intelligence
+              <span className="px-3 py-1 text-xs bg-yellow-400 text-yellow-900 rounded-full font-bold">LIVE</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white bg-opacity-15 rounded-xl p-4 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp size={16} className="text-green-300" />
-                  <span className="text-green-300 font-semibold text-sm">Content Insight</span>
+                  <TrendingUp size={16} className="text-success-400" />
+                  <span className="text-success-400 font-semibold text-sm">Content Insight</span>
                 </div>
-                <p className="text-white text-sm">Video content performs 68% better than text posts. Consider increasing video frequency.</p>
+                <p className="text-gray-300 text-sm">Video content performs 68% better than text posts. Consider increasing video frequency.</p>
               </div>
-              <div className="bg-white bg-opacity-15 rounded-xl p-4 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock size={16} className="text-blue-300" />
-                  <span className="text-blue-300 font-semibold text-sm">Timing Analysis</span>
+                  <Clock size={16} className="text-success-400" />
+                  <span className="text-success-400 font-semibold text-sm">Timing Analysis</span>
                 </div>
-                <p className="text-white text-sm">Peak engagement window: 2-4 PM weekdays. Schedule important content accordingly.</p>
+                <p className="text-gray-300 text-sm">Peak engagement window: 2-4 PM weekdays. Schedule important content accordingly.</p>
               </div>
-              <div className="bg-white bg-opacity-15 rounded-xl p-4 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Users size={16} className="text-purple-300" />
-                  <span className="text-purple-300 font-semibold text-sm">Audience Behavior</span>
+                  <Users size={16} className="text-success-400" />
+                  <span className="text-success-400 font-semibold text-sm">Audience Behavior</span>
                 </div>
-                <p className="text-white text-sm">Your mutual followers drive 3.2x more amplification than regular followers.</p>
+                <p className="text-gray-300 text-sm">Your mutual followers drive 3.2x more amplification than regular followers.</p>
               </div>
             </div>
           </div>
@@ -309,40 +308,41 @@ function Performance({ metrics }) {
         </div>
         
         {/* Recent Posts Table */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+        <div style={{backgroundColor: '#0c2146'}} className="rounded-2xl shadow-xl overflow-hidden border border-gray-700">
+          <div className="p-6 text-white border-b border-gray-700">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold">Recent Posts Performance</h3>
+              <h3 className="text-xl font-bold">Recent Posts & Comments</h3>
               <select 
                 value={selectedTimeRange}
                 onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="px-4 py-2 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-sm backdrop-blur-sm text-white placeholder-white"
+                className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white"
+                style={{backgroundColor: '#374151'}}
               >
-                <option value="week" className="text-gray-900">Last Week</option>
-                <option value="month" className="text-gray-900">Last Month</option>
-                <option value="quarter" className="text-gray-900">Last Quarter</option>
+                <option value="week">Last Week</option>
+                <option value="month">Last Month</option>
+                <option value="quarter">Last Quarter</option>
               </select>
             </div>
           </div>
           
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead style={{backgroundColor: '#1e293b'}}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">Post</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">Format</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">Topic</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">Time</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">ER</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">Engagement</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wide">Actions</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wide">Post</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wide">Format</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wide">Topic</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wide">Time</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wide">ER</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wide">Engagement</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wide">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-600">
                 {recentPosts.map((post) => (
-                  <tr key={post.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={post.id} className="hover:bg-gray-700/20 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs">
+                      <div className="text-sm text-gray-300 max-w-xs">
                         <p className="line-clamp-2">{post.text}</p>
                         {post.images && post.images.length > 0 && (
                           <div className="flex gap-2 mt-2">
@@ -355,8 +355,8 @@ function Performance({ metrics }) {
                               />
                             ))}
                             {post.images.length > 2 && (
-                              <div className="w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                                <span className="text-xs text-gray-600 font-semibold">+{post.images.length - 2}</span>
+                              <div className="w-16 h-16 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center">
+                                <span className="text-xs text-gray-300 font-semibold">+{post.images.length - 2}</span>
                               </div>
                             )}
                           </div>
@@ -364,16 +364,16 @@ function Performance({ metrics }) {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                      <span className="inline-flex px-3 py-1 text-xs font-bold rounded-full bg-blue-900/30 text-blue-300 border border-blue-700">
                         {post.format}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border border-purple-200">
+                      <span className="inline-flex px-3 py-1 text-xs font-bold rounded-full bg-purple-900/30 text-purple-300 border border-purple-700">
                         {post.topic}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-400">
                       {new Date(post.timestamp).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
@@ -416,31 +416,32 @@ function Performance({ metrics }) {
         {/* Enhanced Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* ER by Format */}
-          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500"></div>
+          <div style={{backgroundColor: '#0c2146'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-brand-500"></div>
             
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow-lg">
-                <Zap size={24} className="text-white" />
+              <div className="p-3 rounded-xl shadow-lg" style={{backgroundColor: '#e8eef9'}}>
+                <Zap size={24} style={{color: '#2d323e'}} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Engagement by Format</h3>
-                <p className="text-gray-600 text-sm">Which content types perform best</p>
+                <h3 className="text-xl font-bold text-white">Engagement by Format</h3>
+                <p className="text-gray-300 text-sm">Which content types perform best</p>
               </div>
             </div>
             
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={engagementByFormat} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={(value) => `${value}%`} />
-                <YAxis type="category" dataKey="format" stroke="#64748b" fontSize={12} width={80} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#64748b" />
+                <XAxis type="number" stroke="#d1d5db" fontSize={12} tickFormatter={(value) => `${value}%`} />
+                <YAxis type="category" dataKey="format" stroke="#d1d5db" fontSize={12} width={80} />
                 <Tooltip 
                   formatter={(value) => [`${value}%`, 'Engagement Rate']}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: 'none',
                     borderRadius: '12px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                    color: '#1f2937'
                   }}
                 />
                 <Bar dataKey="rate" fill="url(#colorGradient)" radius={[0, 8, 8, 0]} />
@@ -455,16 +456,16 @@ function Performance({ metrics }) {
           </div>
 
           {/* ER by Topic */}
-          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-200 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500"></div>
+          <div style={{backgroundColor: '#0c2146'}} className="rounded-2xl p-8 shadow-xl border border-gray-700 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-accent-500"></div>
             
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl shadow-lg">
-                <Hash size={24} className="text-white" />
+              <div className="p-3 rounded-xl shadow-lg" style={{backgroundColor: '#e8eef9'}}>
+                <Hash size={24} style={{color: '#2d323e'}} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Engagement by Topic</h3>
-                <p className="text-gray-600 text-sm">Your most engaging content themes</p>
+                <h3 className="text-xl font-bold text-white">Engagement by Topic</h3>
+                <p className="text-gray-300 text-sm">Your most engaging content themes</p>
               </div>
             </div>
             

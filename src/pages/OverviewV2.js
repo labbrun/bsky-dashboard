@@ -2,6 +2,7 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import TypingEffect from '../components/TypingEffect';
+import ImageGallery from '../components/ImageGallery';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
 import { 
   TrendingUp, 
@@ -134,10 +135,10 @@ function OverviewV2({ metrics }) {
       <div className="flex items-center justify-center min-h-96">
         <Card className="text-center max-w-md">
           <AlertCircle size={48} className="text-warning-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 600 }}>
+          <h2 className="text-xl font-semibold text-gray-900 font-sans">
             No data available
           </h2>
-          <p className="text-gray-600 mt-2" style={{ fontFamily: 'Inter', fontWeight: 400 }}>
+          <p className="text-gray-600 mt-2 font-sans">
             Please wait while we load your analytics...
           </p>
         </Card>
@@ -146,7 +147,7 @@ function OverviewV2({ metrics }) {
   }
 
   return (
-    <div className="space-y-8" style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif' }}>
+    <div className="space-y-8 font-sans">
       {/* Celebration Overlay */}
       {showCelebration && (
         <CelebrationOverlay 
@@ -194,25 +195,33 @@ function OverviewV2({ metrics }) {
             </div>
             
             {/* Profile Info */}
-            <div style={{backgroundColor: '#0c2146'}} className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700">
+            <div className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700 bg-primary-850">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: 'Inter', fontWeight: 700 }}>{metrics.displayName}</h1>
-                  <p className="text-lg text-brand-400 font-semibold mb-3 leading-4" style={{ fontFamily: 'Inter', fontWeight: 600 }}>@{metrics.handle}</p>
-                  <p className="text-gray-300 mb-4 max-w-2xl leading-5" style={{ fontFamily: 'Inter', fontWeight: 400 }}>{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                  <h1 className="text-2xl font-bold text-white mb-1 font-sans">{metrics.displayName}</h1>
+                  <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{metrics.handle}</p>
+                  <p className="text-gray-300 mb-4 max-w-2xl leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
                   
                   <div className="flex gap-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-white" style={{ fontFamily: 'Inter', fontWeight: 700 }}>{metrics.followersCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium" style={{ fontFamily: 'Inter', fontWeight: 500 }}>Followers</p>
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.followersCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Followers</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-white" style={{ fontFamily: 'Inter', fontWeight: 700 }}>{metrics.followsCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium" style={{ fontFamily: 'Inter', fontWeight: 500 }}>Following</p>
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.followsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Following</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-white" style={{ fontFamily: 'Inter', fontWeight: 700 }}>{metrics.postsCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium" style={{ fontFamily: 'Inter', fontWeight: 500 }}>Posts</p>
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.postsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Posts</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">12/14</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Frequency</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">23%</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Mutuals</p>
                     </div>
                   </div>
                 </div>
@@ -237,8 +246,8 @@ function OverviewV2({ metrics }) {
       {/* Time Range Toggle */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 700 }}>Overview</h1>
-          <p className="text-gray-600 mt-1" style={{ fontFamily: 'Inter', fontWeight: 400 }}>Analytics dashboard for the last {timeRange} days</p>
+          <h1 className="text-3xl font-bold text-gray-900 font-sans">Overview</h1>
+          <p className="text-gray-600 mt-1 font-sans">Analytics dashboard for the last {timeRange} days</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -259,28 +268,23 @@ function OverviewV2({ metrics }) {
       </div>
 
       {/* AI Insights Section */}
-      <div style={{backgroundColor: '#13336b'}} className="rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
+      <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white/10 rounded-xl">
-            <Sparkles size={24} className="text-yellow-400" />
+            <Sparkles size={24} className="text-warning-400" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-2xl font-bold" style={{ fontFamily: 'Inter', fontWeight: 700 }}>
+              <h2 className="text-2xl font-bold font-sans">
                 AI Insights & Recommendations
               </h2>
               <Badge variant="warning" size="sm">LIVE</Badge>
             </div>
             
             {/* AI Observation Section */}
-            <div className="mb-6 p-4 rounded-xl" style={{backgroundColor: '#0c2146', border: '1px solid #4b5563'}}>
+            <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
               {hasTyped || !currentObservation ? (
-                <p className="text-sm" style={{ 
-                  fontFamily: 'Inter', 
-                  fontWeight: 400, 
-                  lineHeight: '1.5', 
-                  color: '#d5d7da' 
-                }}>
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
                   {currentObservation}
                 </p>
               ) : (
@@ -293,26 +297,26 @@ function OverviewV2({ metrics }) {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div style={{backgroundColor: '#0c2146'}} className="rounded-xl p-4 border border-gray-600">
+              <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm" style={{ fontFamily: 'Inter', fontWeight: 600 }}>Performance</span>
+                  <span className="text-success-400 font-semibold text-sm font-sans">Performance</span>
                 </div>
-                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Posts with images get more engagement ({metrics?.recentPosts?.filter(p => p.images?.length > 0).length || 0}/{metrics?.recentPosts?.length || 0} have images)</p>
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Posts with images get more engagement ({metrics?.recentPosts?.filter(p => p.images?.length > 0).length || 0}/{metrics?.recentPosts?.length || 0} have images)</p>
               </div>
-              <div style={{backgroundColor: '#0c2146'}} className="rounded-xl p-4 border border-gray-600">
+              <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm" style={{ fontFamily: 'Inter', fontWeight: 600 }}>Timing</span>
+                  <span className="text-success-400 font-semibold text-sm font-sans">Timing</span>
                 </div>
-                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Your avg {((metrics?.totalLikes + metrics?.totalReplies + metrics?.totalReposts) / (metrics?.recentPosts?.length || 1)).toFixed(1)} engagements per post</p>
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Your avg {((metrics?.totalLikes + metrics?.totalReplies + metrics?.totalReposts) / (metrics?.recentPosts?.length || 1)).toFixed(1)} engagements per post</p>
               </div>
-              <div style={{backgroundColor: '#0c2146'}} className="rounded-xl p-4 border border-gray-600">
+              <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <Target size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm" style={{ fontFamily: 'Inter', fontWeight: 600 }}>Content</span>
+                  <span className="text-success-400 font-semibold text-sm font-sans">Content</span>
                 </div>
-                <p className="text-sm" style={{ fontFamily: 'Inter', fontWeight: 400, lineHeight: '1.5', color: '#d5d7da' }}>Tech topics appear in {metrics?.recentPosts?.filter(p => p.text?.toLowerCase().includes('tech') || p.text?.toLowerCase().includes('ai')).length || 0} of your recent posts</p>
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Tech topics appear in {metrics?.recentPosts?.filter(p => p.text?.toLowerCase().includes('tech') || p.text?.toLowerCase().includes('ai')).length || 0} of your recent posts</p>
               </div>
             </div>
           </div>
@@ -322,8 +326,8 @@ function OverviewV2({ metrics }) {
       {/* Recent Posts Preview */}
       <Card>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 600 }}>
-            Recent Posts Performance
+          <h3 className="text-lg font-semibold text-gray-900 font-sans">
+            Recent Posts & Comments
           </h3>
           <Button
             variant="tertiary"
@@ -335,11 +339,20 @@ function OverviewV2({ metrics }) {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {metrics.recentPosts && metrics.recentPosts.slice(0, 4).map((post, index) => (
-            <div key={index} className="p-4 rounded-lg" style={{backgroundColor: '#13336b'}}>
+          {metrics.recentPosts && metrics.recentPosts.slice(0, 4).map((post, index) => {
+            // Debug logging to see post structure
+            console.log(`Post ${index}:`, {
+              text: post.text?.substring(0, 50),
+              isReply: post.isReply,
+              replyTo: post.replyTo,
+              date: post.indexedAt
+            });
+            
+            return (
+            <div key={index} className="p-4 rounded-lg bg-primary-850">
               {/* Date at top left */}
               <div className="mb-3">
-                <span className="text-sm font-bold" style={{ fontFamily: 'Inter', color: '#d5d7da', fontWeight: 700 }}>
+                <span className="text-sm font-bold font-sans text-gray-300">
                   {new Date(post.indexedAt).toLocaleDateString('en-US', { 
                     weekday: 'long',
                     month: '2-digit',
@@ -350,39 +363,55 @@ function OverviewV2({ metrics }) {
               </div>
               
               <div className="flex items-start gap-6">
-                {/* Featured Image on Left - Show placeholder if no image */}
-                {post.images && post.images.length > 0 ? (
-                  <div className="flex-shrink-0">
-                    <img 
-                      src={post.images[0].thumb || post.images[0].fullsize || post.images[0]}
-                      alt={post.images[0].alt || 'Post image'}
-                      className="w-24 h-24 object-cover rounded-xl border border-gray-600"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                    <div 
-                      className="w-24 h-24 bg-gray-700 rounded-xl border border-gray-600 flex items-center justify-center text-gray-400 text-xs"
-                      style={{ display: 'none', fontFamily: 'Inter' }}
-                    >
-                      No Image
-                    </div>
-                    {post.images.length > 1 && (
-                      <div className="text-xs text-gray-400 mt-1 text-center" style={{ fontFamily: 'Inter', fontWeight: 400 }}>
-                        +{post.images.length - 1} more
+                {/* Featured Image on Left */}
+                <div className="flex-shrink-0">
+                  {post.images && post.images.length > 0 ? (
+                    <div>
+                      <img 
+                        src={post.images[0].thumb || post.images[0].fullsize || post.images[0]}
+                        alt={post.images[0].alt || 'Post image'}
+                        className="w-24 h-24 object-cover rounded-xl border border-gray-600"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div 
+                        className="w-24 h-24 bg-gray-700 rounded-xl border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
+                        style={{ display: 'none' }}
+                      >
+                        🖼️
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex-shrink-0 w-24 h-24 bg-gray-700 rounded-xl border border-gray-600 flex items-center justify-center text-gray-400 text-xs" style={{ fontFamily: 'Inter' }}>
-                    📝
-                  </div>
-                )}
+                      {post.images.length > 1 && (
+                        <div className="text-xs text-gray-400 mt-1 text-center font-sans">
+                          +{post.images.length - 1} more
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 bg-gray-700 rounded-xl border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
+                      📝
+                    </div>
+                  )}
+                </div>
                 
                 {/* Text Content on Right */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm mb-3" style={{ fontFamily: 'Inter', fontWeight: 400, color: '#d5d7da', lineHeight: '1.5' }}>
+                  {/* Show reply context if this is a comment */}
+                  {post.isReply && post.replyTo && (
+                    <div className="mb-3 p-3 rounded-lg border border-gray-600 bg-white/5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold text-gray-400 font-sans">
+                          💬 Replying to @{post.replyTo.author.handle}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-300 italic font-sans leading-5">
+                        "{post.replyTo.text.length > 100 ? post.replyTo.text.substring(0, 100) + '...' : post.replyTo.text}"
+                      </p>
+                    </div>
+                  )}
+                  
+                  <p className="text-sm mb-3 font-sans text-gray-300 leading-6">
                     {post.text}
                   </p>
                   
@@ -400,7 +429,8 @@ function OverviewV2({ metrics }) {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 
@@ -448,10 +478,10 @@ function OverviewV2({ metrics }) {
         <Card>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 600 }}>
+              <h3 className="text-lg font-semibold text-gray-900 font-sans">
                 Follower Growth
               </h3>
-              <p className="text-sm text-gray-500 mt-1" style={{ fontFamily: 'Inter', fontWeight: 400 }}>
+              <p className="text-sm text-gray-500 mt-1 font-sans">
                 Last {timeRange} days
               </p>
             </div>
@@ -468,12 +498,10 @@ function OverviewV2({ metrics }) {
                 dataKey="date" 
                 stroke="#6B7280" 
                 fontSize={12}
-                style={{ fontFamily: 'Inter' }}
               />
               <YAxis 
                 stroke="#6B7280" 
                 fontSize={12}
-                style={{ fontFamily: 'Inter' }}
               />
               <Tooltip 
                 contentStyle={{
@@ -499,10 +527,10 @@ function OverviewV2({ metrics }) {
         <Card>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 600 }}>
+              <h3 className="text-lg font-semibold text-gray-900 font-sans">
                 Engagement Rate
               </h3>
-              <p className="text-sm text-gray-500 mt-1" style={{ fontFamily: 'Inter', fontWeight: 400 }}>
+              <p className="text-sm text-gray-500 mt-1 font-sans">
                 Daily average %
               </p>
             </div>
@@ -519,12 +547,10 @@ function OverviewV2({ metrics }) {
                 dataKey="date" 
                 stroke="#6B7280" 
                 fontSize={12}
-                style={{ fontFamily: 'Inter' }}
               />
               <YAxis 
                 stroke="#6B7280" 
                 fontSize={12}
-                style={{ fontFamily: 'Inter' }}
                 tickFormatter={(value) => `${value}%`}
               />
               <Tooltip 

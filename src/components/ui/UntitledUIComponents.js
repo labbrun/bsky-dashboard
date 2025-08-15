@@ -221,12 +221,12 @@ export const MetricCard = ({
                 {icon}
               </div>
             )}
-            <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '1.125rem', lineHeight: '1.2rem' }}>{title}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 font-sans">{title}</h3>
           </div>
           {description && (
-            <p className="text-xs text-gray-500 mt-1 mb-3" style={{ fontFamily: 'Inter', fontWeight: 400, height: '2.4rem', lineHeight: '1.2rem', whiteSpace: 'pre-line' }}>{description}</p>
+            <p className="text-xs text-gray-500 mt-1 mb-3 font-sans whitespace-pre-line" style={{ height: '2.4rem', lineHeight: '1.2rem' }}>{description}</p>
           )}
-          <p className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter', fontWeight: 700 }}>{value}</p>
+          <p className="text-2xl font-bold text-gray-900 mb-2 font-sans">{value}</p>
           {change && (
             <Badge variant="success" size="sm">
               {changeType === 'positive' && <ArrowUp size={12} className="mr-1" />}

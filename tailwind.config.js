@@ -18,6 +18,7 @@ module.exports = {
           600: '#002038',
           700: '#00182a',
           800: '#00101c',
+          850: '#0c2146', // Content box background color (sitewide standard)
           900: '#00080e',
         },
         // Secondary brand colors from your palette
