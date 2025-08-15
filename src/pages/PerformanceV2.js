@@ -30,6 +30,7 @@ function PerformanceV2({ metrics }) {
   const [expandedComments, setExpandedComments] = useState(new Set());
   const [hasTyped, setHasTyped] = useState(false);
   const [currentObservation, setCurrentObservation] = useState('');
+  const [timeRange, setTimeRange] = useState('7'); // '7' for 7 days, '30' for 30 days
 
   // Helper functions for expanding/collapsing posts
   const togglePostExpansion = (postId) => {
@@ -56,22 +57,32 @@ function PerformanceV2({ metrics }) {
     });
   };
 
-  // Fetch real data on component mount
+  // Fetch real data on component mount and when time range changes
   useEffect(() => {
     const fetchPerformanceData = async () => {
       if (metrics && metrics.handle) {
         try {
-          // Fetch recent posts
+          // Fetch recent posts based on time range
           setLoadingPosts(true);
-          const feedResponse = await getAuthorFeed(metrics.handle, 10);
+          const limit = timeRange === '7' ? 15 : 25; // More posts for 30-day analysis
+          const feedResponse = await getAuthorFeed(metrics.handle, limit);
           if (feedResponse && feedResponse.feed) {
-            const posts = feedResponse.feed.slice(0, 5).map((item, index) => {
+            // Filter posts by time range
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - parseInt(timeRange));
+            
+            const filteredFeed = feedResponse.feed.filter(item => {
+              const postDate = new Date(item.post.indexedAt);
+              return postDate >= cutoffDate;
+            });
+            
+            // Generate analytics data using all filtered posts for more accurate analysis
+            const allFilteredPosts = filteredFeed.map((item, index) => {
               const post = item.post;
               const hasImages = post.record?.embed?.images && post.record.embed.images.length > 0;
               const isThread = post.record?.reply?.parent?.uri ? true : false;
               const format = hasImages ? 'Text + Image' : isThread ? 'Thread' : 'Text';
               
-              // Calculate engagement rate
               const totalEngagement = (post.likeCount || 0) + (post.replyCount || 0) + (post.repostCount || 0);
               const engagementRate = metrics.followersCount > 0 
                 ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
@@ -87,15 +98,11 @@ function PerformanceV2({ metrics }) {
                 replies: post.replyCount || 0,
                 reposts: post.repostCount || 0,
                 engagementRate: parseFloat(engagementRate),
-                amplification: post.repostCount > 0 ? (post.repostCount / (post.likeCount || 1)).toFixed(1) : 0,
-                topic: detectTopic(post.record?.text || ''),
-                images: post.record?.embed?.images || [],
-                author: post.author
+                topic: detectTopic(post.record?.text || '')
               };
             });
             
-            // Generate analytics data
-            const analytics = getPerformanceAnalytics(posts, metrics);
+            const analytics = getPerformanceAnalytics(allFilteredPosts, metrics);
             setAnalyticsData(analytics);
           }
         } catch (error) {
@@ -107,9 +114,9 @@ function PerformanceV2({ metrics }) {
     };
 
     fetchPerformanceData();
-  }, [metrics]);
+  }, [metrics, timeRange]);
 
-  // Generate AI Performance Insights based on analytics data
+  // Generate AI Performance Insights based on analytics data and time range
   const getAIPerformanceObservation = React.useMemo(() => {
     if (!analyticsData || !metrics) return '';
     
@@ -118,16 +125,21 @@ function PerformanceV2({ metrics }) {
     const avgEngagement = analyticsData.summary.avgEngagement;
     const totalPosts = analyticsData.summary.totalPosts;
     
-    return `Your performance analytics reveal strong patterns in content effectiveness. Your "${topFormat?.format || 'Text'}" posts are driving the highest engagement rates at ${topFormat?.rate || 0}% average interaction. The "${topTopic?.topic || 'General'}" topic category is resonating best with your audience, generating ${topTopic?.rate || 0}% engagement rate. With ${totalPosts} posts analyzed and an average of ${avgEngagement.toFixed(1)} engagements per post, your content strategy shows clear strengths. Consider increasing your "${topFormat?.format || 'Text'}" content frequency and doubling down on "${topTopic?.topic || 'General'}" topics to maximize reach and audience growth.`;
-  }, [analyticsData, metrics]);
+    if (timeRange === '7') {
+      return `Your last 7 days show strong performance patterns with "${topFormat?.format || 'Text'}" posts driving ${topFormat?.rate || 0}% engagement rates. ${topTopic?.topic || 'General'} content is resonating particularly well this week. With ${totalPosts} posts and ${avgEngagement.toFixed(1)} average engagements, your short-term strategy is effective. For the next week, focus on publishing more "${topFormat?.format || 'Text'}" content during peak engagement hours and continue exploring "${topTopic?.topic || 'General'}" topics that are currently trending with your audience.`;
+    } else {
+      return `Over the past 30 days, your content performance shows excellent strategic direction. "${topFormat?.format || 'Text'}" posts consistently achieve ${topFormat?.rate || 0}% engagement rates, while "${topTopic?.topic || 'General'}" topics drive the strongest audience response. With ${totalPosts} posts analyzed and ${avgEngagement.toFixed(1)} average engagements per post, your monthly performance indicates solid growth potential. Consider scaling your top-performing content types and experimenting with related topics to "${topTopic?.topic || 'General'}" to expand your reach while maintaining engagement quality.`;
+    }
+  }, [analyticsData, metrics, timeRange]);
   
-  // Update observation when analytics data changes
+  // Update observation when analytics data or time range changes
   React.useEffect(() => {
     if (analyticsData && metrics) {
       const newObservation = getAIPerformanceObservation;
       setCurrentObservation(newObservation);
+      setHasTyped(false); // Reset typing effect when time range changes
     }
-  }, [analyticsData, metrics, getAIPerformanceObservation]);
+  }, [analyticsData, metrics, timeRange, getAIPerformanceObservation]);
 
   // Helper function to detect topic from post text
   const detectTopic = (text) => {
@@ -260,10 +272,28 @@ function PerformanceV2({ metrics }) {
         </div>
       </div>
 
-      {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 font-sans">Performance</h1>
-        <p className="text-gray-600 mt-1 font-sans">Detailed analytics and content performance metrics</p>
+      {/* Time Range Toggle */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 font-sans">Performance</h1>
+          <p className="text-gray-600 mt-1 font-sans">Detailed analytics and content performance metrics for the last {timeRange} days</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={timeRange === '7' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setTimeRange('7')}
+          >
+            Last 7 days
+          </Button>
+          <Button
+            variant={timeRange === '30' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setTimeRange('30')}
+          >
+            Last 30 days
+          </Button>
+        </div>
       </div>
 
       {/* Hero Section with Mesh Gradient Background */}
