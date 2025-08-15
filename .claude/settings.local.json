@@ -5,7 +5,8 @@
       "WebFetch(domain:bsky.app)",
       "Bash(rm:*)",
       "WebFetch(domain:docs.anthropic.com)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

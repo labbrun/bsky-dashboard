@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
-  Clock,
   TrendingUp,
   BarChart3,
   Target,
   Zap,
-  MessageSquare
+  MessageSquare,
+  ExternalLink,
+  CheckCircle
 } from 'lucide-react';
+import TypingEffect from '../components/TypingEffect';
 import { getAuthorFeed } from '../services/blueskyService';
 import { getPerformanceAnalytics } from '../services/analyticsService';
 import { 
   Card, 
   Badge, 
-  Skeleton
+  Skeleton,
+  Button
 } from '../components/ui/UntitledUIComponents';
 
 // Import mesh gradients for backgrounds
@@ -25,6 +28,8 @@ function PerformanceV2({ metrics }) {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [expandedPosts, setExpandedPosts] = useState(new Set());
   const [expandedComments, setExpandedComments] = useState(new Set());
+  const [hasTyped, setHasTyped] = useState(false);
+  const [currentObservation, setCurrentObservation] = useState('');
 
   // Helper functions for expanding/collapsing posts
   const togglePostExpansion = (postId) => {
@@ -92,7 +97,6 @@ function PerformanceV2({ metrics }) {
             // Generate analytics data
             const analytics = getPerformanceAnalytics(posts, metrics);
             setAnalyticsData(analytics);
-            console.log('Analytics data generated:', analytics);
           }
         } catch (error) {
           console.error('Error fetching posts:', error);
@@ -104,6 +108,26 @@ function PerformanceV2({ metrics }) {
 
     fetchPerformanceData();
   }, [metrics]);
+
+  // Generate AI Performance Insights based on analytics data
+  const getAIPerformanceObservation = React.useMemo(() => {
+    if (!analyticsData || !metrics) return '';
+    
+    const topFormat = analyticsData.engagementByFormat[0];
+    const topTopic = analyticsData.engagementByTopic[0];
+    const avgEngagement = analyticsData.summary.avgEngagement;
+    const totalPosts = analyticsData.summary.totalPosts;
+    
+    return `Your performance analytics reveal strong patterns in content effectiveness. Your "${topFormat?.format || 'Text'}" posts are driving the highest engagement rates at ${topFormat?.rate || 0}% average interaction. The "${topTopic?.topic || 'General'}" topic category is resonating best with your audience, generating ${topTopic?.rate || 0}% engagement rate. With ${totalPosts} posts analyzed and an average of ${avgEngagement.toFixed(1)} engagements per post, your content strategy shows clear strengths. Consider increasing your "${topFormat?.format || 'Text'}" content frequency and doubling down on "${topTopic?.topic || 'General'}" topics to maximize reach and audience growth.`;
+  }, [analyticsData, metrics]);
+  
+  // Update observation when analytics data changes
+  React.useEffect(() => {
+    if (analyticsData && metrics) {
+      const newObservation = getAIPerformanceObservation;
+      setCurrentObservation(newObservation);
+    }
+  }, [analyticsData, metrics, getAIPerformanceObservation]);
 
   // Helper function to detect topic from post text
   const detectTopic = (text) => {
@@ -148,7 +172,100 @@ function PerformanceV2({ metrics }) {
 
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans">
+      {/* Bluesky-Style Profile Header */}
+      <div className="relative">
+        {/* Background Banner */}
+        <div className="h-32 rounded-2xl relative overflow-hidden">
+          {metrics.banner ? (
+            <>
+              <img 
+                src={metrics.banner} 
+                alt="Profile banner" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/60 via-brand-500/40 to-electric-500/60"></div>
+            </>
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-brand-500 to-electric-500"></div>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16"></div>
+            </>
+          )}
+        </div>
+        
+        {/* Profile Content */}
+        <div className="relative -mt-16 px-8 pb-6">
+          <div className="flex flex-col md:flex-row md:items-start gap-6">
+            {/* Profile Image */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-400 to-electric-500 rounded-full blur-lg opacity-40"></div>
+              <img
+                src={metrics.avatar}
+                alt={metrics.displayName}
+                className="relative w-32 h-32 rounded-full border-4 border-white object-cover shadow-xl bg-white"
+              />
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-success-500 rounded-full border-3 border-white flex items-center justify-center shadow-lg">
+                <CheckCircle size={16} className="text-white" />
+              </div>
+            </div>
+            
+            {/* Profile Info */}
+            <div className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700 bg-primary-850">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-white mb-1 font-sans">{metrics.displayName}</h1>
+                  <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{metrics.handle}</p>
+                  <p className="text-gray-300 mb-4 max-w-2xl leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                  
+                  <div className="flex gap-6">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.followersCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Followers</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.followsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Following</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.postsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Posts</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">12/14</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Frequency</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">23%</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Mutuals</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    icon={<ExternalLink size={16} />}
+                    iconPosition="right"
+                    onClick={() => window.open(`https://bsky.app/profile/${metrics.handle}`, '_blank')}
+                  >
+                    View on Bluesky
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Page Title */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 font-sans">Performance</h1>
+        <p className="text-gray-600 mt-1 font-sans">Detailed analytics and content performance metrics</p>
+      </div>
+
       {/* Hero Section with Mesh Gradient Background */}
       <div 
         className="relative rounded-2xl overflow-hidden"
@@ -166,32 +283,53 @@ function PerformanceV2({ metrics }) {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold font-sans">
-                  AI Performance Intelligence
+                  AI Performance Insights
                 </h2>
                 <Badge variant="warning" size="sm">LIVE</Badge>
+              </div>
+              
+              {/* AI Observation Section */}
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                {hasTyped || !currentObservation ? (
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                    {currentObservation}
+                  </p>
+                ) : (
+                  <TypingEffect 
+                    text={currentObservation}
+                    speed={30}
+                    onComplete={() => setHasTyped(true)}
+                  />
+                )}
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">Performance</span>
+                    <span className="text-success-400 font-semibold text-sm font-sans">Top Format</span>
                   </div>
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Your engagement rate is 28% above average. Keep posting during peak hours!</p>
-                </div>
-                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">Timing</span>
-                  </div>
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Post between 2-4 PM for 45% higher engagement rates.</p>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                    {analyticsData?.engagementByFormat[0]?.format || 'Text'} posts perform best ({analyticsData?.engagementByFormat[0]?.rate || 0}% engagement)
+                  </p>
                 </div>
                 <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                   <div className="flex items-center gap-2 mb-2">
                     <Target size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">Content</span>
+                    <span className="text-success-400 font-semibold text-sm font-sans">Top Topic</span>
                   </div>
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Tech-focused posts get 3x more amplification. Double down on this!</p>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                    {analyticsData?.engagementByTopic[0]?.topic || 'General'} content drives {analyticsData?.engagementByTopic[0]?.rate || 0}% engagement rate
+                  </p>
+                </div>
+                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap size={16} className="text-success-400" />
+                    <span className="text-success-400 font-semibold text-sm font-sans">Avg Performance</span>
+                  </div>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                    {analyticsData?.summary.avgEngagement?.toFixed(1) || '0'} engagements per post across {analyticsData?.summary.totalPosts || 0} posts analyzed
+                  </p>
                 </div>
               </div>
             </div>
@@ -355,16 +493,6 @@ function PerformanceV2({ metrics }) {
                             ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
                             : 0;
                           
-                          // Debug logging to match Overview page
-                          console.log(`Performance Post ${index}:`, {
-                            text: post.text?.substring(0, 50),
-                            isReply: post.isReply,
-                            replyTo: post.replyTo,
-                            date: post.indexedAt,
-                            hasImages: !!post.images,
-                            imageCount: post.images?.length || 0,
-                            images: post.images
-                          });
                           
                           return (
                             <div key={postId} className="bg-primary-850 border border-gray-600 rounded-lg p-4">
@@ -378,12 +506,8 @@ function PerformanceV2({ metrics }) {
                                         alt={post.images[0].alt || 'Post image'}
                                         className="w-16 h-16 object-cover rounded-lg border border-gray-600"
                                         onError={(e) => {
-                                          console.log('Image failed to load:', e.target.src);
                                           e.target.style.display = 'none';
                                           e.target.nextElementSibling.style.display = 'flex';
-                                        }}
-                                        onLoad={() => {
-                                          console.log('Image loaded successfully:', post.images[0].thumb || post.images[0].fullsize);
                                         }}
                                       />
                                       <div 

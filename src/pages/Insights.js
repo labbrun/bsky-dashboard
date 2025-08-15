@@ -16,7 +16,9 @@ import {
   MessageSquare,
   Award,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  ExternalLink,
+  CheckCircle
 } from 'lucide-react';
 
 // Import AI insights system
@@ -27,6 +29,7 @@ import AIInsightsGenerator, {
 } from '../services/aiInsightsService';
 import { CUSTOMER_AVATAR } from '../config/customer-avatar.config';
 import { LABBRUN_CUSTOMER_AVATAR } from '../config/labbrun-customer-avatar.config';
+import { Button } from '../components/ui/UntitledUIComponents';
 
 function Insights({ metrics }) {
   const [aiInsights, setAiInsights] = useState({});
@@ -282,7 +285,100 @@ function Insights({ metrics }) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans">
+      {/* Bluesky-Style Profile Header */}
+      <div className="relative">
+        {/* Background Banner */}
+        <div className="h-32 rounded-2xl relative overflow-hidden">
+          {metrics.banner ? (
+            <>
+              <img 
+                src={metrics.banner} 
+                alt="Profile banner" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/60 via-brand-500/40 to-electric-500/60"></div>
+            </>
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-brand-500 to-electric-500"></div>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-20 translate-x-20"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-16 -translate-x-16"></div>
+            </>
+          )}
+        </div>
+        
+        {/* Profile Content */}
+        <div className="relative -mt-16 px-8 pb-6">
+          <div className="flex flex-col md:flex-row md:items-start gap-6">
+            {/* Profile Image */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-400 to-electric-500 rounded-full blur-lg opacity-40"></div>
+              <img
+                src={metrics.avatar}
+                alt={metrics.displayName}
+                className="relative w-32 h-32 rounded-full border-4 border-white object-cover shadow-xl bg-white"
+              />
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-success-500 rounded-full border-3 border-white flex items-center justify-center shadow-lg">
+                <CheckCircle size={16} className="text-white" />
+              </div>
+            </div>
+            
+            {/* Profile Info */}
+            <div className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700 bg-primary-850">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-white mb-1 font-sans">{metrics.displayName}</h1>
+                  <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{metrics.handle}</p>
+                  <p className="text-gray-300 mb-4 max-w-2xl leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                  
+                  <div className="flex gap-6">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.followersCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Followers</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.followsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Following</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">{metrics.postsCount.toLocaleString()}</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Posts</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">12/14</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Frequency</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-white font-sans">23%</p>
+                      <p className="text-gray-400 text-sm font-medium font-sans">Mutuals</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    icon={<ExternalLink size={16} />}
+                    iconPosition="right"
+                    onClick={() => window.open(`https://bsky.app/profile/${metrics.handle}`, '_blank')}
+                  >
+                    View on Bluesky
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Page Title */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 font-sans">Insights</h1>
+        <p className="text-gray-600 mt-1 font-sans">AI-driven insights and strategic recommendations</p>
+      </div>
+
       {/* Header with Customer Avatar Context */}
       <div className="bg-gradient-to-br from-accent-50 to-electric-50 border border-accent-200 rounded-xl p-6">
         <div className="flex items-start justify-between mb-4">

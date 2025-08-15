@@ -1,7 +1,26 @@
 // Bluesky API Service
 // Connects to the public Bluesky API to fetch real profile and post data
+//
+// ⚠️  MANDATORY IMAGE EXTRACTION RULE ⚠️
+// ALL functions in this service MUST extract and provide images/avatars when available
+// This includes: profile avatars, post images, banner images, external thumbnails
+// NEVER return data without attempting image extraction first
+// Use comprehensive fallback chains for missing images
 
 const BLUESKY_API_BASE = 'https://public.api.bsky.app';
+
+// MANDATORY IMAGE EXTRACTION UTILITY
+const extractAvatar = (profileData, fallbackHandle = 'user') => {
+  // Comprehensive avatar extraction with multiple fallback paths
+  const avatar = profileData.avatar || 
+                profileData.profile?.avatar || 
+                profileData.user?.avatar ||
+                profileData.data?.avatar ||
+                `https://avatar.vercel.sh/${fallbackHandle}.svg?text=${fallbackHandle.charAt(0).toUpperCase()}`;
+                
+  
+  return avatar;
+};
 
 // Get user profile information
 export const getProfile = async (handle) => {
@@ -13,6 +32,10 @@ export const getProfile = async (handle) => {
     }
     
     const data = await response.json();
+    
+    // MANDATORY: Ensure avatar is always extracted and added to response
+    data.avatar = extractAvatar(data, handle);
+    
     return data;
   } catch (error) {
     throw error;
@@ -55,6 +78,15 @@ export const getFollowers = async (handle, limit = 100, cursor = null) => {
     }
     
     const data = await response.json();
+    
+    // MANDATORY: Ensure all follower avatars are extracted
+    if (data.followers && Array.isArray(data.followers)) {
+      data.followers = data.followers.map(follower => ({
+        ...follower,
+        avatar: extractAvatar(follower, follower.handle || 'follower')
+      }));
+    }
+    
     return data;
   } catch (error) {
     throw error;

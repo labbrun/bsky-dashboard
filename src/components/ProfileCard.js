@@ -4,9 +4,10 @@ import { fetchProfileData, generateCommentUrl } from '../services/profileService
 import { Card, Button, Avatar, Skeleton } from '../components/ui/UntitledUIComponents';
 import ImageGallery from './ImageGallery';
 
-function ProfileCard({ handle, showRecentPost = false, className = '' }) {
+function ProfileCard({ handle, showRecentPost = false, showReadMore = false, className = '' }) {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAllPosts, setShowAllPosts] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -88,36 +89,58 @@ function ProfileCard({ handle, showRecentPost = false, className = '' }) {
         </div>
       </div>
 
-      {showRecentPost && profileData.recentPost && (
+      {showRecentPost && (profileData.recentPost || profileData.recentPosts) && (
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Most recent post:</h4>
-          <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-gray-700 text-sm mb-3 line-clamp-3">{profileData.recentPost.text}</p>
-            
-            <ImageGallery 
-              images={profileData.recentPost.images}
-              size="lg"
-              maxImages={3}
-              className="mb-3"
-            />
-            
-            <div className="flex items-center justify-between">
-              <div className="flex gap-4 text-xs text-gray-500">
-                <span>{profileData.recentPost.likeCount} likes</span>
-                <span>{profileData.recentPost.replyCount} replies</span>
-                <span>{profileData.recentPost.repostCount} reposts</span>
-              </div>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-semibold text-gray-700">Recent posts:</h4>
+            {showReadMore && profileData.recentPosts && profileData.recentPosts.length > 1 && (
               <Button
                 size="sm"
-                variant="primary"
-                icon={<MessageSquare size={12} />}
-                onClick={() => window.open(generateCommentUrl(profileData.handle, profileData.recentPost.uri), '_blank')}
+                variant="secondary"
+                onClick={() => setShowAllPosts(!showAllPosts)}
               >
-                Comment
-                <ExternalLink size={10} />
+                {showAllPosts ? 'Show less' : 'Show more'}
               </Button>
-            </div>
+            )}
           </div>
+          
+          {/* Display posts */}
+          {(() => {
+            // Get posts to display
+            const postsToShow = profileData.recentPosts && profileData.recentPosts.length > 0 
+              ? (showAllPosts ? profileData.recentPosts : [profileData.recentPosts[0]])
+              : profileData.recentPost ? [profileData.recentPost] : [];
+
+            return postsToShow.map((post, index) => (
+              <div key={post.uri || index} className="bg-gray-50 rounded-xl p-4 mb-3 last:mb-0">
+                <p className="text-gray-700 text-sm mb-3 line-clamp-3">{post.text}</p>
+                
+                <ImageGallery 
+                  images={post.images}
+                  size="lg"
+                  maxImages={3}
+                  className="mb-3"
+                />
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-4 text-xs text-gray-500">
+                    <span>{post.likeCount || 0} likes</span>
+                    <span>{post.replyCount || 0} replies</span>
+                    <span>{post.repostCount || 0} reposts</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    icon={<MessageSquare size={12} />}
+                    onClick={() => window.open(generateCommentUrl(profileData.handle, post.uri), '_blank')}
+                  >
+                    Comment
+                    <ExternalLink size={10} />
+                  </Button>
+                </div>
+              </div>
+            ));
+          })()}
         </div>
       )}
     </Card>

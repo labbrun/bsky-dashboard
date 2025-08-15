@@ -22,7 +22,18 @@ export async function fetchProfileData(handle) {
             repostCount: data.recentPosts[0].repostCount,
             images: data.recentPosts[0].images || []
           }
-        : null
+        : null,
+      recentPosts: data.recentPosts && data.recentPosts.length > 0 
+        ? data.recentPosts.slice(0, 5).map(post => ({
+            text: post.text,
+            uri: post.uri,
+            timestamp: post.indexedAt || post.createdAt,
+            likeCount: post.likeCount,
+            replyCount: post.replyCount,
+            repostCount: post.repostCount,
+            images: post.images || []
+          }))
+        : []
     };
   } catch (error) {
     return {
@@ -33,7 +44,8 @@ export async function fetchProfileData(handle) {
       followersCount: 0,
       followsCount: 0,
       postsCount: 0,
-      recentPost: null
+      recentPost: null,
+      recentPosts: []
     };
   }
 }
