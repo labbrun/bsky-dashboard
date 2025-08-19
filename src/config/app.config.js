@@ -6,6 +6,20 @@ export const APP_CONFIG = {
     defaultHandle: 'labb.run',
     maxRetries: 3,
     retryDelay: 1000,
+    
+    // Trend Analysis APIs
+    google: {
+      customSearchApiKey: process.env.REACT_APP_GOOGLE_CSE_API_KEY || 'AIzaSyAToEVdrSByXAMS7Kyor8sIh7zCYHWGZP0',
+      searchEngineId: process.env.REACT_APP_GOOGLE_CSE_ID || '23cdbfda918264aaa',
+      baseUrl: 'https://customsearch.googleapis.com/customsearch/v1'
+    },
+    
+    linkedin: {
+      clientId: process.env.REACT_APP_LINKEDIN_CLIENT_ID || '78vkzp4glcnmd0',
+      clientSecret: process.env.REACT_APP_LINKEDIN_CLIENT_SECRET || 'WPL_AP1.EV0EmsmQmowLmWRC.YT0yxA==',
+      baseUrl: 'https://api.linkedin.com/v2',
+      authUrl: 'https://www.linkedin.com/oauth/v2/authorization'
+    }
   },
   
   // Authentication

@@ -365,7 +365,7 @@ export const Skeleton = ({
   );
 };
 
-export default {
+const UntitledUIComponents = {
   Button,
   Card,
   Badge,
@@ -377,3 +377,5 @@ export default {
   Divider,
   Skeleton
 };
+
+export default UntitledUIComponents;
