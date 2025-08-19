@@ -20,8 +20,6 @@ import {
 import AIInsightsGenerator, { 
   INSIGHT_CATEGORIES
 } from '../services/aiInsightsService';
-import { CUSTOMER_AVATAR } from '../config/customer-avatar.config';
-import { LABBRUN_CUSTOMER_AVATAR } from '../config/labbrun-customer-avatar.config';
 import { Button } from '../components/ui/UntitledUIComponents';
 import TypingEffect from '../components/TypingEffect';
 import { getFollowers, getProfile } from '../services/blueskyService';
@@ -31,6 +29,8 @@ function Insights({ metrics }) {
   const [insightsGenerator, setInsightsGenerator] = useState(null);
   const [activePlatform, setActivePlatform] = useState('reddit');
   const [topAmplifiersData, setTopAmplifiersData] = useState([]);
+  const [, setLoadingInsights] = useState(false);
+  const [customerSegment] = useState('tech-entrepreneur');
 
   // Initialize AI insights generator
   useEffect(() => {
