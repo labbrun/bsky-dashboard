@@ -1,7 +1,7 @@
-// AI Insights Service with Customer Avatar Context
+// AI Insights Service with Universal AI Guidance Context
+// Now uses universal AI guidance assets for all analysis and suggestions
 
-import { CUSTOMER_AVATAR, AI_CONTEXT_TEMPLATES } from '../config/customer-avatar.config';
-import { LABBRUN_CUSTOMER_AVATAR, LABBRUN_AI_CONTEXT } from '../config/labbrun-customer-avatar.config';
+import { getAIContext } from './aiContextProvider';
 import TrendAnalysisService from './trendAnalysisService';
 
 // AI Insights Categories
@@ -14,40 +14,65 @@ export const INSIGHT_CATEGORIES = {
   BRAND_POSITIONING: 'brand_positioning'
 };
 
-// Generate contextual AI prompts based on customer avatar and data
+// Generate contextual AI prompts based on universal guidance assets
 export class AIInsightsGenerator {
   constructor(customerSegment = 'labbrun-primary') {
     this.segment = customerSegment;
     this.trendAnalysisService = new TrendAnalysisService();
-    
-    // Use LabbRun-specific avatar data when available
-    if (customerSegment === 'labbrun-primary') {
-      this.customerAvatar = LABBRUN_CUSTOMER_AVATAR.primaryAvatar;
-      this.targetAudience = LABBRUN_CUSTOMER_AVATAR.targetAudience;
-      this.useLabbrRunContext = true;
-    } else {
-      this.customerAvatar = CUSTOMER_AVATAR.segments.find(s => s.id === customerSegment) || 
-                            CUSTOMER_AVATAR.segments[0];
-      this.useLabbrRunContext = false;
+    this.aiContext = null; // Will be loaded from universal guidance
+  }
+  
+  // Initialize with universal AI context
+  async initialize() {
+    if (!this.aiContext) {
+      this.aiContext = await getAIContext();
+      console.log('AIInsightsGenerator initialized with universal context:', {
+        hasCustomerAvatar: !!this.aiContext.customerAvatar,
+        hasContentStrategies: !!this.aiContext.contentStrategies,
+        targetKeywords: this.aiContext.targetKeywords?.length || 0
+      });
     }
+    return this.aiContext;
   }
 
-  // Build comprehensive context for AI insights
-  buildContext(metricsData, insightCategory) {
-    let baseContext, segmentContext;
+  // Build comprehensive context for AI insights using universal guidance
+  async buildContext(metricsData, insightCategory) {
+    await this.initialize();
     
-    if (this.useLabbrRunContext) {
-      baseContext = LABBRUN_AI_CONTEXT.baseContext;
-      segmentContext = LABBRUN_AI_CONTEXT.contentGuidelines;
-    } else {
-      baseContext = AI_CONTEXT_TEMPLATES.baseContext;
-      segmentContext = AI_CONTEXT_TEMPLATES.segmentContexts[this.segment] || '';
-    }
-    
+    const context = this.aiContext;
     const dataContext = this.formatMetricsForContext(metricsData);
     const categoryContext = this.getCategoryContext(insightCategory);
     
-    return `${baseContext}\n\n${segmentContext}\n\n${categoryContext}\n\n${dataContext}`;
+    // Build comprehensive context using all guidance assets
+    const fullContext = `
+## Brand Voice & Personality
+${JSON.stringify(context.brandVoice, null, 2)}
+
+## Target Customer Avatar
+${JSON.stringify(context.customerAvatar, null, 2)}
+
+## Content Strategies
+${JSON.stringify(context.contentStrategies, null, 2)}
+
+## Bluesky Platform Strategies  
+${JSON.stringify(context.blueskyStrategies, null, 2)}
+
+## Marketing Psychology Principles
+${JSON.stringify(context.marketingPsychology, null, 2)}
+
+## Current Performance Data
+${dataContext}
+
+## Analysis Category Focus
+${categoryContext}
+
+## Target Keywords
+${context.targetKeywords.join(', ')}
+
+Provide insights that align with the brand voice, resonate with the customer avatar, and leverage the marketing psychology principles for maximum engagement on Bluesky.
+`;
+    
+    return fullContext;
   }
 
   // Format metrics data for AI context

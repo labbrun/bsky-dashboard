@@ -4,6 +4,7 @@ import {
   BarChart3,
   TrendingUp,
   Lightbulb,
+  BookOpen,
   Search,
   Bell,
   RefreshCw,
@@ -36,9 +37,16 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
     },
     {
       path: '/performance',
-      label: 'Performance',
+      label: 'Bsky Performance',
       icon: TrendingUp,
-      description: 'Content analysis, audience breakdown, and timing data',
+      description: 'Bluesky content analysis, audience breakdown, and timing data',
+      badge: null
+    },
+    {
+      path: '/blog',
+      label: 'Blog Performance',
+      icon: BookOpen,
+      description: 'Blog content analysis, traffic insights, and AI repurposing suggestions',
       badge: 'New'
     },
     {

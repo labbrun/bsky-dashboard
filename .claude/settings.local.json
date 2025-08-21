@@ -6,7 +6,8 @@
       "Bash(rm:*)",
       "WebFetch(domain:docs.anthropic.com)",
       "Bash(npm start)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(robocopy:*)"
     ],
     "deny": []
   }

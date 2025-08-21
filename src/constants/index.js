@@ -5,7 +5,7 @@
 export const NAVIGATION_ITEMS = [
   { 
     name: 'Overview', 
-    path: '/overview', 
+    path: '/', 
     icon: 'LayoutDashboard',
     badge: null,
     description: 'Dashboard overview and key metrics'
@@ -24,6 +24,14 @@ export const NAVIGATION_ITEMS = [
     badge: 'New',
     badgeColor: 'success',
     description: 'AI-powered analytics insights'
+  },
+  { 
+    name: 'Blog Analytics', 
+    path: '/blog-analytics', 
+    icon: 'FileText',
+    badge: 'Beta',
+    badgeColor: 'warning',
+    description: 'Blog performance and content analysis'
   },
 ];
 

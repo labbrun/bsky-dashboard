@@ -1,13 +1,15 @@
-// Customer Data Loader - Automatically syncs with external customer avatar files
-// Provides real-time access to updated customer avatar and target audience data
+// Customer Data Loader - Now deprecated, replaced by universal AI guidance system
+// Legacy file maintained for backward compatibility
+// Use aiContextProvider.js and aiGuidanceLoader.js for all customer data
 
-import { LABBRUN_CUSTOMER_AVATAR } from '../config/labbrun-customer-avatar.config';
+import { getAIContext } from '../services/aiContextProvider';
 import logger from '../services/loggingService';
 
-// External file paths
-const EXTERNAL_FILES = {
-  customerAvatar: 'A:\\Knowledge Docs\\LabbRun\\Customer Avatar.md',
-  targetAudience: 'A:\\Knowledge Docs\\LabbRun\\Target Audience.md'
+// DEPRECATED: External files now handled by universal AI guidance system
+// Customer data is loaded from public/ai-guidance/ directory
+const DEPRECATED_EXTERNAL_FILES = {
+  customerAvatar: 'Now loaded via aiGuidanceLoader.js',
+  targetAudience: 'Now loaded via aiGuidanceLoader.js'
 };
 
 // Local cache
@@ -21,14 +23,40 @@ export class CustomerDataLoader {
     this.lastModified = {};
   }
 
-  // Get current customer data (with caching)
+  // Get current customer data (now uses universal AI guidance)
   async getCustomerData() {
-    const now = Date.now();
+    logger.warn('CustomerDataLoader is deprecated. Use aiContextProvider.getAIContext() instead.');
     
-    // Return cached data if still fresh
-    if (cachedCustomerData && lastUpdateCheck && (now - lastUpdateCheck) < CACHE_DURATION) {
-      return cachedCustomerData;
+    try {
+      // Redirect to new universal AI context
+      const aiContext = await getAIContext();
+      
+      // Transform to legacy format for backward compatibility
+      return {
+        customerAvatar: aiContext.customerAvatar,
+        targetAudience: aiContext.customerAvatar, // Same data in new system
+        brandVoice: aiContext.brandVoice,
+        contentStrategies: aiContext.contentStrategies,
+        lastUpdated: aiContext.loadedAt,
+        source: 'universal-ai-guidance'
+      };
+    } catch (error) {
+      logger.error('Failed to load customer data from universal AI guidance:', error);
+      return this.getDefaultCustomerData();
     }
+  }
+  
+  // Fallback default data
+  getDefaultCustomerData() {
+    return {
+      customerAvatar: {
+        demographics: 'Tech-savvy professionals, entrepreneurs',
+        interests: ['Privacy', 'Security', 'Productivity', 'Self-hosting'],
+        painPoints: ['Information overload', 'Budget constraints'],
+        goals: ['Better privacy', 'Increased productivity']
+      },
+      source: 'default-fallback'
+    };
 
     // Check if files need updating
     try {
