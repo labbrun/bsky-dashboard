@@ -6,7 +6,7 @@ const GA_BASE_URL = 'https://analyticsdata.googleapis.com/v1beta';
 
 // Service Account Authentication
 let accessToken = null;
-let tokenExpiration = null;
+// let tokenExpiration = null; // Unused for now
 
 // Check for environment variables or service account setup
 const getCredentialsAvailability = () => {
@@ -112,12 +112,17 @@ export const getBlogTrafficOverview = async (days = 30) => {
   }
 
   try {
+    // Add timeout to prevent hanging API calls
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
     const response = await fetch(`${GA_BASE_URL}/${GA_PROPERTY_ID}:runReport`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
+      signal: controller.signal,
       body: JSON.stringify({
         dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
         metrics: [
@@ -130,6 +135,8 @@ export const getBlogTrafficOverview = async (days = 30) => {
         dimensions: [{ name: 'date' }]
       })
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -154,12 +161,17 @@ export const getReferralTraffic = async (days = 30) => {
   }
 
   try {
+    // Add timeout to prevent hanging API calls
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
     const response = await fetch(`${GA_BASE_URL}/${GA_PROPERTY_ID}:runReport`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
+      signal: controller.signal,
       body: JSON.stringify({
         dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
         metrics: [
@@ -173,6 +185,8 @@ export const getReferralTraffic = async (days = 30) => {
         orderBys: [{ metric: { metricName: 'sessions' }, desc: true }]
       })
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -262,27 +276,7 @@ const processTrafficDataGA4 = (gaResponse) => {
   return trafficData;
 };
 
-// Legacy GA Universal Analytics processor (kept for compatibility)
-const processTrafficData = (gaResponse) => {
-  const report = gaResponse.reports[0];
-  const rows = report.data.rows || [];
-
-  const trafficData = rows.map(row => {
-    const date = row.dimensions[0];
-    const metrics = row.metrics[0].values;
-    
-    return {
-      date: formatGADate(date),
-      sessions: parseInt(metrics[0]) || 0,
-      users: parseInt(metrics[1]) || 0,
-      pageviews: parseInt(metrics[2]) || 0,
-      bounceRate: parseFloat(metrics[3]) || 0,
-      avgSessionDuration: parseFloat(metrics[4]) || 0
-    };
-  });
-
-  return trafficData;
-};
+// Legacy GA Universal Analytics processor removed - using GA4 only
 
 // Process GA4 referral data response
 const processReferralDataGA4 = (gaResponse) => {
@@ -307,27 +301,7 @@ const processReferralDataGA4 = (gaResponse) => {
   });
 };
 
-// Legacy GA Universal Analytics processor (kept for compatibility)
-const processReferralData = (gaResponse) => {
-  const report = gaResponse.reports[0];
-  const rows = report.data.rows || [];
-
-  return rows.map(row => {
-    const [source, medium] = row.dimensions;
-    const [sessions, users] = row.metrics[0].values;
-    
-    return {
-      source,
-      medium,
-      sessions: parseInt(sessions) || 0,
-      users: parseInt(users) || 0,
-      displayName: source === '(direct)' ? 'Direct' : source,
-      isBluesky: source.includes('bsky') || source.includes('bluesky'),
-      isSearch: medium === 'organic',
-      isSocial: medium === 'social' || ['twitter', 'facebook', 'linkedin', 'bsky', 'bluesky'].includes(source)
-    };
-  });
-};
+// Legacy GA Universal Analytics processor removed - using GA4 only
 
 // Process GA4 top posts data
 const processTopPostsDataGA4 = (gaResponse) => {
@@ -352,30 +326,11 @@ const processTopPostsDataGA4 = (gaResponse) => {
   });
 };
 
-// Legacy GA Universal Analytics processor (kept for compatibility)
-const processTopPostsData = (gaResponse) => {
-  const report = gaResponse.reports[0];
-  const rows = report.data.rows || [];
-
-  return rows.map(row => {
-    const [path, title] = row.dimensions;
-    const [pageviews, uniquePageviews, timeOnPage, bounceRate] = row.metrics[0].values;
-    
-    return {
-      path,
-      title,
-      pageviews: parseInt(pageviews) || 0,
-      uniquePageviews: parseInt(uniquePageviews) || 0,
-      avgTimeOnPage: parseFloat(timeOnPage) || 0,
-      bounceRate: parseFloat(bounceRate) || 0,
-      url: `https://labb.run${path}`
-    };
-  });
-};
+// Legacy GA Universal Analytics processor removed - using GA4 only
 
 // Format GA date (YYYYMMDD) to readable format
 const formatGADate = (gaDate) => {
-  const year = gaDate.substring(0, 4);
+  // const year = gaDate.substring(0, 4); // Not used in current format
   const month = gaDate.substring(4, 6);
   const day = gaDate.substring(6, 8);
   return `${month}/${day}`;
@@ -442,10 +397,12 @@ const generateMockTopPostsData = () => {
   ];
 };
 
-export default {
+const googleAnalyticsService = {
   testGAConnection,
   getBlogTrafficOverview,
   getReferralTraffic,
   getTopBlogPosts,
   setAccessToken
 };
+
+export default googleAnalyticsService;
