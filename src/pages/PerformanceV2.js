@@ -9,7 +9,8 @@ import {
   ExternalLink,
   CheckCircle,
   Star,
-  Award
+  Users,
+  Calendar
 } from 'lucide-react';
 import TypingEffect from '../components/TypingEffect';
 import { getAuthorFeed, getFollowers } from '../services/blueskyService';
@@ -34,7 +35,6 @@ function PerformanceV2({ metrics }) {
   const [currentObservation, setCurrentObservation] = useState('');
   const [timeRange, setTimeRange] = useState('7'); // '7' for 7 days, '30' for 30 days
   const [newFollowers, setNewFollowers] = useState([]);
-  const [topAmplifiersData, setTopAmplifiersData] = useState([]);
 
   // Helper functions for expanding/collapsing posts
   const togglePostExpansion = (postId) => {
@@ -237,7 +237,6 @@ function PerformanceV2({ metrics }) {
               return bReach - aReach;
             });
             
-            setTopAmplifiersData(amplifiersData);
           }
         } catch (error) {
           console.error('Error fetching followers for Performance:', error);
@@ -294,44 +293,91 @@ function PerformanceV2({ metrics }) {
   const newFollowersHandles = newFollowers && newFollowers.length > 0 ? newFollowers : 
     ['alice.bsky.social', 'bob.tech.bsky.social'];
   
-  const topAmplifiers = topAmplifiersData && topAmplifiersData.length > 0 ? topAmplifiersData : [
+
+  const topAmplifiersToEngage = [
     {
-      handle: 'alice.bsky.social',
-      displayName: 'Alice Cooper',
-      avatar: 'https://avatar.vercel.sh/alice.svg?text=AC',
-      followersCount: 2400,
-      followsCount: 156,
-      postsCount: 89,
-      engagements: '127.3',
-      reach: '2,400',
-      recentPost: {
-        text: 'Excited about the future of decentralized social networks! The community here is amazing. 🦋 #Bluesky #Web3',
-        createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-        uri: 'at://did:plc:alice123/app.bsky.feed.post/example1',
-        likes: 34,
-        replies: 12,
-        reposts: 6,
-        images: []
-      }
+      handle: 'sarah.tech.social',
+      displayName: 'Sarah Chen',
+      avatar: 'https://avatar.vercel.sh/sarah.svg?text=SC',
+      followers: 4200,
+      posts: 150,
+      engagement: '8.4%',
+      potential: 'High',
+      latestPost: 'AI privacy is becoming crucial as models get more sophisticated. We need better frameworks for data protection in ML pipelines. Thoughts?',
+      postTime: '3h ago',
+      postEngagement: { likes: 67, replies: 24, shares: 12 },
+      reason: 'High engagement rate with tech content, frequently shares privacy-focused posts',
+      action: 'Reply to Post'
     },
     {
-      handle: 'bob.tech.bsky.social', 
-      displayName: 'Bob Stevens',
-      avatar: 'https://avatar.vercel.sh/bob.svg?text=BS',
-      followersCount: 1850,
-      followsCount: 234,
-      postsCount: 156,
-      engagements: '98.7',
-      reach: '1,850',
-      recentPost: {
-        text: 'Just published a new article on distributed systems. Would love to hear your thoughts on scalability patterns!',
-        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        uri: 'at://did:plc:bob456/app.bsky.feed.post/example2',
-        likes: 28,
-        replies: 9,
-        reposts: 4,
-        images: []
-      }
+      handle: 'alex.security.dev',
+      displayName: 'Alex Rodriguez',
+      avatar: 'https://avatar.vercel.sh/alex.svg?text=AR',
+      followers: 3100,
+      posts: 89,
+      engagement: '7.2%',
+      potential: 'High',
+      latestPost: 'Just set up my first homelab server with Proxmox. The learning curve is steep but the control you get is amazing! 🔧',
+      postTime: '5h ago',
+      postEngagement: { likes: 43, replies: 18, shares: 8 },
+      reason: 'Active in homelab community, aligns with your content themes',
+      action: 'Like & Comment'
+    },
+    {
+      handle: 'maria.data.scientist',
+      displayName: 'Dr. Maria Santos',
+      avatar: 'https://avatar.vercel.sh/maria.svg?text=MS',
+      followers: 2800,
+      posts: 67,
+      engagement: '9.1%',
+      potential: 'High',
+      latestPost: 'Fascinating paper on differential privacy in federated learning. The trade-offs between utility and privacy are getting more nuanced.',
+      postTime: '1d ago',
+      postEngagement: { likes: 89, replies: 31, shares: 15 },
+      reason: 'Shares academic insights on privacy tech, high engagement on technical posts',
+      action: 'Share & Discuss'
+    },
+    {
+      handle: 'jordan.devops.pro',
+      displayName: 'Jordan Kim',
+      avatar: 'https://avatar.vercel.sh/jordan.svg?text=JK',
+      followers: 1900,
+      posts: 134,
+      engagement: '6.8%',
+      potential: 'Medium',
+      latestPost: 'Docker compose files are getting out of hand in our org. Time to look into Kubernetes for better orchestration patterns.',
+      postTime: '8h ago',
+      postEngagement: { likes: 34, replies: 12, shares: 6 },
+      reason: 'DevOps focus complements your automation content',
+      action: 'Follow Up'
+    },
+    {
+      handle: 'emma.ux.researcher',
+      displayName: 'Emma Walsh',
+      avatar: 'https://avatar.vercel.sh/emma.svg?text=EW',
+      followers: 2600,
+      posts: 78,
+      engagement: '7.9%',
+      potential: 'Medium',
+      latestPost: 'User research for privacy-focused tools reveals interesting patterns. People want control but also convenience. Design challenge! 🎨',
+      postTime: '12h ago',
+      postEngagement: { likes: 56, replies: 22, shares: 9 },
+      reason: 'UX perspective on privacy tools, good cross-domain engagement potential',
+      action: 'Engage & Learn'
+    },
+    {
+      handle: 'chris.blockchain.dev',
+      displayName: 'Chris Patel',
+      avatar: 'https://avatar.vercel.sh/chris.svg?text=CP',
+      followers: 3700,
+      posts: 201,
+      engagement: '5.4%',
+      potential: 'Medium',
+      latestPost: 'Smart contract security audit tools are evolving rapidly. Static analysis is getting better but still needs human expertise.',
+      postTime: '6h ago',
+      postEngagement: { likes: 38, replies: 15, shares: 7 },
+      reason: 'Security-focused blockchain content, moderate alignment with privacy themes',
+      action: 'Monitor & Engage'
     }
   ];
 
@@ -448,7 +494,7 @@ function PerformanceV2({ metrics }) {
         </div>
       </div>
 
-      {/* Hero Section with Mesh Gradient Background */}
+      {/* AI Performance Insights & Topic Analysis */}
       <div 
         className="relative rounded-2xl overflow-hidden"
         style={{
@@ -465,7 +511,7 @@ function PerformanceV2({ metrics }) {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold font-sans">
-                  AI Performance Insights
+                  AI Performance Insights & Topic Analysis
                 </h2>
                 <Badge variant="warning" size="sm">LIVE</Badge>
               </div>
@@ -485,7 +531,8 @@ function PerformanceV2({ metrics }) {
                 )}
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* 3-Column Performance Insights Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp size={16} className="text-success-400" />
@@ -507,197 +554,75 @@ function PerformanceV2({ metrics }) {
                 <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                   <div className="flex items-center gap-2 mb-2">
                     <Zap size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">Avg Performance</span>
+                    <span className="text-success-400 font-semibold text-sm font-sans">Growth Opportunity</span>
                   </div>
                   <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
                     {analyticsData?.summary.avgEngagement?.toFixed(1) || '0'} engagements per post across {analyticsData?.summary.totalPosts || 0} posts analyzed
                   </p>
                 </div>
               </div>
+
+              {/* 2-Column Topic Analysis Grid - Only show if data exists */}
+              {analyticsData?.aiTopicInsights && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Topic Targeting Accuracy */}
+                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Target size={16} className={analyticsData.aiTopicInsights.onTarget > 70 ? "text-success-400" : "text-warning-400"} />
+                      <span className={`font-semibold text-sm font-sans ${
+                        analyticsData.aiTopicInsights.onTarget > 70 ? 'text-success-400' : 'text-warning-400'
+                      }`}>
+                        Topic Targeting Accuracy
+                      </span>
+                    </div>
+                    <p className="text-3xl font-bold text-white mb-2 font-sans">
+                      {analyticsData.aiTopicInsights.onTarget}%
+                    </p>
+                    <p className="text-sm text-gray-300 font-sans mb-3">
+                      of your content aligns with target topics
+                    </p>
+                    
+                    {analyticsData.aiTopicInsights.offTarget.length > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-400 font-sans mb-2">Off-target content:</p>
+                        {analyticsData.aiTopicInsights.offTarget.slice(0, 2).map((post, idx) => (
+                          <div key={idx} className="bg-white/5 rounded-lg p-2 mb-2">
+                            <p className="text-xs text-gray-300 font-sans">
+                              {post.topic}: {post.text}
+                            </p>
+                            <p className="text-xs text-warning-400 font-sans">
+                              {post.engagement} interactions
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* AI Recommendations */}
+                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles size={16} className="text-success-400" />
+                      <span className="text-success-400 font-semibold text-sm font-sans">
+                        AI Recommendations
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {analyticsData.aiTopicInsights.recommendations.map((rec, idx) => (
+                        <div key={idx} className="bg-white/5 rounded-lg p-3">
+                          <p className="text-sm text-gray-300 font-sans leading-relaxed">
+                            {rec}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* New Followers This Week */}
-        <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-white/10 rounded-xl">
-              <Star size={24} className="text-yellow-400" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold font-sans">
-                  New Followers This Week
-                </h2>
-                <Badge variant="warning" size="sm">LIVE</Badge>
-              </div>
-              
-              {/* AI Summary */}
-              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  Your latest followers include active contributors from the Bluesky community. These new connections show strong engagement potential and align with your content focus areas.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {newFollowersHandles.map((handle, index) => (
-                  <div key={handle} className="bg-primary-850 rounded-xl p-4 border border-gray-600 hover:bg-primary-800 transition-colors">
-                    <div className="flex items-center gap-3 mb-3">
-                      <img 
-                        src={`https://avatar.vercel.sh/${handle}.svg?text=${handle.charAt(0).toUpperCase()}`}
-                        alt={handle}
-                        className="w-12 h-12 rounded-full border-2 border-gray-400"
-                      />
-                      <div className="flex-1">
-                        <p className="font-semibold text-white font-sans">@{handle}</p>
-                        <p className="text-sm text-gray-300 font-sans">New Follower</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        icon={<ExternalLink size={12} />}
-                        onClick={() => window.open(`https://bsky.app/profile/${handle}`, '_blank')}
-                      >
-                        View Profile
-                      </Button>
-                    </div>
-                    
-                    {/* Follower Stats */}
-                    <div className="grid grid-cols-3 gap-4 text-sm text-center mb-3">
-                      <div>
-                        <p className="font-semibold text-white font-sans">1.2K</p>
-                        <p className="text-xs text-gray-400 font-sans">Followers</p>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-white font-sans">845</p>
-                        <p className="text-xs text-gray-400 font-sans">Following</p>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-white font-sans">156</p>
-                        <p className="text-xs text-gray-400 font-sans">Posts</p>
-                      </div>
-                    </div>
-                    
-                    <div className="text-xs text-gray-400 font-sans text-center py-2">
-                      Recently followed you
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-      {/* Top Amplifiers */}
-        <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-white/10 rounded-xl">
-              <Award size={24} className="text-blue-400" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold font-sans">
-                  Top Amplifiers
-                </h2>
-                <Badge variant="warning" size="sm">LIVE</Badge>
-              </div>
-              
-              {/* AI Summary */}
-              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  Your most influential followers with high engagement potential. These users frequently interact with your content and can significantly amplify your reach across the network.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {topAmplifiers.map((amplifier, index) => (
-                  <div key={amplifier.handle} className="p-4 bg-primary-850 rounded-xl hover:bg-primary-800 transition-colors border border-gray-600">
-                    <div className="flex items-start gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <img 
-                          src={amplifier.avatar || 'https://via.placeholder.com/40'} 
-                          alt={amplifier.displayName}
-                          className="w-10 h-10 rounded-full border-2 border-gray-400"
-                        />
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <p className="font-semibold text-white font-sans">{amplifier.displayName || `@${amplifier.handle}`}</p>
-                            <p className="text-sm text-gray-300 font-sans">@{amplifier.handle}</p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            icon={<ExternalLink size={12} />}
-                            onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
-                          >
-                            View Profile
-                          </Button>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 text-sm mb-4">
-                          <div className="text-center">
-                            <p className="font-semibold text-white font-sans">{amplifier.followersCount?.toLocaleString() || '0'}</p>
-                            <p className="text-xs text-gray-400 font-sans">Followers</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold text-white font-sans">{amplifier.followsCount?.toLocaleString() || '0'}</p>
-                            <p className="text-xs text-gray-400 font-sans">Following</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold text-white font-sans">{amplifier.postsCount?.toLocaleString() || '0'}</p>
-                            <p className="text-xs text-gray-400 font-sans">Posts</p>
-                          </div>
-                        </div>
-
-                        {/* Latest Post */}
-                        <div className="bg-primary-850 rounded-lg p-3 border border-gray-600 mb-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-semibold text-blue-400 font-sans">LATEST POST</span>
-                          </div>
-                          <p className="text-sm text-gray-300 font-sans mb-2">
-                            {amplifier.recentPost?.text || "Just shared some thoughts on the future of decentralized social media. The potential for user-owned networks is incredible! 🌐 #Web3 #Decentralization"}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-gray-400">
-                            <span className="font-sans">
-                              {amplifier.recentPost?.createdAt ? new Date(amplifier.recentPost.createdAt).toLocaleString() : "2 hours ago"}
-                            </span>
-                            <div className="flex gap-3">
-                              <span className="font-sans">❤️ {amplifier.recentPost?.likes || 42}</span>
-                              <span className="font-sans">💬 {amplifier.recentPost?.replies || 8}</span>
-                              <span className="font-sans">🔄 {amplifier.recentPost?.reposts || 15}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Comment Button - Always show */}
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          icon={<MessageSquare size={12} />}
-                          onClick={() => {
-                            const postId = amplifier.recentPost?.uri?.split('/').pop() || 'sample123';
-                            const commentUrl = `https://bsky.app/profile/${amplifier.handle}/post/${postId}`;
-                            window.open(commentUrl, '_blank');
-                          }}
-                          className="w-full"
-                        >
-                          Comment on Latest Post
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
       {/* Content Performance Section */}
       <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
@@ -952,7 +877,7 @@ function PerformanceV2({ metrics }) {
                         <Skeleton variant="card" height={80} />
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         {metrics?.recentPosts?.filter(post => !post.isReply)
                           .sort((a, b) => {
                             const aEngagement = (a.likeCount || 0) + (a.replyCount || 0) + (a.repostCount || 0);
@@ -1178,136 +1103,136 @@ function PerformanceV2({ metrics }) {
                       </div>
                     )}
                   </div>
-                  
-                  {/* 2 Most Popular Comments */}
-                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                    <h3 className="text-lg font-semibold text-white font-sans mb-4">2 Most Popular Comments</h3>
-                    {loadingPosts ? (
-                      <div className="space-y-4">
-                        <Skeleton variant="card" height={80} />
-                        <Skeleton variant="card" height={80} />
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {metrics?.recentPosts?.filter(post => post.isReply && post.replyTo)
-                          .sort((a, b) => {
-                            const aEngagement = (a.likeCount || 0) + (a.replyCount || 0) + (a.repostCount || 0);
-                            const bEngagement = (b.likeCount || 0) + (b.replyCount || 0) + (b.repostCount || 0);
-                            return bEngagement - aEngagement;
-                          })
-                          .slice(0, 2).map((comment, index) => {
-                          const commentId = `popular-comment-${comment.uri || index}`;
-                          const isExpanded = expandedComments.has(commentId);
-                          const totalEngagement = (comment.likeCount || 0) + (comment.replyCount || 0) + (comment.repostCount || 0);
-                          const engagementRate = metrics?.followersCount > 0 
-                            ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
-                            : 0;
+                </div>
+              </div>
+
+              {/* 2 Most Popular Comments - Full Width */}
+              <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
+                <h3 className="text-lg font-semibold text-white font-sans mb-4">2 Most Popular Comments</h3>
+                {loadingPosts ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <Skeleton variant="card" height={80} />
+                    <Skeleton variant="card" height={80} />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {metrics?.recentPosts?.filter(post => post.isReply && post.replyTo)
+                      .sort((a, b) => {
+                        const aEngagement = (a.likeCount || 0) + (a.replyCount || 0) + (a.repostCount || 0);
+                        const bEngagement = (b.likeCount || 0) + (b.replyCount || 0) + (b.repostCount || 0);
+                        return bEngagement - aEngagement;
+                      })
+                      .slice(0, 2).map((comment, index) => {
+                      const commentId = `popular-comment-${comment.uri || index}`;
+                      const isExpanded = expandedComments.has(commentId);
+                      const totalEngagement = (comment.likeCount || 0) + (comment.replyCount || 0) + (comment.repostCount || 0);
+                      const engagementRate = metrics?.followersCount > 0 
+                        ? ((totalEngagement / metrics.followersCount) * 100).toFixed(1)
+                        : 0;
+                      
+                      return (
+                        <div key={commentId} className="bg-primary-850 border border-gray-600 rounded-lg p-4">
+                          {/* Original Post Context */}
+                          {comment.replyTo && (
+                            <div className="mb-3 p-3 rounded-lg border border-gray-600 bg-white/5">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-semibold text-gray-400 font-sans">
+                                  💬 Replying to @{comment.replyTo.author.handle}
+                                </span>
+                              </div>
+                              <p className={`text-xs text-gray-300 italic font-sans leading-5 ${
+                                isExpanded ? '' : 'line-clamp-2'
+                              }`}>
+                                "{comment.replyTo.text}"
+                              </p>
+                              {comment.replyTo.text && comment.replyTo.text.length > 80 && (
+                                <button
+                                  onClick={() => toggleCommentExpansion(commentId)}
+                                  className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                >
+                                  {isExpanded ? 'Show less original' : 'Show more original'}
+                                </button>
+                              )}
+                            </div>
+                          )}
                           
-                          return (
-                            <div key={commentId} className="bg-primary-850 border border-gray-600 rounded-lg p-4">
-                              {/* Original Post Context */}
-                              {comment.replyTo && (
-                                <div className="mb-3 p-3 rounded-lg border border-gray-600 bg-white/5">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs font-semibold text-gray-400 font-sans">
-                                      💬 Replying to @{comment.replyTo.author.handle}
-                                    </span>
+                          {/* Comment Content */}
+                          <div className="flex items-start gap-4">
+                            {/* Image Section */}
+                            <div className="flex-shrink-0">
+                              {comment.images && comment.images.length > 0 ? (
+                                <div>
+                                  <img 
+                                    src={comment.images[0].thumb || comment.images[0].fullsize || comment.images[0]}
+                                    alt={comment.images[0].alt || 'Comment image'}
+                                    className="w-12 h-12 object-cover rounded-lg border border-gray-600"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextElementSibling.style.display = 'flex';
+                                    }}
+                                  />
+                                  <div 
+                                    className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
+                                    style={{ display: 'none' }}
+                                  >
+                                    💬
                                   </div>
-                                  <p className={`text-xs text-gray-300 italic font-sans leading-5 ${
-                                    isExpanded ? '' : 'line-clamp-2'
-                                  }`}>
-                                    "{comment.replyTo.text}"
-                                  </p>
-                                  {comment.replyTo.text && comment.replyTo.text.length > 80 && (
-                                    <button
-                                      onClick={() => toggleCommentExpansion(commentId)}
-                                      className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
-                                    >
-                                      {isExpanded ? 'Show less original' : 'Show more original'}
-                                    </button>
-                                  )}
+                                </div>
+                              ) : (
+                                <div className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
+                                  💬
                                 </div>
                               )}
+                            </div>
+                            
+                            <div className="flex-1">
+                              <div className="mb-2">
+                                <p className={`text-sm text-gray-300 font-sans leading-relaxed ${
+                                  isExpanded ? '' : 'line-clamp-2'
+                                }`}>
+                                  {comment.text || 'No comment text'}
+                                </p>
+                                {comment.text && comment.text.length > 100 && (
+                                  <button
+                                    onClick={() => toggleCommentExpansion(commentId)}
+                                    className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
+                                  >
+                                    {isExpanded ? 'Show less' : 'Show more'}
+                                  </button>
+                                )}
+                              </div>
                               
-                              {/* Comment Content */}
-                              <div className="flex items-start gap-4">
-                                {/* Image Section */}
-                                <div className="flex-shrink-0">
-                                  {comment.images && comment.images.length > 0 ? (
-                                    <div>
-                                      <img 
-                                        src={comment.images[0].thumb || comment.images[0].fullsize || comment.images[0]}
-                                        alt={comment.images[0].alt || 'Comment image'}
-                                        className="w-12 h-12 object-cover rounded-lg border border-gray-600"
-                                        onError={(e) => {
-                                          e.target.style.display = 'none';
-                                          e.target.nextElementSibling.style.display = 'flex';
-                                        }}
-                                      />
-                                      <div 
-                                        className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans"
-                                        style={{ display: 'none' }}
-                                      >
-                                        💬
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="w-12 h-12 bg-gray-700 rounded-lg border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-sans">
-                                      💬
-                                    </div>
-                                  )}
+                              <div className="flex items-center justify-between">
+                                <div className="flex gap-3 text-xs">
+                                  <span className="text-red-400 font-sans">{comment.likeCount || 0} ❤️</span>
+                                  <span className="text-blue-400 font-sans">{comment.replyCount || 0} 💬</span>
+                                  <span className="text-green-400 font-sans">{comment.repostCount || 0} 🔄</span>
                                 </div>
-                                
-                                <div className="flex-1">
-                                  <div className="mb-2">
-                                    <p className={`text-sm text-gray-300 font-sans leading-relaxed ${
-                                      isExpanded ? '' : 'line-clamp-2'
-                                    }`}>
-                                      {comment.text || 'No comment text'}
-                                    </p>
-                                    {comment.text && comment.text.length > 100 && (
-                                      <button
-                                        onClick={() => toggleCommentExpansion(commentId)}
-                                        className="text-xs text-brand-400 hover:text-brand-300 font-sans mt-1 underline"
-                                      >
-                                        {isExpanded ? 'Show less' : 'Show more'}
-                                      </button>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex gap-3 text-xs">
-                                      <span className="text-red-400 font-sans">{comment.likeCount || 0} ❤️</span>
-                                      <span className="text-blue-400 font-sans">{comment.replyCount || 0} 💬</span>
-                                      <span className="text-green-400 font-sans">{comment.repostCount || 0} 🔄</span>
-                                    </div>
-                                    <div className="text-xs text-success-400 font-sans font-semibold">
-                                      ER: {engagementRate}%
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex items-center justify-between mt-2">
-                                    <div className="text-xs text-gray-400 font-sans">
-                                      {comment.indexedAt ? new Date(comment.indexedAt).toLocaleDateString() : 'No date'}
-                                    </div>
-                                    <div className="text-xs text-warning-400 font-sans">
-                                      🏆 Popular
-                                    </div>
-                                  </div>
+                                <div className="text-xs text-success-400 font-sans font-semibold">
+                                  ER: {engagementRate}%
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center justify-between mt-2">
+                                <div className="text-xs text-gray-400 font-sans">
+                                  {comment.indexedAt ? new Date(comment.indexedAt).toLocaleDateString() : 'No date'}
+                                </div>
+                                <div className="text-xs text-warning-400 font-sans">
+                                  🏆 Popular
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
-                        {(!metrics?.recentPosts || metrics.recentPosts.filter(post => post.isReply && post.replyTo).length < 2) && (
-                          <div className="text-center text-gray-400 font-sans py-8">
-                            Not enough comments for popularity ranking
                           </div>
-                        )}
+                        </div>
+                      );
+                    })}
+                    {(!metrics?.recentPosts || metrics.recentPosts.filter(post => post.isReply && post.replyTo).length < 2) && (
+                      <div className="text-center text-gray-400 font-sans py-8 col-span-full">
+                        Not enough comments for popularity ranking
                       </div>
                     )}
                   </div>
-                </div>
+                )}
               </div>
 
             </div>
@@ -1315,81 +1240,228 @@ function PerformanceV2({ metrics }) {
         </div>
       </div>
 
-      {/* AI Topic Insights */}
-      {analyticsData?.aiTopicInsights && (
+      {/* Recommended Posting Times */}
+      <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
+        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <Calendar className="text-brand-400" size={20} />
+          Recommended Posting Times (Next Week)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
+            <h4 className="font-semibold text-white">Monday</h4>
+            <p className="text-lg font-bold text-brand-200 my-2">2:00 PM</p>
+            <p className="text-xs text-brand-100 mb-2">Peak professional audience</p>
+            <div className="flex items-center gap-1">
+              <div className="w-full bg-gray-600 rounded-full h-1.5">
+                <div 
+                  className="bg-brand-400 h-1.5 rounded-full" 
+                  style={{ width: '92%' }}
+                ></div>
+              </div>
+              <span className="text-xs text-brand-200 ml-1">92%</span>
+            </div>
+          </div>
+          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
+            <h4 className="font-semibold text-white">Tuesday</h4>
+            <p className="text-lg font-bold text-brand-200 my-2">3:30 PM</p>
+            <p className="text-xs text-brand-100 mb-2">High engagement window</p>
+            <div className="flex items-center gap-1">
+              <div className="w-full bg-gray-600 rounded-full h-1.5">
+                <div 
+                  className="bg-brand-400 h-1.5 rounded-full" 
+                  style={{ width: '88%' }}
+                ></div>
+              </div>
+              <span className="text-xs text-brand-200 ml-1">88%</span>
+            </div>
+          </div>
+          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
+            <h4 className="font-semibold text-white">Wednesday</h4>
+            <p className="text-lg font-bold text-brand-200 my-2">1:00 PM</p>
+            <p className="text-xs text-brand-100 mb-2">Lunch break activity spike</p>
+            <div className="flex items-center gap-1">
+              <div className="w-full bg-gray-600 rounded-full h-1.5">
+                <div 
+                  className="bg-brand-400 h-1.5 rounded-full" 
+                  style={{ width: '85%' }}
+                ></div>
+              </div>
+              <span className="text-xs text-brand-200 ml-1">85%</span>
+            </div>
+          </div>
+          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
+            <h4 className="font-semibold text-white">Thursday</h4>
+            <p className="text-lg font-bold text-brand-200 my-2">2:45 PM</p>
+            <p className="text-xs text-brand-100 mb-2">Mid-week momentum</p>
+            <div className="flex items-center gap-1">
+              <div className="w-full bg-gray-600 rounded-full h-1.5">
+                <div 
+                  className="bg-brand-400 h-1.5 rounded-full" 
+                  style={{ width: '90%' }}
+                ></div>
+              </div>
+              <span className="text-xs text-brand-200 ml-1">90%</span>
+            </div>
+          </div>
+          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
+            <h4 className="font-semibold text-white">Friday</h4>
+            <p className="text-lg font-bold text-brand-200 my-2">11:30 AM</p>
+            <p className="text-xs text-brand-100 mb-2">Pre-weekend engagement</p>
+            <div className="flex items-center gap-1">
+              <div className="w-full bg-gray-600 rounded-full h-1.5">
+                <div 
+                  className="bg-brand-400 h-1.5 rounded-full" 
+                  style={{ width: '78%' }}
+                ></div>
+              </div>
+              <span className="text-xs text-brand-200 ml-1">78%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* New Followers This Week */}
         <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-white/10 rounded-xl">
-              <Target size={24} className="text-warning-400" />
+              <Star size={24} className="text-yellow-400" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold font-sans">
-                  AI Topic Analysis & Recommendations
+                  New Followers This Week
                 </h2>
-                <Badge variant="warning" size="sm">INSIGHTS</Badge>
+                <Badge variant="warning" size="sm">LIVE</Badge>
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Topic Targeting Accuracy */}
-                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Target size={16} className={analyticsData.aiTopicInsights.onTarget > 70 ? "text-success-400" : "text-warning-400"} />
-                    <span className={`font-semibold text-sm font-sans ${
-                      analyticsData.aiTopicInsights.onTarget > 70 ? 'text-success-400' : 'text-warning-400'
-                    }`}>
-                      Topic Targeting Accuracy
-                    </span>
-                  </div>
-                  <p className="text-3xl font-bold text-white mb-2 font-sans">
-                    {analyticsData.aiTopicInsights.onTarget}%
-                  </p>
-                  <p className="text-sm text-gray-300 font-sans mb-3">
-                    of your content aligns with target topics
-                  </p>
-                  
-                  {analyticsData.aiTopicInsights.offTarget.length > 0 && (
-                    <div>
-                      <p className="text-xs text-gray-400 font-sans mb-2">Off-target content:</p>
-                      {analyticsData.aiTopicInsights.offTarget.slice(0, 2).map((post, idx) => (
-                        <div key={idx} className="bg-white/5 rounded-lg p-2 mb-2">
-                          <p className="text-xs text-gray-300 font-sans">
-                            {post.topic}: {post.text}
-                          </p>
-                          <p className="text-xs text-warning-400 font-sans">
-                            {post.engagement} interactions
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* AI Recommendations */}
-                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">
-                      AI Recommendations
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {analyticsData.aiTopicInsights.recommendations.map((rec, idx) => (
-                      <div key={idx} className="bg-white/5 rounded-lg p-3">
-                        <p className="text-sm text-gray-300 font-sans leading-relaxed">
-                          {rec}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              {/* AI Summary */}
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                  Your latest followers include active contributors from the Bluesky community. These new connections show strong engagement potential and align with your content focus areas.
+                </p>
               </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {newFollowersHandles.map((handle, index) => (
+                  <div key={handle} className="bg-primary-850 rounded-xl p-4 border border-gray-600 hover:bg-primary-800 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <img 
+                        src={`https://avatar.vercel.sh/${handle}.svg?text=${handle.charAt(0).toUpperCase()}`}
+                        alt={handle}
+                        className="w-12 h-12 rounded-full border-2 border-gray-400"
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-white font-sans">@{handle}</p>
+                        <p className="text-sm text-gray-300 font-sans">New Follower</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        icon={<ExternalLink size={12} />}
+                        onClick={() => window.open(`https://bsky.app/profile/${handle}`, '_blank')}
+                      >
+                        View Profile
+                      </Button>
+                    </div>
+                    
+                    {/* Follower Stats */}
+                    <div className="grid grid-cols-3 gap-4 text-sm text-center mb-3">
+                      <div>
+                        <p className="font-semibold text-white font-sans">1.2K</p>
+                        <p className="text-xs text-gray-400 font-sans">Followers</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white font-sans">845</p>
+                        <p className="text-xs text-gray-400 font-sans">Following</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white font-sans">156</p>
+                        <p className="text-xs text-gray-400 font-sans">Posts</p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-gray-400 font-sans text-center py-2">
+                      Recently followed you
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      )}
 
+      {/* Top 6 Amplifiers to Engage With */}
+      <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
+        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <Users className="text-electric-400" size={20} />
+          Top 6 Amplifiers to Engage With
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {topAmplifiersToEngage.map((amplifier, index) => (
+            <div key={index} className="border border-electric-600 rounded-lg bg-electric-900 p-4">
+              {/* Profile Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <img
+                  src={amplifier.avatar}
+                  alt={amplifier.handle}
+                  className="w-12 h-12 rounded-full border-2 border-electric-200 cursor-pointer"
+                  onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
+                />
+                <div className="flex-1">
+                  <h4 
+                    className="font-semibold text-white cursor-pointer hover:text-electric-200 transition-colors"
+                    onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
+                  >
+                    {amplifier.displayName}
+                  </h4>
+                  <p 
+                    className="text-sm text-gray-300 cursor-pointer hover:text-electric-200 transition-colors"
+                    onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
+                  >
+                    @{amplifier.handle}
+                  </p>
+                </div>
+                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  amplifier.potential === 'High' ? 'bg-success-900 text-success-200' : 'bg-warning-900 text-warning-200'
+                }`}>
+                  {amplifier.potential}
+                </div>
+              </div>
+
+              {/* Metrics */}
+              <div className="flex justify-between text-xs text-electric-200 mb-3">
+                <span>{amplifier.followers.toLocaleString()} followers</span>
+                <span>{amplifier.posts.toLocaleString()} posts</span>
+                <span>{amplifier.engagement} engagement</span>
+              </div>
+
+              {/* Latest Post */}
+              <div className="bg-electric-800 rounded-lg p-3 mb-3 border border-electric-600">
+                <p className="text-xs text-electric-100 mb-2 line-clamp-2">{amplifier.latestPost}</p>
+                <div className="flex items-center justify-between text-xs text-primary-500">
+                  <span className="text-gray-400">{amplifier.postTime}</span>
+                  <div className="flex gap-3">
+                    <span>❤️ {amplifier.postEngagement.likes}</span>
+                    <span>💬 {amplifier.postEngagement.replies}</span>
+                    <span>🔄 {amplifier.postEngagement.shares}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Reason */}
+              <p className="text-xs text-electric-200 mb-3">{amplifier.reason}</p>
+
+              {/* Action Button */}
+              <button 
+                className="w-full bg-electric-600 hover:bg-electric-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+                onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
+              >
+                {amplifier.action}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
 
     </div>
   );

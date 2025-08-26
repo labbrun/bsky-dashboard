@@ -2,18 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Sparkles, 
   TrendingUp, 
-  TrendingDown,
-  Clock,
-  Users,
   Lightbulb,
   Zap,
   FileText,
   Package,
-  Calendar,
   Target,
   MessageSquare,
   ExternalLink,
-  CheckCircle
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 
 // Import AI insights system
@@ -171,58 +168,9 @@ function Insights({ metrics }) {
   }, [metrics]);
 
 
-  // Sample insights data (kept as fallback)
-  const topPerformers = [
-    {
-      topic: "AI Development",
-      format: "Thread",
-      avgEngagement: 7.2,
-      lift: 45,
-      posts: 8,
-      reason: "High-value technical insights resonate with your audience"
-    },
-    {
-      topic: "Startup Journey", 
-      format: "Personal Story",
-      avgEngagement: 6.8,
-      lift: 32,
-      posts: 12,
-      reason: "Authentic experiences build strong connections"
-    },
-    {
-      topic: "Tech Reviews",
-      format: "Video + Text",
-      avgEngagement: 6.3,
-      lift: 28,
-      posts: 6,
-      reason: "Visual content with expert analysis performs well"
-    }
-  ];
-
-  const underperformers = [
-    {
-      topic: "Industry News",
-      format: "Link Share",
-      avgEngagement: 2.1,
-      posts: 15,
-      suggestion: "Add personal commentary and insights to news shares"
-    },
-    {
-      topic: "General Tech",
-      format: "Text Only",
-      avgEngagement: 2.8,
-      posts: 10,
-      suggestion: "Focus on specific niches rather than broad topics"
-    }
-  ];
-
-  const recommendedTimes = [
-    { day: "Monday", time: "2:00 PM", reason: "Peak professional audience", confidence: 92 },
-    { day: "Tuesday", time: "3:30 PM", reason: "High engagement window", confidence: 88 },
-    { day: "Wednesday", time: "1:00 PM", reason: "Lunch break activity spike", confidence: 85 },
-    { day: "Thursday", time: "2:45 PM", reason: "Mid-week momentum", confidence: 90 },
-    { day: "Friday", time: "11:30 AM", reason: "Pre-weekend engagement", confidence: 78 }
-  ];
+  // Fallback empty arrays for removed data  
+  const contentIdeas = [];
+  const productIdeas = [];
 
   // Use real data if available, otherwise fall back to sample data
   const topAmplifiersToEngage = topAmplifiersData.length > 0 ? topAmplifiersData : [
@@ -312,110 +260,7 @@ function Insights({ metrics }) {
     }
   ];
 
-  const contentIdeas = [
-    {
-      title: "Home Lab Setup Journey Documentation",
-      format: "Thread + Images",
-      topic: "Home Labbing",
-      description: "Document your complete home lab build process, from hardware selection to service deployment. Show cable management, rack setup, and troubleshooting real issues as they happen.",
-      postTime: "Tuesday 2:30 PM",
-      source: "Home lab content drives high engagement in tech communities",
-      searchQuery: "home lab setup documentation and best practices"
-    },
-    {
-      title: "Why Small Businesses Should Avoid Cloud Lock-in",
-      format: "Opinion Thread",
-      topic: "Privacy & Security", 
-      description: "Challenge the 'cloud-first' mentality with a data-driven analysis of costs, security risks, and vendor dependencies. Present self-hosting as a viable alternative for privacy-conscious entrepreneurs.",
-      postTime: "Thursday 3:00 PM",
-      source: "Privacy-focused content resonates with tech entrepreneurs",
-      searchQuery: "cloud vs self hosting for small business security"
-    },
-    {
-      title: "Self-Hosted vs SaaS: Remote Work Tools Showdown",
-      format: "Analysis + Screenshots",
-      topic: "Remote Work",
-      description: "Compare self-hosted alternatives (NextCloud, Jitsi, GitLab) against popular SaaS tools (Dropbox, Zoom, GitHub) for remote teams. Include setup complexity, costs, and privacy considerations.",
-      postTime: "Monday 10:00 AM",
-      source: "Tool comparisons help remote teams make informed decisions",
-      searchQuery: "self hosted remote work tools vs saas alternatives"
-    },
-    {
-      title: "How I Lost 3 Days of Work (Home Lab Backup Failure)",
-      format: "Case Study",
-      topic: "Self Hosting",
-      description: "Document a real home lab disaster - failed backups, data loss, or service outages. Show the step-by-step recovery process and backup strategies that actually work for small businesses.",
-      postTime: "Wednesday 1:30 PM",
-      source: "Failure stories build trust and provide valuable lessons",
-      searchQuery: "home lab backup strategies and disaster recovery"
-    },
-    {
-      title: "The Great De-Clouding: Why 2024 is the Year of Self-Hosting",
-      format: "Analysis Thread",
-      topic: "Entrepreneurship",
-      description: "Analyze the growing trend of businesses moving away from cloud services. Cover rising costs, privacy concerns, and improved self-hosting tools. Predict which industries will lead this shift.",
-      postTime: "Friday 4:00 PM",
-      source: "Trend analysis positions you as an industry thought leader",
-      searchQuery: "business trends moving away from cloud to self hosting"
-    },
-    {
-      title: "Small Business Security Challenge: Crowdsourced Solutions",
-      format: "Interactive Post",
-      topic: "Running a Small Business",
-      description: "Post a real security challenge small businesses face (like secure remote access or client data protection). Ask your community for their solutions and compile the best approaches.",
-      postTime: "Saturday 11:00 AM",
-      source: "Security discussions drive high engagement in business communities",
-      searchQuery: "small business cybersecurity challenges and solutions"
-    }
-  ];
 
-  const productIdeas = [
-    {
-      title: "Home Lab Starter Kit for Small Business",
-      type: "Digital Guide + Hardware List",
-      description: "Complete guide for entrepreneurs to build their first business home lab for under $2000",
-      audience: "Small business owners, Remote entrepreneurs",
-      trend: "Rising cloud costs driving self-hosting adoption",
-      outline: ["Hardware selection", "Network setup", "Service deployment", "Security hardening"],
-      searchQuery: "home lab setup guide for small business"
-    },
-    {
-      title: "Privacy-First Remote Work Toolkit", 
-      type: "Software Bundle",
-      description: "Self-hosted alternatives to popular SaaS tools for privacy-conscious remote teams",
-      audience: "Remote team leaders, Privacy advocates",
-      trend: "Growing concern over data privacy in remote work",
-      outline: ["Communication tools", "File sharing", "Project management", "VPN solutions"],
-      searchQuery: "privacy focused remote work tools and software"
-    },
-    {
-      title: "Self-Hosting Security Checklist",
-      type: "Security Assessment Tool",
-      description: "Comprehensive security audit framework for self-hosted business infrastructure",
-      audience: "IT managers, Security-conscious entrepreneurs",
-      trend: "Increased cybersecurity threats to small businesses",
-      outline: ["Network security", "Access controls", "Backup verification", "Incident response"],
-      searchQuery: "self hosting security best practices for business"
-    },
-    {
-      title: "Small Business Cloud Exit Strategy",
-      type: "Migration Playbook",
-      description: "Step-by-step guide to migrate from cloud services to self-hosted solutions without downtime",
-      audience: "Small business owners, IT consultants",
-      trend: "Cloud cost optimization and vendor independence",
-      outline: ["Migration planning", "Data extraction", "Service transition", "Cost analysis"],
-      searchQuery: "how to migrate small business from cloud to self hosting"
-    },
-    {
-      title: "Entrepreneur's Home Office Network Blueprint",
-      type: "Technical Blueprint",
-      description: "Professional network design templates for home-based business operations with enterprise-grade security",
-      audience: "Home-based entrepreneurs, Freelancers",
-      trend: "Permanent shift to home-based businesses post-pandemic",
-      outline: ["Network topology", "Security zones", "Guest isolation", "Business continuity"],
-      searchQuery: "home office network design for entrepreneurs"
-    }
-  ];
 
   // Platform content data
   const platformContent = {
@@ -616,7 +461,6 @@ function Insights({ metrics }) {
     ]
   };
 
-  const currentInsights = aiInsights.comprehensive;
 
   if (!metrics) {
     return (
@@ -742,7 +586,7 @@ function Insights({ metrics }) {
             {/* AI Performance Summary */}
             <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
               <TypingEffect 
-                text="Your strongest content themes are AI Development and Startup Journey content, driving 45% and 32% engagement lifts respectively. Tuesday-Thursday 2-3PM shows peak audience activity with 90%+ confidence. Focus engagement efforts on @airesearcher and @ux_designer for highest amplification potential. Avoid generic industry news shares - they're underperforming at 2.1% engagement compared to your 6.8% average."
+                text="Content-Trend Alignment Analysis: Your AI Privacy & Security content is perfectly aligned with trending searches (+85% match), driving 4.2k views and strong engagement. Homelab Setup Guides show excellent trend correlation with 'self hosted security' searches (+78% relevance). However, your general tech content is slightly misaligned with current trends - consider focusing more on specific privacy tools and homelab tutorials. Cloud cost optimization is trending but underrepresented in your content strategy. Overall trend match score: 74% - strong alignment with growth opportunities in security-focused content."
                 speed={30}
               />
             </div>
@@ -751,28 +595,28 @@ function Insights({ metrics }) {
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm font-sans">Growth Opportunities</span>
+                  <span className="text-success-400 font-semibold text-sm font-sans">Trend Alignment Score</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {currentInsights?.insights?.filter(i => i.type === 'opportunity').length || 0} high-impact opportunities identified
+                  <span className="text-lg font-bold text-success-400">74%</span> content-trend match with strongest alignment in AI Privacy & Security topics
                 </p>
               </div>
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
-                  <Target size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm font-sans">Action Items</span>
+                  <Target size={16} className="text-warning-400" />
+                  <span className="text-warning-400 font-semibold text-sm font-sans">Trending Gaps</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {currentInsights?.insights?.filter(i => i.type === 'recommendation' && i.priority === 'high').length || 0} high-priority recommendations ready to implement
+                  Cloud cost optimization & self-hosted security are trending but underrepresented in your content
                 </p>
               </div>
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
-                  <MessageSquare size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm font-sans">Trending Topics</span>
+                  <MessageSquare size={16} className="text-electric-400" />
+                  <span className="text-electric-400 font-semibold text-sm font-sans">Top Performing Match</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {Object.values(platformContent).flat().length} trending topics and {currentInsights?.questions?.length || 0} audience questions analyzed
+                  AI Privacy content shows <span className="text-electric-400 font-semibold">85% trend correlation</span> with 4.2k+ views
                 </p>
               </div>
             </div>
@@ -782,156 +626,6 @@ function Insights({ metrics }) {
 
 
 
-      {/* Top Performing Topics & Formats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Top Performers */}
-        <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-            <TrendingUp className="text-success-400" size={20} />
-            Top Performing Topics & Formats
-          </h3>
-          <div className="space-y-4">
-            {topPerformers.map((item, index) => (
-              <div key={index} className="border border-success-600 rounded-lg p-4 bg-success-900">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold text-white">{item.topic}</h4>
-                    <p className="text-sm text-success-200">{item.format} • {item.posts} posts</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-success-200">{item.avgEngagement}%</p>
-                    <p className="text-xs text-success-300">+{item.lift}% lift</p>
-                  </div>
-                </div>
-                <p className="text-sm text-success-100">{item.reason}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Underperformers */}
-        <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-            <TrendingDown className="text-error-400" size={20} />
-            Improvement Opportunities
-          </h3>
-          <div className="space-y-4">
-            {underperformers.map((item, index) => (
-              <div key={index} className="border border-warning-600 rounded-lg p-4 bg-warning-900">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold text-white">{item.topic}</h4>
-                    <p className="text-sm text-warning-200">{item.format} • {item.posts} posts</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-warning-200">{item.avgEngagement}%</p>
-                  </div>
-                </div>
-                <p className="text-sm text-warning-100 mb-2">💡 {item.suggestion}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Recommended Posting Times */}
-      <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
-        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <Calendar className="text-brand-400" size={20} />
-          Recommended Posting Times (Next Week)
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {recommendedTimes.map((time, index) => (
-            <div key={index} className="border border-brand-600 rounded-lg p-4 bg-brand-900">
-              <h4 className="font-semibold text-white">{time.day}</h4>
-              <p className="text-lg font-bold text-brand-200 my-2">{time.time}</p>
-              <p className="text-xs text-brand-100 mb-2">{time.reason}</p>
-              <div className="flex items-center gap-1">
-                <div className="w-full bg-gray-600 rounded-full h-1.5">
-                  <div 
-                    className="bg-brand-400 h-1.5 rounded-full" 
-                    style={{ width: `${time.confidence}%` }}
-                  ></div>
-                </div>
-                <span className="text-xs text-brand-200 ml-1">{time.confidence}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Top 6 Amplifiers to Engage With */}
-      <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
-        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <Users className="text-electric-400" size={20} />
-          Top 6 Amplifiers to Engage With
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topAmplifiersToEngage.map((amplifier, index) => (
-            <div key={index} className="border border-electric-600 rounded-lg bg-electric-900 p-4">
-              {/* Profile Header */}
-              <div className="flex items-center gap-3 mb-4">
-                <img
-                  src={amplifier.avatar}
-                  alt={amplifier.handle}
-                  className="w-12 h-12 rounded-full border-2 border-electric-200 cursor-pointer"
-                  onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
-                />
-                <div className="flex-1">
-                  <h4 
-                    className="font-semibold text-white cursor-pointer hover:text-electric-200 transition-colors"
-                    onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
-                  >
-                    {amplifier.displayName}
-                  </h4>
-                  <p 
-                    className="text-sm text-gray-300 cursor-pointer hover:text-electric-200 transition-colors"
-                    onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
-                  >
-                    @{amplifier.handle}
-                  </p>
-                </div>
-                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  amplifier.potential === 'High' ? 'bg-success-900 text-success-200' : 'bg-warning-900 text-warning-200'
-                }`}>
-                  {amplifier.potential}
-                </div>
-              </div>
-
-              {/* Metrics */}
-              <div className="flex justify-between text-xs text-electric-200 mb-3">
-                <span>{amplifier.followers.toLocaleString()} followers</span>
-                <span>{amplifier.posts.toLocaleString()} posts</span>
-                <span>{amplifier.engagement} engagement</span>
-              </div>
-
-              {/* Latest Post */}
-              <div className="bg-electric-800 rounded-lg p-3 mb-3 border border-electric-600">
-                <p className="text-xs text-electric-100 mb-2 line-clamp-2">{amplifier.latestPost}</p>
-                <div className="flex items-center justify-between text-xs text-primary-500">
-                  <span className="text-gray-400">{amplifier.postTime}</span>
-                  <div className="flex gap-3">
-                    <span>❤️ {amplifier.postEngagement.likes}</span>
-                    <span>💬 {amplifier.postEngagement.replies}</span>
-                    <span>🔄 {amplifier.postEngagement.shares}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Reason */}
-              <p className="text-xs text-electric-200 mb-3">{amplifier.reason}</p>
-
-              {/* Action Button */}
-              <button 
-                className="w-full bg-electric-600 hover:bg-electric-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
-                onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
-              >
-                {amplifier.action}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Platform Content Tracking */}
       <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
