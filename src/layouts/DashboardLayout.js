@@ -43,7 +43,7 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
       badge: null
     },
     {
-      path: '/blog',
+      path: '/blog-analytics',
       label: 'Blog Performance',
       icon: BookOpen,
       description: 'Blog content analysis, traffic insights, and AI repurposing suggestions',
