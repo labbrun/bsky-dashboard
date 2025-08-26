@@ -2,9 +2,7 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import TypingEffect from '../components/TypingEffect';
-import ProfileCard from '../components/ProfileCard';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
-import { getFollowers } from '../services/blueskyService';
 import { 
   TrendingUp, 
   Users, 
@@ -17,9 +15,7 @@ import {
   CheckCircle,
   Clock,
   Zap,
-  ExternalLink,
-  Star,
-  Award
+  ExternalLink
 } from 'lucide-react';
 
 // Import Untitled UI components
@@ -27,8 +23,7 @@ import {
   Card, 
   Button, 
   Badge, 
-  MetricCard,
-  Skeleton
+  MetricCard
 } from '../components/ui/UntitledUIComponents';
 
 // Import mesh gradients for backgrounds
@@ -52,9 +47,6 @@ function OverviewV2({ metrics }) {
   const [timeRange, setTimeRange] = React.useState('7'); // '7' for 7 days, '30' for 30 days
   const [hasTyped, setHasTyped] = React.useState(false);
   const [currentObservation, setCurrentObservation] = React.useState('');
-  const [loadingFollowers, setLoadingFollowers] = React.useState(true);
-  const [newFollowers, setNewFollowers] = React.useState([]);
-  const [topAmplifiersData, setTopAmplifiersData] = React.useState([]);
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -93,91 +85,6 @@ function OverviewV2({ metrics }) {
     }
   }, [metrics, timeRange, getAIObservation]);
 
-  // Fetch audience data for Audience & Growth section
-  React.useEffect(() => {
-    const fetchAudienceData = async () => {
-      if (metrics && metrics.handle) {
-        try {
-          setLoadingFollowers(true);
-          const followersResponse = await getFollowers(metrics.handle, 10);
-          if (followersResponse && followersResponse.followers) {
-            // Get the most recent 3 followers for detailed display
-            const recentFollowers = followersResponse.followers.slice(0, 3).map(f => f.handle);
-            setNewFollowers(recentFollowers);
-            
-            // Get top amplifiers (followers with high engagement potential)
-            const topFollowers = followersResponse.followers.slice(0, 3);
-            
-            // Fetch detailed profile data for top followers to get their metrics
-            const amplifiersPromises = topFollowers.map(async (follower) => {
-              try {
-                const { getProfile } = await import('../services/blueskyService');
-                const profileData = await getProfile(follower.handle);
-                
-                // MANDATORY IMAGE EXTRACTION: Ensure avatar is always pulled
-                
-                // Calculate engagement potential based on follower count and posts
-                const reach = profileData.followersCount || 0;
-                const posts = profileData.postsCount || 0;
-                const engagementPotential = posts > 0 ? Math.round((reach / posts) * 100) / 100 : reach;
-                
-                // MANDATORY: Extract avatar with comprehensive fallback chain
-                const avatar = profileData.avatar || 
-                             follower.avatar || 
-                             profileData.profile?.avatar ||
-                             `https://avatar.vercel.sh/${follower.handle}.svg?text=${(follower.displayName || follower.handle).charAt(0)}`;
-                
-                return {
-                  handle: follower.handle,
-                  displayName: profileData.displayName || follower.displayName || follower.handle,
-                  avatar: avatar,
-                  followersCount: reach,
-                  followsCount: profileData.followsCount || 0,
-                  postsCount: posts,
-                  engagements: engagementPotential > 0 ? `${engagementPotential}` : 'Low',
-                  reach: reach > 0 ? reach.toLocaleString() : '0'
-                };
-              } catch (error) {
-                console.error(`Error fetching profile for ${follower.handle}:`, error);
-                
-                // MANDATORY: Ensure avatar is extracted even on error
-                const fallbackAvatar = follower.avatar || 
-                                     `https://avatar.vercel.sh/${follower.handle}.svg?text=${(follower.displayName || follower.handle).charAt(0)}`;
-                
-                return {
-                  handle: follower.handle,
-                  displayName: follower.displayName || follower.handle,
-                  avatar: fallbackAvatar,
-                  followersCount: 0,
-                  followsCount: 0,
-                  postsCount: 0,
-                  engagements: 'Data unavailable',
-                  reach: 'Data unavailable'
-                };
-              }
-            });
-            
-            const amplifiersData = await Promise.all(amplifiersPromises);
-            // Sort by reach (follower count) descending
-            amplifiersData.sort((a, b) => {
-              const aReach = typeof a.reach === 'string' ? parseInt(a.reach.replace(/,/g, '')) || 0 : 0;
-              const bReach = typeof b.reach === 'string' ? parseInt(b.reach.replace(/,/g, '')) || 0 : 0;
-              return bReach - aReach;
-            });
-            
-            setTopAmplifiersData(amplifiersData);
-          }
-        } catch (error) {
-          console.error('Error fetching followers for Overview:', error);
-          // Keep default values on error - they're already set in the fallback arrays below
-        } finally {
-          setLoadingFollowers(false);
-        }
-      }
-    };
-
-    fetchAudienceData();
-  }, [metrics]);
 
   // Real data based on metrics and time range
   const followersData = React.useMemo(() => {
@@ -308,15 +215,6 @@ function OverviewV2({ metrics }) {
     return result;
   }, [metrics]);
 
-  // Use real followers data or fallback to sample handles
-  const newFollowersHandles = newFollowers.length > 0 ? newFollowers : 
-    ['techexplorer.bsky.social', 'airesearcher.bsky.social', 'startupfounder.bsky.social'];
-
-  const topAmplifiers = topAmplifiersData.length > 0 ? topAmplifiersData : [
-    { handle: "airesearcher.bsky.social", displayName: "AI Researcher", avatar: "https://avatar.vercel.sh/airesearcher.bsky.social.svg?text=A", followersCount: 0, followsCount: 0, postsCount: 0, engagements: 'Loading...', reach: 'Loading...' },
-    { handle: "techwriter.bsky.social", displayName: "Tech Writer", avatar: "https://avatar.vercel.sh/techwriter.bsky.social.svg?text=T", followersCount: 0, followsCount: 0, postsCount: 0, engagements: 'Loading...', reach: 'Loading...' },
-    { handle: "devtools.bsky.social", displayName: "Dev Tools", avatar: "https://avatar.vercel.sh/devtools.bsky.social.svg?text=D", followersCount: 0, followsCount: 0, postsCount: 0, engagements: 'Loading...', reach: 'Loading...' }
-  ];
 
   if (!metrics) {
     return (
@@ -700,94 +598,6 @@ function OverviewV2({ metrics }) {
               </ResponsiveContainer>
             </Card>
 
-            {/* New Followers - 2 Column Grid */}
-            <Card>
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Star className="text-yellow-500" size={20} />
-                New Followers This Week
-                {loadingFollowers && (
-                  <Badge variant="default" size="sm">Loading...</Badge>
-                )}
-              </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {loadingFollowers ? (
-                  <>
-                    <Skeleton variant="card" height={150} />
-                    <Skeleton variant="card" height={150} />
-                    <Skeleton variant="card" height={150} />
-                    <Skeleton variant="card" height={150} />
-                  </>
-                ) : (
-                  newFollowersHandles.map((handle, index) => (
-                    <ProfileCard 
-                      key={handle}
-                      handle={handle} 
-                      showRecentPost={true}
-                      showReadMore={true}
-                      className="transform hover:scale-102 transition-transform"
-                    />
-                  ))
-                )}
-              </div>
-            </Card>
-
-            {/* Top Amplifiers */}
-            <Card>
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Award className="text-blue-500" size={20} />
-                Top Amplifiers
-              </h3>
-              <div className="space-y-4">
-                {topAmplifiers.map((amplifier, index) => (
-                  <div key={amplifier.handle} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                    <div className="flex items-start gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <img 
-                          src={amplifier.avatar || 'https://via.placeholder.com/40'} 
-                          alt={amplifier.displayName}
-                          className="w-10 h-10 rounded-full border-2 border-gray-200"
-                        />
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <p className="font-semibold text-gray-900">{amplifier.displayName || `@${amplifier.handle}`}</p>
-                            <p className="text-sm text-gray-500">@{amplifier.handle}</p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            icon={<ExternalLink size={12} />}
-                            onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
-                          >
-                            View Profile
-                          </Button>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div className="text-center">
-                            <p className="font-semibold text-gray-700">{amplifier.followersCount?.toLocaleString() || '0'}</p>
-                            <p className="text-xs text-gray-500">Followers</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold text-gray-700">{amplifier.followsCount?.toLocaleString() || '0'}</p>
-                            <p className="text-xs text-gray-500">Following</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold text-gray-700">{amplifier.postsCount?.toLocaleString() || '0'}</p>
-                            <p className="text-xs text-gray-500">Posts</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
           </div>
         </div>
       </div>
