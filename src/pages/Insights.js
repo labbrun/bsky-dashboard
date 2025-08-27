@@ -25,7 +25,7 @@ function Insights({ metrics }) {
   const [aiInsights, setAiInsights] = useState({});
   const [insightsGenerator, setInsightsGenerator] = useState(null);
   const [activePlatform, setActivePlatform] = useState('reddit');
-  const [topAmplifiersData, setTopAmplifiersData] = useState([]);
+  // const [topAmplifiersData, setTopAmplifiersData] = useState([]); // Unused
   const [, setLoadingInsights] = useState(false);
   const [customerSegment] = useState('tech-entrepreneur');
 
@@ -114,6 +114,7 @@ function Insights({ metrics }) {
           const topFollowers = followersResponse.followers.slice(0, 6);
           
           // Fetch detailed profile data for each follower
+          // eslint-disable-next-line no-unused-vars
           const amplifiersPromises = topFollowers.map(async (follower) => {
             try {
               const fullProfile = await getProfile(follower.handle);
@@ -155,8 +156,8 @@ function Insights({ metrics }) {
             }
           });
           
-          const amplifiersData = await Promise.all(amplifiersPromises);
-          setTopAmplifiersData(amplifiersData);
+          // const amplifiersData = await Promise.all(amplifiersPromises); // Unused
+          // setTopAmplifiersData(amplifiersData); // Commented out - unused
         }
       } catch (error) {
         console.error('Error fetching amplifiers:', error);
@@ -283,95 +284,7 @@ function Insights({ metrics }) {
     }
   ];
 
-  // Use real data if available, otherwise fall back to sample data
-  // Unused data structure commented out to remove eslint warning
-  /*
-    {
-      handle: "atproto.com",
-      displayName: "AT Protocol [Sample]",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format",
-      followers: 15200,
-      posts: 1340,
-      engagement: "8.2%",
-      reason: "Frequently engages with AI content",
-      action: "Reply",
-      potential: "High",
-      latestPost: "Just published my thoughts on responsible AI development in startups. The key is...",
-      postTime: "2h ago",
-      postEngagement: { likes: 47, replies: 12, shares: 8 }
-    },
-    {
-      handle: "jay.bsky.team",
-      displayName: "Jay Graber [Sample]", 
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=48&h=48&fit=crop&crop=face&auto=format",
-      followers: 8900,
-      posts: 892,
-      engagement: "6.4%",
-      reason: "Shares your startup content regularly",
-      action: "Share",
-      potential: "Medium",
-      latestPost: "Closed our Series A today! 🎉 Here's what I learned during the fundraising process...",
-      postTime: "4h ago",
-      postEngagement: { likes: 134, replies: 23, shares: 15 }
-    },
-    {
-      handle: "bsky.app",
-      displayName: "Bluesky [Sample]",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=48&h=48&fit=crop&crop=face&auto=format",
-      followers: 12400,
-      posts: 2156,
-      engagement: "9.1%",
-      reason: "Tech content creator with aligned audience", 
-      action: "Comment",
-      potential: "High",
-      latestPost: "My complete development workflow setup for 2024. From IDE to deployment...",
-      postTime: "6h ago",
-      postEngagement: { likes: 89, replies: 31, shares: 12 }
-    },
-    {
-      handle: "dholms.xyz",
-      displayName: "Dan Holmgren [Sample]",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=48&h=48&fit=crop&crop=face&auto=format",
-      followers: 9800,
-      posts: 743,
-      engagement: "7.8%",
-      reason: "Active in product management discussions",
-      action: "Reply",
-      potential: "High",
-      latestPost: "The 5 biggest product mistakes I've seen startups make (and how to avoid them)...",
-      postTime: "1d ago",
-      postEngagement: { likes: 156, replies: 42, shares: 28 }
-    },
-    {
-      handle: "why.bsky.team",
-      displayName: "Whyrusleeping [Sample]",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=48&h=48&fit=crop&crop=face&auto=format",
-      followers: 18700,
-      posts: 1876,
-      engagement: "5.9%",
-      reason: "DevOps expert with business-focused content",
-      action: "Reply",
-      potential: "Medium",
-      latestPost: "How we reduced our cloud costs by 60% without sacrificing performance. Thread 🧵",
-      postTime: "8h ago",
-      postEngagement: { likes: 203, replies: 67, shares: 45 }
-    },
-    {
-      handle: "pfrazee.com",
-      displayName: "Paul Frazee [Sample]",
-      avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=48&h=48&fit=crop&crop=face&auto=format",
-      followers: 7300,
-      posts: 654,
-      engagement: "11.3%",
-      reason: "UX designer with startup experience",
-      action: "Comment",
-      potential: "High",
-      latestPost: "Why most startup design systems fail (and the 3 principles that actually work)...",
-      postTime: "12h ago",
-      postEngagement: { likes: 98, replies: 18, shares: 11 }
-    }
-  ];
-  */
+  // Removed unused topAmplifiersToEngage data structure
 
 
 
