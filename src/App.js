@@ -19,6 +19,7 @@ import OverviewV2 from './pages/OverviewV2';
 import PerformanceV2 from './pages/PerformanceV2';
 import Insights from './pages/Insights';
 import BlogAnalytics from './pages/BlogAnalytics';
+import Calendar from './pages/Calendar';
 
 // Import Untitled UI components
 import { Button, Card } from './components/ui/UntitledUIComponents';
@@ -248,6 +249,10 @@ function App() {
           <Route 
             path="/blog-analytics" 
             element={<BlogAnalytics metrics={metrics} />} 
+          />
+          <Route 
+            path="/calendar" 
+            element={<Calendar metrics={metrics} />} 
           />
           {/* Redirect any unknown routes to overview */}
           <Route 

@@ -11,7 +11,8 @@ import {
   Sparkles,
   Share2,
   TrendingUp,
-  BookOpen
+  BookOpen,
+  ExternalLink
 } from 'lucide-react';
 
 // Services
@@ -260,7 +261,7 @@ function BlogAnalytics({ metrics }) {
       clearTimeout(gaTimer);
       clearTimeout(forceLoadTimer);
     };
-  }, [loadBlogAnalytics, loadGoogleAnalytics]);
+  }, [loadBlogAnalytics, loadGoogleAnalytics, blogAnalytics, getFallbackBlogAnalytics, loading]);
 
   // AI-Enhanced Social Media Suggestions Generator
   const generateSocialSuggestions = (posts, count = 6) => {
@@ -520,49 +521,54 @@ function BlogAnalytics({ metrics }) {
             
             {/* Profile Info */}
             <div className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700 bg-primary-850">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-white mb-1 font-sans">{profileData.displayName}</h1>
-                <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{profileData.handle}</p>
-                
-                <div className="flex items-start gap-4 mb-4">
-                  <p className="text-gray-300 max-w-2xl leading-5 font-sans flex-1">{profileData.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
-                  <button
-                    onClick={() => window.open(`https://bsky.app/profile/${profileData.handle}`, '_blank')}
-                    className="bg-sky-500 hover:bg-sky-600 border border-sky-400 rounded-xl p-3 transition-colors flex flex-col items-center justify-center min-w-[80px] h-[80px] group text-center"
-                    title="View on Bluesky"
-                  >
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white group-hover:scale-110 transition-transform mb-1">
-                      <path d="M12 2c-1.1 0-2 .9-2 2 0 3.5-2.8 6.3-6.3 6.3-.6 0-1.2-.1-1.7-.3 0 0-1.4-.5-1.4 1.6 0 2.1 1.4 1.6 1.4 1.6.5-.2 1.1-.3 1.7-.3C7.2 12.9 10 15.7 10 19.2c0 .6.1 1.2.3 1.7 0 0 .5 1.4 2.7 1.4s2.7-1.4 2.7-1.4c.2-.5.3-1.1.3-1.7 0-3.5 2.8-6.3 6.3-6.3.6 0 1.2.1 1.7.3 0 0 1.4.5 1.4-1.6 0-2.1-1.4-1.6-1.4-1.6-.5.2-1.1.3-1.7.3C16.8 11.1 14 8.3 14 4.8c0-.6-.1-1.2-.3-1.7 0 0-.5-1.4-2.7-1.4z"/>
-                    </svg>
-                    <span className="text-white text-xs font-medium font-sans">Bluesky</span>
-                  </button>
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1 font-sans">{profileData.displayName}</h1>
+                  <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{profileData.handle}</p>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">{profileData.followersCount.toLocaleString()}</p>
-                    <p className="text-gray-400 text-xs font-medium font-sans">Followers</p>
-                  </div>
-                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">{profileData.followsCount.toLocaleString()}</p>
-                    <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
-                  </div>
-                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
-                    <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
-                  </div>
-                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">{profileData.postsCount.toLocaleString()}</p>
-                    <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
-                  </div>
-                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
-                    <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
-                  </div>
-                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
-                    <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
-                  </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    icon={<ExternalLink size={16} />}
+                    iconPosition="right"
+                    onClick={() => window.open(`https://bsky.app/profile/${profileData.handle}`, '_blank')}
+                  >
+                    View on Bluesky
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Bio in styled container - full width */}
+              <div className="bg-primary-800 border border-gray-600 rounded-xl p-4 mb-4 hover:border-brand-400 transition-colors">
+                <p className="text-gray-300 leading-5 font-sans">{profileData.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">{profileData.followersCount.toLocaleString()}</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Followers</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">{profileData.followsCount.toLocaleString()}</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">{profileData.postsCount.toLocaleString()}</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
                 </div>
               </div>
             </div>

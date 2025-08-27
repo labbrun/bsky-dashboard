@@ -5,6 +5,7 @@ import {
   TrendingUp,
   Lightbulb,
   BookOpen,
+  Calendar,
   Search,
   Bell,
   RefreshCw,
@@ -55,6 +56,13 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
       icon: Lightbulb,
       description: 'AI recommendations, content ideas, and quick wins',
       badge: '5'
+    },
+    {
+      path: '/calendar',
+      label: 'Content Calendar',
+      icon: Calendar,
+      description: 'Schedule posts with AI optimization and performance scoring',
+      badge: 'Beta'
     }
   ];
 
