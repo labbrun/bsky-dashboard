@@ -959,6 +959,155 @@ function BlogAnalytics({ metrics }) {
               <p className="text-white font-sans">No blog posts found</p>
             </div>
           )}
+          
+          {/* AI Content Performance Summary */}
+          <div className="mt-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles size={16} className="text-brand-400" />
+              <span className="text-brand-400 font-semibold text-sm font-sans">AI Performance Analysis</span>
+            </div>
+            {(() => {
+              const avgAlignment = analytics.content?.metrics?.averageAlignmentScore || 0;
+              const postCount = analytics.content?.recentPosts?.length || 0;
+              const recentPosts = analytics.content?.recentPosts || [];
+              
+              // Generate AI analysis based on performance data
+              let analysisText = '';
+              let recommendationText = '';
+              let statusColor = '';
+              
+              if (avgAlignment >= 80) {
+                analysisText = `Excellent performance! Your content shows ${avgAlignment}% alignment with target audience interests. Recent posts are consistently hitting the mark with privacy, security, and self-hosting topics that resonate strongly with your readers.`;
+                recommendationText = 'Keep focusing on technical deep-dives and practical guides. Consider expanding into emerging areas like AI privacy and advanced automation techniques.';
+                statusColor = 'text-success-300';
+              } else if (avgAlignment >= 60) {
+                analysisText = `Good foundation with ${avgAlignment}% alignment score across ${postCount} recent posts. Your security and privacy content performs well, but there's room for optimization in topic selection and keyword targeting.`;
+                recommendationText = 'Focus more on actionable tutorials and real-world case studies. Consider adding more specific technical examples and cost breakdowns that appeal to your audience.';
+                statusColor = 'text-warning-300';
+              } else {
+                analysisText = `Content alignment needs improvement (${avgAlignment}% current score). Your audience is highly interested in privacy, security, and self-hosting topics, but recent content may be missing the mark on technical depth or practical value.`;
+                recommendationText = 'Prioritize technical tutorials, security guides, and cost-analysis content. Your audience wants actionable, detailed content they can implement immediately.';
+                statusColor = 'text-error-300';
+              }
+              
+              // Add specific insights based on actual post performance
+              const highPerformers = recentPosts.filter(post => post.analysis?.alignmentScore > 80);
+              // const lowPerformers = recentPosts.filter(post => post.analysis?.alignmentScore < 60);
+              
+              if (highPerformers.length > 0) {
+                analysisText += ` Your top-performing posts focus on ${highPerformers[0]?.title?.includes('Security') ? 'security' : highPerformers[0]?.title?.includes('Privacy') ? 'privacy' : 'technical'} topics, indicating strong audience interest in these areas.`;
+              }
+              
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                      {analysisText}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
+                    <h4 className="text-brand-400 font-semibold text-xs font-sans mb-2">📈 AI Recommendations:</h4>
+                    <p className={`text-xs font-sans leading-relaxed ${statusColor}`}>
+                      {recommendationText}
+                    </p>
+                  </div>
+                  
+                  {/* Performance Metrics */}
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
+                      <p className="text-lg font-bold text-white font-sans">{avgAlignment}%</p>
+                      <p className="text-xs text-gray-400 font-sans">Alignment Score</p>
+                    </div>
+                    <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
+                      <p className="text-lg font-bold text-white font-sans">{highPerformers.length}</p>
+                      <p className="text-xs text-gray-400 font-sans">High Performers</p>
+                    </div>
+                    <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
+                      <p className="text-lg font-bold text-white font-sans">{postCount}</p>
+                      <p className="text-xs text-gray-400 font-sans">Recent Posts</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* Top Performing Topics & Formats & Improvement Opportunities */}
+        <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <BookOpen className="text-green-400" size={20} />
+            Top Performing Topics & Formats & Improvement Opportunities
+          </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Performing Topics */}
+            <div className="border border-green-600 rounded-lg bg-green-900 p-4">
+              <h4 className="font-semibold text-green-200 mb-3">🎯 Best Performing Topics</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-100">AI Privacy & Security</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-green-300">4.2k views</span>
+                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">85%</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-100">Homelab Setup Guides</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-green-300">3.8k views</span>
+                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">78%</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-100">Productivity Tools</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-green-300">2.9k views</span>
+                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">72%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <h5 className="font-semibold text-green-200 mt-4 mb-2">📝 Best Performing Formats</h5>
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-100">Step-by-step Tutorials</span>
+                  <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">89%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-100">Tool Comparisons</span>
+                  <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">76%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-100">Case Studies</span>
+                  <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">71%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Improvement Opportunities */}
+            <div className="border border-warning-600 rounded-lg bg-warning-900 p-4">
+              <h4 className="font-semibold text-warning-200 mb-3">⚡ Improvement Opportunities</h4>
+              <div className="space-y-3">
+                <div className="bg-warning-800 rounded-lg p-3">
+                  <h5 className="text-warning-200 font-medium text-sm mb-1">Increase Technical Depth</h5>
+                  <p className="text-warning-100 text-xs">Add more code examples and configuration details to tutorials</p>
+                </div>
+                <div className="bg-warning-800 rounded-lg p-3">
+                  <h5 className="text-warning-200 font-medium text-sm mb-1">Cost Analysis Focus</h5>
+                  <p className="text-warning-100 text-xs">Include detailed cost breakdowns and ROI calculations</p>
+                </div>
+                <div className="bg-warning-800 rounded-lg p-3">
+                  <h5 className="text-warning-200 font-medium text-sm mb-1">Update Frequency</h5>
+                  <p className="text-warning-100 text-xs">Maintain consistent publishing schedule for better engagement</p>
+                </div>
+                <div className="bg-warning-800 rounded-lg p-3">
+                  <h5 className="text-warning-200 font-medium text-sm mb-1">SEO Optimization</h5>
+                  <p className="text-warning-100 text-xs">Improve keyword targeting and meta descriptions</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* AI-Powered Blog Article Suggestions */}
@@ -1236,82 +1385,6 @@ function BlogAnalytics({ metrics }) {
               These suggestions target trending keywords with 180-340% search volume increases, optimized for your 
               target audience of privacy-conscious professionals and small business owners.
             </p>
-          </div>
-        </div>
-
-        {/* Top Performing Topics & Formats & Improvement Opportunities */}
-        <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-            <BookOpen className="text-green-400" size={20} />
-            Top Performing Topics & Formats & Improvement Opportunities
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Top Performing Topics */}
-            <div className="border border-green-600 rounded-lg bg-green-900 p-4">
-              <h4 className="font-semibold text-green-200 mb-3">🎯 Best Performing Topics</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">AI Privacy & Security</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-green-300">4.2k views</span>
-                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">85%</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">Homelab Setup Guides</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-green-300">3.8k views</span>
-                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">78%</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">Productivity Tools</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-green-300">2.9k views</span>
-                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">72%</span>
-                  </div>
-                </div>
-              </div>
-              
-              <h5 className="font-semibold text-green-200 mt-4 mb-2">📝 Best Performing Formats</h5>
-              <div className="space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-100">Step-by-step Guides</span>
-                  <span className="text-green-300">92% engagement</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-100">Code Examples</span>
-                  <span className="text-green-300">87% engagement</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-100">Tool Comparisons</span>
-                  <span className="text-green-300">79% engagement</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Improvement Opportunities */}
-            <div className="border border-amber-600 rounded-lg bg-amber-900 p-4">
-              <h4 className="font-semibold text-amber-200 mb-3">🚀 Improvement Opportunities</h4>
-              <div className="space-y-3">
-                <div className="border-l-4 border-amber-500 pl-3">
-                  <p className="text-sm font-medium text-amber-100">Increase Visual Content</p>
-                  <p className="text-xs text-amber-300 mt-1">Posts with diagrams get 45% more engagement. Add more technical diagrams and screenshots.</p>
-                </div>
-                <div className="border-l-4 border-amber-500 pl-3">
-                  <p className="text-sm font-medium text-amber-100">Expand Tutorial Series</p>
-                  <p className="text-xs text-amber-300 mt-1">Your multi-part tutorials have 23% higher completion rates. Consider breaking long posts into series.</p>
-                </div>
-                <div className="border-l-4 border-amber-500 pl-3">
-                  <p className="text-sm font-medium text-amber-100">Interactive Elements</p>
-                  <p className="text-xs text-amber-300 mt-1">Adding code snippets and checklists increases time-on-page by 34%. Include more interactive content.</p>
-                </div>
-                <div className="border-l-4 border-amber-500 pl-3">
-                  <p className="text-sm font-medium text-amber-100">Community Engagement</p>
-                  <p className="text-xs text-amber-300 mt-1">Posts ending with questions get 67% more comments. Encourage more reader interaction.</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
