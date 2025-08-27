@@ -2,7 +2,7 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import TypingEffect from '../components/TypingEffect';
-import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
+import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage, getPreviousMetrics, storePreviousMetrics } from '../utils/celebrationUtils';
 import { 
   TrendingUp, 
   Users, 
@@ -51,13 +51,19 @@ function OverviewV2({ metrics }) {
   // Check for celebration conditions on component mount
   React.useEffect(() => {
     if (metrics && shouldShowCelebration()) {
-      const celebrations = checkCelebrationConditions(metrics);
+      // Get previous metrics for comparison
+      const previousMetrics = getPreviousMetrics();
+      const celebrations = checkCelebrationConditions(metrics, previousMetrics);
+      
       if (celebrations.length > 0) {
         const message = formatCelebrationMessage(celebrations);
         setCelebrationMessage(message);
         setShowCelebration(true);
         markCelebrationShown();
       }
+      
+      // Store current metrics for next visit
+      storePreviousMetrics(metrics);
     }
   }, [metrics]);
   
@@ -282,34 +288,10 @@ function OverviewV2({ metrics }) {
             
             {/* Profile Info */}
             <div className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700 bg-primary-850">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div className="flex-1">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                <div>
                   <h1 className="text-2xl font-bold text-white mb-1 font-sans">{metrics.displayName}</h1>
                   <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{metrics.handle}</p>
-                  <p className="text-gray-300 mb-4 max-w-2xl leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
-                  
-                  <div className="flex gap-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">{metrics.followersCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Followers</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">{metrics.followsCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Following</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">{metrics.postsCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Posts</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">12/14</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Frequency</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">23%</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Mutuals</p>
-                    </div>
-                  </div>
                 </div>
                 
                 <div className="flex gap-3">
@@ -322,6 +304,39 @@ function OverviewV2({ metrics }) {
                   >
                     View on Bluesky
                   </Button>
+                </div>
+              </div>
+              
+              {/* Bio in styled container - full width */}
+              <div className="bg-primary-800 border border-gray-600 rounded-xl p-4 mb-4 hover:border-brand-400 transition-colors">
+                <p className="text-gray-300 leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+              </div>
+              
+              {/* Stats grid - full width */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics.followersCount.toLocaleString()}</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Followers</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics.followsCount.toLocaleString()}</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics.postsCount.toLocaleString()}</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
+                </div>
+                <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
                 </div>
               </div>
             </div>

@@ -5,28 +5,18 @@ export const checkCelebrationConditions = (metrics, previousMetrics = null) => {
   const now = new Date();
   const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000);
 
-  // Check for new followers (simulate realistic conditions)
-  const shouldCelebrateFolowers = Math.random() > 0.3; // 70% chance of having new followers
-  if (shouldCelebrateFolowers) {
-    if (previousMetrics && metrics.followersCount > previousMetrics.followersCount) {
-      const newFollowers = metrics.followersCount - previousMetrics.followersCount;
-      if (newFollowers > 0) {
-        celebrations.push({
-          type: 'followers',
-          message: `You've gained ${newFollowers} new follower${newFollowers > 1 ? 's' : ''} in the last 24 hours!`,
-          count: newFollowers
-        });
-      }
-    } else {
-      // Simulate new followers for demo (5-20 new followers)
-      const simulatedNewFollowers = Math.floor(Math.random() * 16) + 5;
+  // Check for new followers - ONLY celebrate if we have real data showing growth
+  if (previousMetrics && metrics.followersCount > previousMetrics.followersCount) {
+    const newFollowers = metrics.followersCount - previousMetrics.followersCount;
+    if (newFollowers > 0) {
       celebrations.push({
         type: 'followers',
-        message: `You've gained ${simulatedNewFollowers} new followers in the last 24 hours!`,
-        count: simulatedNewFollowers
+        message: `You've gained ${newFollowers} new follower${newFollowers > 1 ? 's' : ''} since your last visit!`,
+        count: newFollowers
       });
     }
   }
+  // NOTE: Removed fake simulation - only celebrate real follower growth
 
   // Check for high engagement posts (using recent posts data)
   if (metrics.recentPosts && metrics.recentPosts.length > 0) {
@@ -56,26 +46,34 @@ export const checkCelebrationConditions = (metrics, previousMetrics = null) => {
         post: post
       });
     }
-  } else {
-    // Simulate high engagement for demo purposes
-    const shouldSimulateHighEngagement = Math.random() > 0.5; // 50% chance
-    if (shouldSimulateHighEngagement) {
-      const engagementTypes = [
-        { type: 'comments', count: Math.floor(Math.random() * 20) + 21, label: 'comments' },
-        { type: 'shares', count: Math.floor(Math.random() * 15) + 11, label: 'shares' },
-        { type: 'likes', count: Math.floor(Math.random() * 25) + 26, label: 'likes' }
-      ];
-      const randomEngagement = engagementTypes[Math.floor(Math.random() * engagementTypes.length)];
-      
-      celebrations.push({
-        type: 'engagement',
-        message: `Your recent post got amazing engagement with ${randomEngagement.count} ${randomEngagement.label}! Keep up the great content!`,
-        engagement: randomEngagement
-      });
-    }
   }
+  // NOTE: Removed fake engagement simulation - only celebrate real engagement
 
   return celebrations;
+};
+
+// Store previous metrics for comparison
+export const storePreviousMetrics = (metrics) => {
+  if (!metrics) return;
+  
+  const metricsData = {
+    followersCount: metrics.followersCount,
+    followsCount: metrics.followsCount,
+    postsCount: metrics.postsCount,
+    timestamp: Date.now()
+  };
+  
+  localStorage.setItem('previousMetrics', JSON.stringify(metricsData));
+};
+
+// Get previous metrics for comparison
+export const getPreviousMetrics = () => {
+  try {
+    const stored = localStorage.getItem('previousMetrics');
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    return null;
+  }
 };
 
 export const shouldShowCelebration = () => {
@@ -93,6 +91,12 @@ export const shouldShowCelebration = () => {
 export const markCelebrationShown = () => {
   const today = new Date().toDateString();
   localStorage.setItem('celebrationLastShown', today);
+};
+
+// Clear all celebration tracking (useful for testing)
+export const clearCelebrationTracking = () => {
+  localStorage.removeItem('celebrationLastShown');
+  localStorage.removeItem('previousMetrics');
 };
 
 export const formatCelebrationMessage = (celebrations) => {
