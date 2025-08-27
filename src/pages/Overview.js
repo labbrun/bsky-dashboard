@@ -1,7 +1,7 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
-import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage } from '../utils/celebrationUtils';
+import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage, getPreviousMetrics, storePreviousMetrics } from '../utils/celebrationUtils';
 import { 
   TrendingUp, 
   Users, 
@@ -38,13 +38,19 @@ function Overview({ metrics }) {
   // Check for celebration conditions on component mount
   React.useEffect(() => {
     if (metrics && shouldShowCelebration()) {
-      const celebrations = checkCelebrationConditions(metrics);
+      // Get previous metrics for comparison
+      const previousMetrics = getPreviousMetrics();
+      const celebrations = checkCelebrationConditions(metrics, previousMetrics);
+      
       if (celebrations.length > 0) {
         const message = formatCelebrationMessage(celebrations);
         setCelebrationMessage(message);
         setShowCelebration(true);
         markCelebrationShown();
       }
+      
+      // Store current metrics for next visit
+      storePreviousMetrics(metrics);
     }
   }, [metrics]);
   

@@ -168,9 +168,120 @@ function Insights({ metrics }) {
   }, [metrics]);
 
 
-  // Fallback empty arrays for removed data  
-  const contentIdeas = [];
-  const productIdeas = [];
+  // Content and product ideas data
+  const contentIdeas = [
+    {
+      title: "Home Lab Setup Journey Documentation",
+      format: "Thread + Images",
+      topic: "Home Labbing",
+      description: "Document your complete home lab build process, from hardware selection to service deployment. Show cable management, rack setup, and troubleshooting real issues as they happen.",
+      postTime: "Tuesday 2:30 PM",
+      source: "Home lab content drives high engagement in tech communities",
+      searchQuery: "home lab setup documentation and best practices"
+    },
+    {
+      title: "Why Small Businesses Should Avoid Cloud Lock-in",
+      format: "Opinion Thread",
+      topic: "Privacy & Security", 
+      description: "Challenge the 'cloud-first' mentality with a data-driven analysis of costs, security risks, and vendor dependencies. Present self-hosting as a viable alternative for privacy-conscious entrepreneurs.",
+      postTime: "Thursday 3:00 PM",
+      source: "Privacy-focused content resonates with tech entrepreneurs",
+      searchQuery: "cloud vs self hosting for small business security"
+    },
+    {
+      title: "Self-Hosted vs SaaS: Remote Work Tools Showdown",
+      format: "Analysis + Screenshots",
+      topic: "Remote Work",
+      description: "Compare self-hosted alternatives (NextCloud, Jitsi, GitLab) against popular SaaS tools (Dropbox, Zoom, GitHub) for remote teams. Include setup complexity, costs, and privacy considerations.",
+      postTime: "Monday 10:00 AM",
+      source: "Tool comparisons help remote teams make informed decisions",
+      searchQuery: "self hosted remote work tools vs saas alternatives"
+    },
+    {
+      title: "How I Lost 3 Days of Work (Home Lab Backup Failure)",
+      format: "Case Study",
+      topic: "Self Hosting",
+      description: "Document a real home lab disaster - failed backups, data loss, or service outages. Show the step-by-step recovery process and backup strategies that actually work for small businesses.",
+      postTime: "Wednesday 1:30 PM",
+      source: "Failure stories build trust and provide valuable lessons",
+      searchQuery: "home lab backup strategies and disaster recovery"
+    },
+    {
+      title: "The Great De-Clouding: Why 2024 is the Year of Self-Hosting",
+      format: "Analysis Thread",
+      topic: "Entrepreneurship",
+      description: "Analyze the growing trend of businesses moving away from cloud services. Cover rising costs, privacy concerns, and improved self-hosting tools. Predict which industries will lead this shift.",
+      postTime: "Friday 4:00 PM",
+      source: "Trend analysis positions you as an industry thought leader",
+      searchQuery: "business trends moving away from cloud to self hosting"
+    },
+    {
+      title: "Small Business Security Challenge: Crowdsourced Solutions",
+      format: "Interactive Post",
+      topic: "Running a Small Business",
+      description: "Post a real security challenge small businesses face (like secure remote access or client data protection). Ask your community for their solutions and compile the best approaches.",
+      postTime: "Saturday 11:00 AM",
+      source: "Security discussions drive high engagement in business communities",
+      searchQuery: "small business cybersecurity challenges and solutions"
+    }
+  ];
+
+  const productIdeas = [
+    {
+      title: "Home Lab Starter Kit for Small Business",
+      type: "Digital Guide + Hardware List",
+      description: "Complete guide for entrepreneurs to build their first business home lab for under $2000",
+      audience: "Small business owners, Remote entrepreneurs",
+      trend: "Rising cloud costs driving self-hosting adoption",
+      outline: ["Hardware selection", "Network setup", "Service deployment", "Security hardening"],
+      searchQuery: "home lab setup guide for small business"
+    },
+    {
+      title: "Privacy-First Remote Work Toolkit", 
+      type: "Software Bundle",
+      description: "Self-hosted alternatives to popular SaaS tools for privacy-conscious remote teams",
+      audience: "Remote team leaders, Privacy advocates",
+      trend: "Growing concern over data privacy in remote work",
+      outline: ["Communication tools", "File sharing", "Project management", "VPN solutions"],
+      searchQuery: "privacy focused remote work tools and software"
+    },
+    {
+      title: "Self-Hosting Security Checklist",
+      type: "Security Assessment Tool",
+      description: "Comprehensive security audit framework for self-hosted business infrastructure",
+      audience: "IT managers, Security-conscious entrepreneurs",
+      trend: "Increased cybersecurity threats to small businesses",
+      outline: ["Network security", "Access controls", "Backup verification", "Incident response"],
+      searchQuery: "self hosting security best practices for business"
+    },
+    {
+      title: "Small Business Cloud Exit Strategy",
+      type: "Migration Playbook",
+      description: "Step-by-step guide to migrate from cloud services to self-hosted solutions without downtime",
+      audience: "Small business owners, IT consultants",
+      trend: "Cloud cost optimization and vendor independence",
+      outline: ["Migration planning", "Data extraction", "Service transition", "Cost analysis"],
+      searchQuery: "how to migrate small business from cloud to self hosting"
+    },
+    {
+      title: "Entrepreneur's Home Office Network Blueprint",
+      type: "Technical Blueprint",
+      description: "Professional network design templates for home-based business operations with enterprise-grade security",
+      audience: "Home-based entrepreneurs, Freelancers",
+      trend: "Permanent shift to home-based businesses post-pandemic",
+      outline: ["Network topology", "Security zones", "Guest isolation", "Business continuity"],
+      searchQuery: "home office network design for entrepreneurs"
+    },
+    {
+      title: "Privacy-Focused Business Productivity Suite",
+      type: "Software Package",
+      description: "Complete self-hosted productivity solution with email, calendar, file sharing, and collaboration tools",
+      audience: "Privacy-conscious businesses, Tech startups",
+      trend: "Data sovereignty and GDPR compliance requirements",
+      outline: ["Email server setup", "Calendar integration", "Document collaboration", "Mobile access"],
+      searchQuery: "self hosted business productivity tools and software"
+    }
+  ];
 
   // Use real data if available, otherwise fall back to sample data
   const topAmplifiersToEngage = topAmplifiersData.length > 0 ? topAmplifiersData : [
@@ -516,46 +627,49 @@ function Insights({ metrics }) {
             
             {/* Profile Info */}
             <div className="flex-1 rounded-2xl p-6 shadow-xl border border-gray-700 bg-primary-850">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-white mb-1 font-sans">{metrics.displayName}</h1>
-                  <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{metrics.handle}</p>
-                  <p className="text-gray-300 mb-4 max-w-2xl leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
-                  
-                  <div className="flex gap-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">{metrics.followersCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Followers</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">{metrics.followsCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Following</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">{metrics.postsCount.toLocaleString()}</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Posts</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">12/14</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Frequency</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white font-sans">23%</p>
-                      <p className="text-gray-400 text-sm font-medium font-sans">Mutuals</p>
-                    </div>
-                  </div>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-white mb-1 font-sans">{metrics.displayName}</h1>
+                <p className="text-lg text-brand-400 font-semibold mb-3 leading-4 font-sans">@{metrics.handle}</p>
+                
+                <div className="flex items-start gap-4 mb-4">
+                  <p className="text-gray-300 max-w-2xl leading-5 font-sans flex-1">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                  <button
+                    onClick={() => window.open(`https://bsky.app/profile/${metrics.handle}`, '_blank')}
+                    className="bg-sky-500 hover:bg-sky-600 border border-sky-400 rounded-xl p-3 transition-colors flex flex-col items-center justify-center min-w-[80px] h-[80px] group text-center"
+                    title="View on Bluesky"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white group-hover:scale-110 transition-transform mb-1">
+                      <path d="M12 2c-1.1 0-2 .9-2 2 0 3.5-2.8 6.3-6.3 6.3-.6 0-1.2-.1-1.7-.3 0 0-1.4-.5-1.4 1.6 0 2.1 1.4 1.6 1.4 1.6.5-.2 1.1-.3 1.7-.3C7.2 12.9 10 15.7 10 19.2c0 .6.1 1.2.3 1.7 0 0 .5 1.4 2.7 1.4s2.7-1.4 2.7-1.4c.2-.5.3-1.1.3-1.7 0-3.5 2.8-6.3 6.3-6.3.6 0 1.2.1 1.7.3 0 0 1.4.5 1.4-1.6 0-2.1-1.4-1.6-1.4-1.6-.5.2-1.1.3-1.7.3C16.8 11.1 14 8.3 14 4.8c0-.6-.1-1.2-.3-1.7 0 0-.5-1.4-2.7-1.4z"/>
+                    </svg>
+                    <span className="text-white text-xs font-medium font-sans">Bluesky</span>
+                  </button>
                 </div>
                 
-                <div className="flex gap-3">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    icon={<ExternalLink size={16} />}
-                    iconPosition="right"
-                    onClick={() => window.open(`https://bsky.app/profile/${metrics.handle}`, '_blank')}
-                  >
-                    View on Bluesky
-                  </Button>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                    <p className="text-xl font-bold text-white font-sans mb-1">{metrics.followersCount.toLocaleString()}</p>
+                    <p className="text-gray-400 text-xs font-medium font-sans">Followers</p>
+                  </div>
+                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                    <p className="text-xl font-bold text-white font-sans mb-1">{metrics.followsCount.toLocaleString()}</p>
+                    <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
+                  </div>
+                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                    <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
+                    <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
+                  </div>
+                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                    <p className="text-xl font-bold text-white font-sans mb-1">{metrics.postsCount.toLocaleString()}</p>
+                    <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
+                  </div>
+                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                    <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
+                    <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
+                  </div>
+                  <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
+                    <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
+                    <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
+                  </div>
                 </div>
               </div>
             </div>
