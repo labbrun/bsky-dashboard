@@ -122,8 +122,6 @@ export const generateAIContentSuggestions = async (sourceContent, targetPlatform
 // Extract brand voice guidelines from loaded guidance
 const extractBrandVoice = (guidance) => {
   const brandAssets = guidance.brandAssets || {};
-  const customerAvatar = brandAssets.customerAvatar?.parsed || {};
-  const targetAudience = brandAssets.targetAudience?.parsed || {};
   
   return {
     tone: 'Conversational, knowledgeable, and approachable',
@@ -251,8 +249,6 @@ const extractTargetKeywords = (guidance) => {
 
 // Extract content preferences
 const extractContentPreferences = (guidance) => {
-  const avatar = guidance.brandAssets?.customerAvatar?.parsed || {};
-  const bluesky = guidance.contentStrategies?.blueskyStrategies?.parsed || {};
   
   return {
     formats: ['Tutorials', 'Guides', 'Tips', 'Insights', 'Behind-scenes'],
@@ -265,8 +261,6 @@ const extractContentPreferences = (guidance) => {
 
 // Extract engagement tactics
 const extractEngagementTactics = (guidance) => {
-  const bluesky = guidance.contentStrategies?.blueskyStrategies?.parsed || {};
-  const psychology = guidance.marketingPsychology || {};
   
   return {
     hooks: ['Questions', 'Contrarian views', 'Personal stories', 'Industry insights'],
@@ -360,7 +354,6 @@ const analyzeAudienceFit = (content, context) => {
 
 // Generate strategy recommendations based on content analysis
 const generateStrategyRecommendations = (content, context) => {
-  const strategies = context.contentStrategies;
   const recommendations = [];
   
   // Repurposing recommendations
@@ -387,7 +380,6 @@ const generateStrategyRecommendations = (content, context) => {
 
 // Generate psychology insights for content
 const generatePsychologyInsights = (content, context) => {
-  const psychology = context.marketingPsychology;
   const insights = [];
   
   // Check for psychological triggers
@@ -412,7 +404,6 @@ const generatePsychologyInsights = (content, context) => {
 
 // Generate Bluesky-specific optimization suggestions
 const generateBlueskyOptimization = (content, context) => {
-  const bluesky = context.blueskyStrategies;
   const optimizations = [];
   
   // Length optimization
@@ -580,9 +571,11 @@ const getDefaultAIContext = () => ({
   loadedAt: new Date()
 });
 
-export default {
+const aiContextProvider = {
   initializeAIContext,
   getAIContext,
   enhanceContentAnalysis,
   generateAIContentSuggestions
 };
+
+export default aiContextProvider;

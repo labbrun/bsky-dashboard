@@ -188,7 +188,7 @@ function BlogAnalytics({ metrics }) {
         setTimeout(() => resolve([
           { status: 'rejected', reason: { message: 'Timeout' } },
           { status: 'rejected', reason: { message: 'Timeout' } }
-        ]), 1000) // Further reduced to 1 second timeout
+        ]), 20000) // Increased to 20 seconds to allow real GA API calls
       );
       
       const [trafficOverview, referralTraffic] = await Promise.race([gaDataPromise, timeoutPromise]);
@@ -664,20 +664,51 @@ function BlogAnalytics({ metrics }) {
               Real-time Google Analytics data for the last {timeRange} days
             </p>
           </div>
-          <Badge variant={gaLoading ? 'warning' : 'success'} size="sm">
+          <Badge variant={gaLoading ? 'warning' : (trafficData ? 'success' : 'error')} size="sm">
             {gaLoading ? (
               <>
                 <RefreshCw size={12} className="mr-1 animate-spin" />
                 Loading GA
               </>
-            ) : (
+            ) : trafficData ? (
               <>
                 <TrendingUp size={12} className="mr-1" />
-                Live Data
+                Live GA Data
+              </>
+            ) : (
+              <>
+                <AlertCircle size={12} className="mr-1" />
+                Mock Data
               </>
             )}
           </Badge>
         </div>
+
+        {/* Mock Data Notice */}
+        {!gaLoading && !trafficData && (
+          <div className="mb-6 p-4 bg-warning-900/20 border border-warning-600 rounded-xl">
+            <div className="flex items-start gap-3">
+              <AlertCircle size={20} className="text-warning-400 mt-0.5" />
+              <div>
+                <h4 className="text-warning-400 font-semibold text-sm font-sans mb-2">Using Mock Data</h4>
+                <p className="text-warning-200 text-sm font-sans leading-relaxed mb-3">
+                  The Google Analytics token server is not running. Start the token server to enable automatic authentication and real traffic data.
+                </p>
+                <div className="bg-warning-800/30 rounded-lg p-3">
+                  <p className="text-warning-200 text-xs font-sans mb-2"><strong>To enable real data:</strong></p>
+                  <ol className="text-warning-200 text-xs font-sans space-y-1 ml-4">
+                    <li>1. Open a new terminal in your project folder</li>
+                    <li>2. Run: <code className="bg-warning-700/50 px-1 rounded">cd server && npm start</code></li>
+                    <li>3. Refresh this page - tokens will auto-renew every 55 minutes</li>
+                  </ol>
+                  <p className="text-warning-200 text-xs font-sans mt-2">
+                    <strong>Alternative:</strong> Add <code className="bg-warning-700/50 px-1 rounded">REACT_APP_GOOGLE_ACCESS_TOKEN</code> to .env (expires hourly)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Key Metrics Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">

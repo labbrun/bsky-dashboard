@@ -34,7 +34,8 @@ function PerformanceV2({ metrics }) {
   const [hasTyped, setHasTyped] = useState(false);
   const [currentObservation, setCurrentObservation] = useState('');
   const [timeRange, setTimeRange] = useState('7'); // '7' for 7 days, '30' for 30 days
-  const [newFollowers] = useState([]);
+  const [newFollowers, setNewFollowers] = useState([]);
+  const [topAmplifiers, setTopAmplifiers] = useState([]);
 
   // Helper functions for expanding/collapsing posts
   const togglePostExpansion = (postId) => {
@@ -152,10 +153,29 @@ function PerformanceV2({ metrics }) {
         try {
           const followersResponse = await getFollowers(metrics.handle, 10);
           if (followersResponse && followersResponse.followers) {
-            // Note: Follower data is available for use in components
+            // Get detailed profile data for recent followers
+            const recentFollowersBase = followersResponse.followers.slice(0, 4);
+            const recentFollowersPromises = recentFollowersBase.map(async (follower) => {
+              try {
+                const { getProfile } = await import('../services/blueskyService');
+                const profileData = await getProfile(follower.handle);
+                return {
+                  ...follower,
+                  followersCount: profileData.followersCount || 0,
+                  followsCount: profileData.followsCount || 0,
+                  postsCount: profileData.postsCount || 0
+                };
+              } catch (error) {
+                console.warn(`Failed to get detailed data for follower ${follower.handle}:`, error);
+                return follower;
+              }
+            });
+            
+            const recentFollowersData = await Promise.all(recentFollowersPromises);
+            setNewFollowers(recentFollowersData);
             
             // Get top amplifiers (followers with high engagement potential)
-            const topFollowers = followersResponse.followers.slice(0, 3);
+            const topFollowers = followersResponse.followers.slice(0, 6);
             
             // Fetch detailed profile data for top followers to get their metrics
             const amplifiersPromises = topFollowers.map(async (follower) => {
@@ -235,6 +255,8 @@ function PerformanceV2({ metrics }) {
               return bReach - aReach;
             });
             
+            // Store the top 6 real amplifiers
+            setTopAmplifiers(amplifiersData.slice(0, 6));
           }
         } catch (error) {
           console.error('Error fetching followers for Performance:', error);
@@ -293,7 +315,7 @@ function PerformanceV2({ metrics }) {
     {
       handle: 'sarah.tech.social',
       displayName: 'Sarah Chen',
-      avatar: 'https://avatar.vercel.sh/sarah.svg?text=SC',
+      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzBlYTVlOSIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+U0M8L3RleHQ+PC9zdmc+',
       followers: 4200,
       posts: 150,
       engagement: '8.4%',
@@ -307,7 +329,7 @@ function PerformanceV2({ metrics }) {
     {
       handle: 'alex.security.dev',
       displayName: 'Alex Rodriguez',
-      avatar: 'https://avatar.vercel.sh/alex.svg?text=AR',
+      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzEwYjk4MSIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+QVI8L3RleHQ+PC9zdmc+',
       followers: 3100,
       posts: 89,
       engagement: '7.2%',
@@ -321,7 +343,7 @@ function PerformanceV2({ metrics }) {
     {
       handle: 'maria.data.scientist',
       displayName: 'Dr. Maria Santos',
-      avatar: 'https://avatar.vercel.sh/maria.svg?text=MS',
+      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iI2Y1OWUwYiIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+TVM8L3RleHQ+PC9zdmc+',
       followers: 2800,
       posts: 67,
       engagement: '9.1%',
@@ -335,7 +357,7 @@ function PerformanceV2({ metrics }) {
     {
       handle: 'jordan.devops.pro',
       displayName: 'Jordan Kim',
-      avatar: 'https://avatar.vercel.sh/jordan.svg?text=JK',
+      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzhiNWNmNiIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+Sko8L3RleHQ+PC9zdmc+',
       followers: 1900,
       posts: 134,
       engagement: '6.8%',
@@ -349,7 +371,7 @@ function PerformanceV2({ metrics }) {
     {
       handle: 'emma.ux.researcher',
       displayName: 'Emma Walsh',
-      avatar: 'https://avatar.vercel.sh/emma.svg?text=EW',
+      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iI2VjNDg5OSIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+RVc8L3RleHQ+PC9zdmc+',
       followers: 2600,
       posts: 78,
       engagement: '7.9%',
@@ -363,7 +385,7 @@ function PerformanceV2({ metrics }) {
     {
       handle: 'chris.blockchain.dev',
       displayName: 'Chris Patel',
-      avatar: 'https://avatar.vercel.sh/chris.svg?text=CP',
+      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iI2Y5NzMxNiIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+Q1A8L3RleHQ+PC9zdmc+',
       followers: 3700,
       posts: 201,
       engagement: '5.4%',
@@ -1300,19 +1322,19 @@ function PerformanceV2({ metrics }) {
                           <p className="text-xs text-gray-400 font-sans mb-1">@{handle}</p>
                           <p className="text-xs text-gray-300 font-sans mb-3">New Follower</p>
                           
-                          {/* Follower Stats */}
+                          {/* Follower Stats - Using real data */}
                           <div className="grid grid-cols-1 gap-2 text-xs text-center mb-3 w-full">
                             <div className="flex justify-between">
                               <span className="text-gray-400 font-sans">Followers:</span>
-                              <span className="text-white font-sans">{Math.floor(Math.random() * 2000) + 500}</span>
+                              <span className="text-white font-sans">{(typeof follower === 'object' && follower.followersCount) || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-400 font-sans">Following:</span>
-                              <span className="text-white font-sans">{Math.floor(Math.random() * 1000) + 200}</span>
+                              <span className="text-white font-sans">{(typeof follower === 'object' && follower.followsCount) || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-400 font-sans">Posts:</span>
-                              <span className="text-white font-sans">{Math.floor(Math.random() * 500) + 50}</span>
+                              <span className="text-white font-sans">{(typeof follower === 'object' && follower.postsCount) || 'N/A'}</span>
                             </div>
                           </div>
                           
@@ -1343,7 +1365,7 @@ function PerformanceV2({ metrics }) {
           Top 6 Amplifiers to Engage With
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {topAmplifiersToEngage.map((amplifier, index) => (
+          {(topAmplifiers.length > 0 ? topAmplifiers : topAmplifiersToEngage).map((amplifier, index) => (
             <div key={index} className="border border-electric-600 rounded-lg bg-electric-900 p-4">
               {/* Profile Header */}
               <div className="flex items-center gap-3 mb-4">
@@ -1353,8 +1375,9 @@ function PerformanceV2({ metrics }) {
                   className="w-12 h-12 rounded-full border-2 border-electric-200 cursor-pointer"
                   onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
                   onError={(e) => {
-                    // Fallback to generated avatar if image fails
-                    e.target.src = `https://avatar.vercel.sh/${amplifier.handle}.svg?text=${amplifier.displayName.charAt(0)}`;
+                    // Fallback to base64 SVG if image fails
+                    const initials = amplifier.displayName.charAt(0);
+                    e.target.src = `data:image/svg+xml;base64,${btoa(`<svg width="128" height="128" xmlns="http://www.w3.org/2000/svg"><rect width="128" height="128" fill="#6b7280"/><text x="64" y="80" text-anchor="middle" fill="white" font-size="48" font-family="Arial">${initials}</text></svg>`)}`;
                   }}
                 />
                 <div className="flex-1">
@@ -1372,41 +1395,49 @@ function PerformanceV2({ metrics }) {
                   </p>
                 </div>
                 <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  amplifier.potential === 'High' ? 'bg-success-900 text-success-200' : 'bg-warning-900 text-warning-200'
+                  (amplifier.potential === 'High' || amplifier.followersCount > 1000) ? 'bg-success-900 text-success-200' : 'bg-warning-900 text-warning-200'
                 }`}>
-                  {amplifier.potential}
+                  {amplifier.potential || (amplifier.followersCount > 1000 ? 'High' : 'Medium')}
                 </div>
               </div>
 
               {/* Metrics */}
               <div className="flex justify-between text-xs text-electric-200 mb-3">
-                <span>{amplifier.followers.toLocaleString()} followers</span>
-                <span>{amplifier.posts.toLocaleString()} posts</span>
-                <span>{amplifier.engagement} engagement</span>
+                <span>{(amplifier.followersCount || amplifier.followers || 0).toLocaleString()} followers</span>
+                <span>{(amplifier.postsCount || amplifier.posts || 0).toLocaleString()} posts</span>
+                <span>{amplifier.engagements || amplifier.engagement || 'N/A'}</span>
               </div>
 
               {/* Latest Post */}
-              <div className="bg-electric-800 rounded-lg p-3 mb-3 border border-electric-600">
-                <p className="text-xs text-electric-100 mb-2 line-clamp-2">{amplifier.latestPost}</p>
-                <div className="flex items-center justify-between text-xs text-primary-500">
-                  <span className="text-gray-400">{amplifier.postTime}</span>
-                  <div className="flex gap-3">
-                    <span>❤️ {amplifier.postEngagement.likes}</span>
-                    <span>💬 {amplifier.postEngagement.replies}</span>
-                    <span>🔄 {amplifier.postEngagement.shares}</span>
+              {(amplifier.recentPost || amplifier.latestPost) && (
+                <div className="bg-electric-800 rounded-lg p-3 mb-3 border border-electric-600">
+                  <p className="text-xs text-electric-100 mb-2 line-clamp-2">
+                    {amplifier.recentPost?.text || amplifier.latestPost || 'No recent posts'}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-primary-500">
+                    <span className="text-gray-400">
+                      {amplifier.recentPost?.createdAt ? new Date(amplifier.recentPost.createdAt).toLocaleDateString() : amplifier.postTime || 'Recent'}
+                    </span>
+                    <div className="flex gap-3">
+                      <span>❤️ {amplifier.recentPost?.likes || amplifier.postEngagement?.likes || 0}</span>
+                      <span>💬 {amplifier.recentPost?.replies || amplifier.postEngagement?.replies || 0}</span>
+                      <span>🔄 {amplifier.recentPost?.reposts || amplifier.postEngagement?.shares || 0}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Reason */}
-              <p className="text-xs text-electric-200 mb-3">{amplifier.reason}</p>
+              <p className="text-xs text-electric-200 mb-3">
+                {amplifier.reason || `Active follower with ${amplifier.followersCount || 0} followers. Good engagement potential.`}
+              </p>
 
               {/* Action Button */}
               <button 
                 className="w-full bg-electric-600 hover:bg-electric-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
                 onClick={() => window.open(`https://bsky.app/profile/${amplifier.handle}`, '_blank')}
               >
-                {amplifier.action}
+                {amplifier.action || 'View Profile'}
               </button>
             </div>
           ))}

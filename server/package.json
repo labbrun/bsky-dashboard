@@ -1,0 +1,17 @@
+{
+  "name": "bsky-analytics-token-server",
+  "version": "1.0.0",
+  "description": "Google Analytics token server for automatic token refresh",
+  "main": "tokenServer.js",
+  "scripts": {
+    "start": "node tokenServer.js",
+    "dev": "nodemon tokenServer.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

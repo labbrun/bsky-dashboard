@@ -439,7 +439,7 @@ export const refreshGuidanceCache = () => {
   return loadAllGuidance();
 };
 
-export default {
+const aiGuidanceLoader = {
   loadAllGuidance,
   getGuidance,
   getBrandVoice,
@@ -449,3 +449,5 @@ export default {
   getHookStrategies,
   refreshGuidanceCache
 };
+
+export default aiGuidanceLoader;

@@ -21,7 +21,7 @@ export const analyzeAndRepurposeBlogContent = async (blogPost, blueskyMetrics = 
     const contentAnalysis = await enhanceContentAnalysis(blogPost.content, 'blog_repurposing');
     
     // Generate platform-specific content suggestions
-    const contentSuggestions = await generateAIContentSuggestions(blogPost.content, 'bluesky');
+    await generateAIContentSuggestions(blogPost.content, 'bluesky');
     
     // Analyze content for specific repurposing opportunities
     const repurposingOpportunities = analyzeRepurposingOpportunities(blogPost, aiContext);
@@ -155,7 +155,6 @@ const generateEnhancedBlueskyPosts = async (blogPost, aiContext, blueskyMetrics)
   
   const keyInsights = extractKeyInsights(blogPost, aiContext);
   const hooks = generateViralHooks(blogPost, aiContext);
-  const brandVoice = aiContext.brandVoice;
   const customerAvatar = aiContext.customerAvatar;
   
   // Immediate announcement post
@@ -222,7 +221,6 @@ const generateEnhancedBlueskyPosts = async (blogPost, aiContext, blueskyMetrics)
 // Generate posting strategy using content calendar and timing guidance
 const generateEnhancedPostingStrategy = (blogPost, aiContext, blueskyMetrics) => {
   const blueskyStrategies = aiContext.blueskyStrategies;
-  const contentStrategies = aiContext.contentStrategies;
   
   return {
     timeline: {
@@ -278,7 +276,6 @@ const generateEnhancedPostingStrategy = (blogPost, aiContext, blueskyMetrics) =>
 // Generate viral hooks using marketing psychology principles
 const generateViralHooks = (blogPost, aiContext) => {
   const hooks = [];
-  const psychology = aiContext.marketingPsychology;
   const title = blogPost.title;
   const content = blogPost.content.toLowerCase();
   
@@ -344,7 +341,7 @@ const generateViralHooks = (blogPost, aiContext) => {
 
 const extractKeyInsights = (blogPost, aiContext) => {
   const content = blogPost.content;
-  const sentences = content.match(/[^\.!?]+[\.!?]+/g) || [];
+  const sentences = content.match(/[^.!?]+[.!?]+/g) || [];
   const insights = [];
   
   // Look for actionable insights and key takeaways
@@ -411,7 +408,6 @@ const generateContextualHashtags = (content, aiContext) => {
 };
 
 const generateAnnouncementPost = (blogPost, aiContext) => {
-  const brandVoice = aiContext.brandVoice;
   const customerAvatar = aiContext.customerAvatar;
   
   // Create announcement that aligns with brand voice and audience interests
@@ -441,7 +437,6 @@ const createThreadContent = (blogPost, aiContext) => {
 };
 
 const generateEngagementQuestion = (blogPost, aiContext) => {
-  const customerAvatar = aiContext.customerAvatar;
   const mainTopic = extractMainTopic(blogPost.title);
   
   return `Question for the community:\n\nAfter reading about ${mainTopic}, I'm curious:\n\nWhat's been your biggest challenge in this area?\n\nContext: ${blogPost.link}`;
@@ -575,6 +570,8 @@ const analyzeCrossPlatformPotential = (blogPost, aiContext) => {
   };
 };
 
-export default {
+const enhancedContentRepurposingService = {
   analyzeAndRepurposeBlogContent
 };
+
+export default enhancedContentRepurposingService;

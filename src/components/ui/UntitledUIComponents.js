@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
 // Button Component
@@ -153,6 +153,8 @@ export const Avatar = ({
   className = '',
   ...props 
 }) => {
+  const [imgError, setImgError] = useState(false);
+  
   const sizes = {
     xs: 'w-6 h-6',
     sm: 'w-8 h-8',
@@ -178,13 +180,18 @@ export const Avatar = ({
     away: 'bg-warning-500'
   };
   
+  const handleImageError = () => {
+    setImgError(true);
+  };
+  
   return (
     <div className="relative inline-block">
-      {src ? (
+      {src && !imgError ? (
         <img 
           src={src} 
           alt={alt}
           className={`${sizes[size]} rounded-full object-cover border-2 border-white shadow-sm ${className}`}
+          onError={handleImageError}
           {...props}
         />
       ) : (

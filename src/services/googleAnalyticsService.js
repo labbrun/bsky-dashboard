@@ -4,63 +4,86 @@
 const GA_PROPERTY_ID = 'properties/358836912';
 const GA_BASE_URL = 'https://analyticsdata.googleapis.com/v1beta';
 
-// Service Account Authentication
+// Token Server Configuration
+const TOKEN_SERVER_URL = 'http://localhost:3001';
 let accessToken = null;
-// let tokenExpiration = null; // Unused for now
+let tokenExpiration = null;
 
-// Check for environment variables or service account setup
-const getCredentialsAvailability = () => {
-  // Check if credentials are available in environment or as uploaded file
-  const hasEnvToken = process.env.REACT_APP_GOOGLE_ACCESS_TOKEN;
-  const hasServiceAccountFile = !!getServiceAccountFile();
-  
-  return {
-    hasCredentials: hasEnvToken || hasServiceAccountFile,
-    useEnvToken: !!hasEnvToken,
-    hasServiceAccount: hasServiceAccountFile
-  };
-};
-
-// Get service account file if available
-const getServiceAccountFile = () => {
+// Get fresh access token from token server
+const getTokenFromServer = async () => {
   try {
-    // Check for credentials in environment variables or public folder
-    // Note: In a real production app, this would be handled server-side
-    console.log('Google Analytics credentials not accessible from browser for security reasons');
-    return null;
+    console.log('🔄 Fetching Google Analytics token from server...');
+    const response = await fetch(`${TOKEN_SERVER_URL}/api/token`);
+    
+    if (!response.ok) {
+      throw new Error(`Token server error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.access_token) {
+      accessToken = data.access_token;
+      tokenExpiration = Date.now() + (data.expires_in * 1000);
+      
+      console.log(`✅ Got ${data.cached ? 'cached' : 'fresh'} Google Analytics token (expires in ${Math.floor(data.expires_in/60)} min)`);
+      return true;
+    } else {
+      throw new Error(data.error || 'No access token in response');
+    }
   } catch (error) {
-    return null;
-  }
-};
-
-// Simple authentication check (for development/testing)
-export const authenticateWithServiceAccount = async () => {
-  const credInfo = getCredentialsAvailability();
-  
-  if (credInfo.useEnvToken) {
-    // Use token from environment (if set up)
-    accessToken = process.env.REACT_APP_GOOGLE_ACCESS_TOKEN;
-    console.log('Using Google Analytics token from environment');
-    return true;
-  }
-  
-  if (credInfo.hasServiceAccount) {
-    console.log('Service account credentials detected, but browser JWT signing not implemented');
-    console.log('For production use, implement server-side authentication proxy');
-    console.log('Falling back to mock data for now');
+    console.warn('❌ Token server unavailable:', error.message);
     return false;
   }
-  
-  console.log('No Google Analytics credentials configured, using mock data');
+};
+
+// Check for manual environment token fallback
+const checkEnvironmentToken = () => {
+  const envToken = process.env.REACT_APP_GOOGLE_ACCESS_TOKEN;
+  if (envToken) {
+    accessToken = envToken;
+    tokenExpiration = Date.now() + (50 * 60 * 1000); // Assume 50 min validity
+    console.log('📱 Using manual Google Analytics token from environment');
+    return true;
+  }
   return false;
 };
 
-// Check if token is available
-const ensureValidToken = async () => {
-  if (!accessToken) {
-    return await authenticateWithServiceAccount();
+// Check if current token is still valid (with 5 minute buffer)
+const isTokenValid = () => {
+  if (!accessToken || !tokenExpiration) {
+    return false;
   }
-  return true;
+  
+  const now = Date.now();
+  const buffer = 5 * 60 * 1000; // 5 minute buffer
+  return tokenExpiration > (now + buffer);
+};
+
+// Ensure we have a valid access token
+const ensureValidToken = async () => {
+  // If current token is valid, use it
+  if (isTokenValid()) {
+    return true;
+  }
+  
+  // Try to get token from server first
+  if (await getTokenFromServer()) {
+    return true;
+  }
+  
+  // Fallback to environment token
+  if (checkEnvironmentToken()) {
+    return true;
+  }
+  
+  console.warn('❌ No Google Analytics authentication available. Using mock data.');
+  console.warn('💡 Start token server: cd server && npm start');
+  return false;
+};
+
+// Legacy function for compatibility
+export const authenticateWithServiceAccount = async () => {
+  return await ensureValidToken();
 };
 
 // Set access token (legacy method for compatibility)

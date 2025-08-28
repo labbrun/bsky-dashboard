@@ -10,7 +10,10 @@
       "Bash(robocopy:*)",
       "Bash(git commit:*)",
       "WebFetch(domain:postiz.dedsec.one)",
-      "WebFetch(domain:docs.postiz.com)"
+      "WebFetch(domain:docs.postiz.com)",
+      "WebFetch(domain:avatar.vercel.sh)",
+      "Bash(git checkout:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

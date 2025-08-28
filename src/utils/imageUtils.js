@@ -139,3 +139,62 @@ export const preloadImages = (imageUrls) => {
   
   return Promise.allSettled(promises);
 };
+
+/**
+ * Generates a reliable avatar URL using UI-Avatars service
+ * @param {string} name - Full name of the person
+ * @param {Object} options - Avatar customization options
+ * @returns {string} Generated avatar URL
+ */
+export const generateReliableAvatarUrl = (name, options = {}) => {
+  const {
+    background = '6366f1',
+    color = 'ffffff',
+    size = 128,
+    fontSize = 0.6,
+    format = 'png'
+  } = options;
+
+  const encodedName = encodeURIComponent(name.replace(/\s+/g, '+'));
+  return `https://ui-avatars.com/api/?name=${encodedName}&background=${background}&color=${color}&size=${size}&font-size=${fontSize}&format=${format}`;
+};
+
+/**
+ * Creates a fallback avatar URL that is guaranteed to work
+ * @param {string} displayName - Display name for the avatar
+ * @param {string} handle - Handle/username for backup
+ * @returns {string} Reliable fallback avatar URL
+ */
+export const createFallbackAvatar = (displayName, handle = '') => {
+  const name = displayName || handle || 'User';
+  return generateReliableAvatarUrl(name, {
+    background: '6b7280', // gray-500
+    color: 'ffffff'
+  });
+};
+
+/**
+ * Handles avatar loading errors with a robust fallback system
+ * @param {Event} event - The error event from img onError
+ * @param {string} displayName - Display name for fallback
+ * @param {string} handle - Handle for additional fallback
+ */
+export const handleAvatarError = (event, displayName, handle = '') => {
+  const img = event.target;
+  console.warn(`Avatar failed to load, using fallback for ${displayName || handle}`);
+  
+  // Prevent infinite error loops
+  if (img.src.includes('ui-avatars.com')) {
+    // If even the fallback fails, use a data URL with initials
+    const initials = (displayName || handle || 'U').charAt(0).toUpperCase();
+    img.src = `data:image/svg+xml;base64,${btoa(`
+      <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
+        <rect width="128" height="128" fill="#6b7280"/>
+        <text x="64" y="80" text-anchor="middle" fill="white" font-size="48" font-family="Arial">${initials}</text>
+      </svg>
+    `)}`;
+  } else {
+    // Use UI-Avatars as fallback
+    img.src = createFallbackAvatar(displayName, handle);
+  }
+};
