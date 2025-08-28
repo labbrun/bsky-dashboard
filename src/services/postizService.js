@@ -3,11 +3,10 @@
 
 class PostizService {
   constructor() {
-    // Your specific Postiz installation
-    this.baseURL = 'https://postiz.dedsec.one';
-    this.publicAPIURL = 'https://postiz.dedsec.one/public/v1';
-    this.mcpURL = 'https://postiz.dedsec.one/api/mcp/dba3ffea31eb752494363c171eba10419237e46c484eadafd84b240d9bce53b6/sse';
-    this.apiKey = 'dba3ffea31eb752494363c171eba10419237e46c484eadafd84b240d9bce53b6'; // Your API key
+    // Use environment variables or fallback to your specific installation
+    this.baseURL = process.env.REACT_APP_POSTIZ_URL || 'https://postiz.dedsec.one';
+    this.publicAPIURL = process.env.REACT_APP_POSTIZ_URL ? `${process.env.REACT_APP_POSTIZ_URL}/public/v1` : 'https://postiz.dedsec.one/public/v1';
+    this.apiKey = process.env.REACT_APP_POSTIZ_API_KEY || 'dba3ffea31eb752494363c171eba10419237e46c484eadafd84b240d9bce53b6';
     this.rateLimitRemaining = 30; // Postiz allows 30 requests per hour
     this.rateLimitReset = null;
   }
@@ -257,9 +256,7 @@ class PostizService {
   generateOptimizedPost(content, options = {}) {
     const {
       maxLength = 300, // Bluesky character limit
-      includeHashtags = true,
-      includeMentions = false,
-      tone = 'professional'
+      includeHashtags = true
     } = options;
 
     let optimizedContent = content;
@@ -337,6 +334,82 @@ class PostizService {
     if (!content.match(/[.!?]/)) score -= 10; // No punctuation
 
     return Math.max(0, Math.min(100, score));
+  }
+
+  // Smart scheduling interface - tries API first, falls back to web interface
+  async openScheduleInterface(content, platform = 'bluesky', options = {}) {
+    try {
+      // Option 1: Try to get integrations and create post directly via API
+      const integrationsResult = await this.getIntegrations();
+      
+      if (integrationsResult.success && integrationsResult.hasBluesky) {
+        // Found Bluesky integration, try to create a draft post
+        const blueskyIntegration = integrationsResult.blueskyIntegrations[0];
+        
+        const postData = {
+          scheduleType: 'draft', // Create as draft so user can review/schedule
+          posts: [{
+            integrationId: blueskyIntegration.id,
+            content: content,
+            images: [],
+            settings: {}
+          }]
+        };
+        
+        console.log('Creating draft post via API:', postData);
+        const createResult = await this.schedulePost(postData);
+        
+        if (createResult.success) {
+          // Success! Open the launches page to show the created draft
+          window.open(`${this.baseURL}/launches`, '_blank');
+          
+          // Show success message
+          const message = `✅ Draft post created successfully!\n\nContent: "${content}"\n\nOpening Postiz to review and schedule...`;
+          alert(message);
+          return;
+        } else {
+          console.warn('API post creation failed, falling back to web interface:', createResult.error);
+        }
+      }
+      
+      // Option 2: Fallback to web interface with smart session handling
+      this.openWebInterface(content, platform);
+      
+    } catch (error) {
+      console.error('Error with smart scheduling:', error);
+      // Fallback to web interface
+      this.openWebInterface(content, platform);
+    }
+  }
+
+  // Open web interface (preserves session cookies)
+  openWebInterface(content, platform = 'bluesky') {
+    try {
+      const launchesUrl = `${this.baseURL}/launches`;
+      
+      // Copy content to clipboard for easy pasting
+      if (navigator.clipboard && content) {
+        navigator.clipboard.writeText(content).then(() => {
+          console.log('Content copied to clipboard for pasting');
+        }).catch(err => {
+          console.error('Failed to copy to clipboard:', err);
+        });
+      }
+      
+      // Open in new tab - this should work once pop-ups are allowed
+      console.log('Opening Postiz in new tab:', launchesUrl);
+      const newWindow = window.open(launchesUrl, '_blank', 'noopener,noreferrer');
+      
+      // Always show the helpful message since clipboard copying happens regardless
+      setTimeout(() => {
+        const message = `📋 Content copied to clipboard!\n\n"${content}"\n\nPaste it into Postiz when the page loads.`;
+        alert(message);
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error opening web interface:', error);
+      alert(`Please visit: ${this.baseURL}/launches\n\nContent to schedule: "${content}"`);
+    }
   }
 }
 

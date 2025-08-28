@@ -163,7 +163,7 @@ const processBlogContent = async (blogData, aiContext) => {
         return {
           ...post,
           analysis: { 
-            alignmentScore: Math.floor(Math.random() * 40) + 60, // Fallback score
+            alignmentScore: 75, // Default score when analysis fails
             error: error.message 
           },
           repurposing: { error: error.message }

@@ -115,12 +115,13 @@ function Performance({ metrics }) {
             setNewFollowers(recentFollowers);
             
             // Get top amplifiers (followers with high engagement)
+            // Note: Engagement and reach data would come from analyzing actual interactions
             const topAmplifiers = followersResponse.followers
               .slice(0, 3)
               .map(f => ({
                 handle: f.handle,
-                engagements: Math.floor(Math.random() * 50) + 20, // This would need real engagement data
-                reach: Math.floor(Math.random() * 15000) + 5000
+                engagements: f.followersCount || 0, // Use follower count as proxy for engagement potential
+                reach: f.followersCount * 3 || 0 // Estimated reach based on followers
               }));
             setTopAmplifiersData(topAmplifiers);
           }

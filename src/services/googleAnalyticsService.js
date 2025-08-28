@@ -1,7 +1,7 @@
 // Google Analytics Service
 // Integrates with Google Analytics 4 to fetch blog traffic data
 
-const GA_PROPERTY_ID = 'properties/358836912';
+const GA_PROPERTY_ID = 'properties/493502283';
 const GA_BASE_URL = 'https://analyticsdata.googleapis.com/v1beta';
 
 // Token Server Configuration

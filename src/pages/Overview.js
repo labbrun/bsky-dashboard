@@ -245,8 +245,8 @@ function Overview({ metrics }) {
         {[
           { 
             title: 'Net Followers', 
-            value: metrics ? `+${Math.floor(Math.random() * 50 + 10)}` : '+0', 
-            change: metrics ? `+${Math.floor(Math.random() * 50 + 10)}` : '+0', 
+            value: metrics ? `+${metrics.followersCount || 0}` : '+0', 
+            change: metrics ? `+${metrics.postsCount || 0}` : '+0', 
             icon: Users, 
             gradient: 'from-brand-500 to-electric-500',
             iconBg: 'bg-brand-50',

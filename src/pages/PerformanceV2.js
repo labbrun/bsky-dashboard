@@ -15,6 +15,7 @@ import {
 import TypingEffect from '../components/TypingEffect';
 import { getAuthorFeed, getFollowers } from '../services/blueskyService';
 import { getPerformanceAnalytics } from '../services/analyticsService';
+import postizService from '../services/postizService';
 import { 
   Card, 
   Badge, 
@@ -1549,6 +1550,19 @@ function PerformanceV2({ metrics }) {
                         }}
                       >
                         Copy Post
+                      </button>
+                      <button 
+                        className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors"
+                        onClick={async () => {
+                          try {
+                            await postizService.openScheduleInterface(suggestion.template, 'bluesky');
+                          } catch (error) {
+                            console.error('Schedule button error:', error);
+                            alert('Error scheduling post. Please check the console for details.');
+                          }
+                        }}
+                      >
+                        Schedule
                       </button>
                       <button 
                         className="bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors"

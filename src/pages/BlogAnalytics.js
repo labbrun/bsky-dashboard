@@ -370,9 +370,9 @@ function BlogAnalytics({ metrics }) {
         text: postText,
         hashtags: template.hashtags.split(' '),
         type: alignmentScore > 85 ? 'high-impact' : alignmentScore > 75 ? 'good-fit' : 'potential',
-        views: Math.floor((alignmentScore / 100) * 1200) + Math.floor(Math.random() * 300),
+        views: Math.floor((alignmentScore / 100) * 1200), // Based on alignment score only
         readTime: `${Math.floor(post.wordCount / 200) || 3} min read`,
-        engagement: Math.floor((alignmentScore / 100) * 75) + 15,
+        engagement: Math.floor((alignmentScore / 100) * 75) + 25, // Base engagement + alignment
         focus: template.focus,
         aiGenerated: true
       });

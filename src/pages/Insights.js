@@ -124,16 +124,16 @@ function Insights({ metrics }) {
                 avatar: follower.avatar || fullProfile.avatar,
                 followers: fullProfile.followersCount || 0,
                 posts: fullProfile.postsCount || 0,
-                engagement: `${(Math.random() * 5 + 3).toFixed(1)}%`,
-                reason: "Regularly engages with your content",
-                action: Math.random() > 0.66 ? "Reply" : Math.random() > 0.5 ? "Share" : "Comment",
-                potential: (fullProfile.followersCount || 0) > 1000 ? "High" : "Medium",
-                latestPost: "Recent post about technology and innovation in the space...",
-                postTime: `${Math.floor(Math.random() * 24) + 1}h ago`,
+                engagement: `${((fullProfile.followersCount || 0) / 1000 * 2 + 1).toFixed(1)}%`, // Estimated based on follower count
+                reason: "High-value follower for potential collaboration",
+                action: (fullProfile.followersCount || 0) > 5000 ? "Collaborate" : (fullProfile.followersCount || 0) > 1000 ? "Engage" : "Follow",
+                potential: (fullProfile.followersCount || 0) > 5000 ? "High" : (fullProfile.followersCount || 0) > 1000 ? "Medium" : "Low",
+                latestPost: fullProfile.description || "Profile information not available",
+                postTime: "Recently active",
                 postEngagement: {
-                  likes: Math.floor(Math.random() * 100) + 20,
-                  replies: Math.floor(Math.random() * 30) + 5,
-                  shares: Math.floor(Math.random() * 20) + 2
+                  likes: Math.floor((fullProfile.followersCount || 0) * 0.05), // Estimated 5% engagement
+                  replies: Math.floor((fullProfile.followersCount || 0) * 0.02), // Estimated 2% reply rate
+                  shares: Math.floor((fullProfile.followersCount || 0) * 0.01) // Estimated 1% share rate
                 }
               };
             } catch (profileError) {

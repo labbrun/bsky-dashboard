@@ -37,3 +37,4 @@ yarn-error.log*
 google-credentials.json
 *.env
 .env.local
+server/node_modules/
