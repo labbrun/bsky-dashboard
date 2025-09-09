@@ -19,9 +19,9 @@ const API_GUIDES = {
         key: 'handle',
         label: 'Bluesky Handle',
         type: 'text',
-        placeholder: 'your-username.bsky.social',
+        placeholder: 'your-username.bsky.social or yourname.com',
         required: true,
-        help: 'Your Bluesky username (without the @ symbol)'
+        help: 'Your Bluesky handle (supports custom domains like yourname.com or standard username.bsky.social)'
       },
       {
         key: 'appPassword',

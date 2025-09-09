@@ -66,9 +66,15 @@ export const validateBlueskyCredentials = async (handle, appPassword) => {
       return { valid: false, error: 'Handle and app password are required' };
     }
 
-    // Basic format validation
-    if (!handle.includes('.') || !handle.includes('bsky.social') && !handle.includes('bsky.app')) {
-      return { valid: false, error: 'Invalid handle format. Should be like: username.bsky.social' };
+    // Basic format validation - allow any domain (Bluesky supports custom domains)
+    if (!handle.includes('.')) {
+      return { valid: false, error: 'Invalid handle format. Should be like: username.bsky.social or username.yourdomain.com' };
+    }
+    
+    // Check for valid domain structure
+    const parts = handle.split('.');
+    if (parts.length < 2 || parts.some(part => part.length === 0)) {
+      return { valid: false, error: 'Invalid handle format. Should be like: username.bsky.social or username.yourdomain.com' };
     }
 
     if (appPassword.length < 16 || !appPassword.includes('-')) {
