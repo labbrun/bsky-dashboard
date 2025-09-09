@@ -1,6 +1,4 @@
 # Fallback Docker Compose configuration for build issues
-version: '3.8'
-
 services:
   bluesky-analytics:
     build:

@@ -5,8 +5,12 @@ A self-hosted analytics dashboard for your Bluesky social media account.
 ## 🚀 **One-Command Deploy**
 
 ```bash
-git clone https://github.com/yourusername/bluesky-analytics-dashboard.git
+git clone https://github.com/labbrun/bluesky-analytics-dashboard.git
 cd bluesky-analytics-dashboard
+
+# If you get permission denied, add user to docker group first:
+# sudo usermod -aG docker $USER && newgrp docker
+
 docker compose up -d
 ```
 
@@ -109,6 +113,20 @@ npm run check-docker
 
 ## 🚨 **Troubleshooting**
 
+### **Docker permission denied:**
+```bash
+# On Linux/Ubuntu - Add your user to docker group
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Or run with sudo (not recommended for production)
+sudo docker compose up -d
+
+# Verify Docker is running
+sudo systemctl status docker
+sudo systemctl start docker
+```
+
 ### **Port 3000 in use:**
 ```yaml
 ports:
@@ -160,19 +178,28 @@ curl -I http://localhost:3000
 
 ## 🏠 **Common Deployment Scenarios**
 
-### **Proxmox VM**
+### **Proxmox VM (Ubuntu/Debian)**
 ```bash
 # Create Ubuntu/Debian VM, then:
-sudo apt update && sudo apt install docker.io docker-compose-v2
-git clone https://github.com/yourusername/bluesky-analytics-dashboard.git
+sudo apt update && sudo apt install docker.io docker-compose-plugin
+
+# Add your user to docker group (avoid using sudo)
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Clone and deploy
+git clone https://github.com/labbrun/bluesky-analytics-dashboard.git
 cd bluesky-analytics-dashboard
-sudo docker compose up -d
+docker compose up -d
 ```
 
 ### **Home Server (Raspberry Pi, NUC, etc.)**
 ```bash
 # Install Docker Desktop or Docker Engine
-git clone https://github.com/yourusername/bluesky-analytics-dashboard.git
+# Add user to docker group if on Linux
+sudo usermod -aG docker $USER && newgrp docker
+
+git clone https://github.com/labbrun/bluesky-analytics-dashboard.git
 cd bluesky-analytics-dashboard
 docker compose up -d
 ```
