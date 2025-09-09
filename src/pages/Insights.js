@@ -43,55 +43,18 @@ function Insights({ metrics }) {
     setLoadingInsights(true);
     
     try {
-      // Generate comprehensive insights combining all categories
-      const [contentStrategy, audienceGrowth, engagement, trendAnalysis, postingOptimization] = await Promise.all([
-        insightsGenerator.generateMockInsights(metrics, INSIGHT_CATEGORIES.CONTENT_STRATEGY),
-        insightsGenerator.generateMockInsights(metrics, INSIGHT_CATEGORIES.AUDIENCE_GROWTH),
-        insightsGenerator.generateMockInsights(metrics, INSIGHT_CATEGORIES.ENGAGEMENT_OPTIMIZATION),
-        insightsGenerator.generateMockInsights(metrics, INSIGHT_CATEGORIES.TREND_ANALYSIS),
-        insightsGenerator.generateMockInsights(metrics, INSIGHT_CATEGORIES.POSTING_OPTIMIZATION)
-      ]);
+      // Check if AI insights are available
+      const contentStrategy = await insightsGenerator.generateInsights(metrics, INSIGHT_CATEGORIES.CONTENT_STRATEGY);
+      
+      if (!contentStrategy) {
+        // No AI API configured - set to null to show settings message
+        setAiInsights({ comprehensive: null });
+        return;
+      }
 
-      // Combine all insights into a comprehensive view
-      const combinedInsights = {
-        title: `AI Insights & Market Intelligence`,
-        insights: [
-          ...contentStrategy.insights,
-          ...audienceGrowth.insights,
-          ...engagement.insights,
-          ...trendAnalysis.insights,
-          ...postingOptimization.insights
-        ],
-        metrics: [
-          ...contentStrategy.metrics,
-          ...audienceGrowth.metrics,
-          ...engagement.metrics,
-          ...trendAnalysis.metrics,
-          ...postingOptimization.metrics
-        ],
-        trendingTopics: trendAnalysis.trendingTopics || [],
-        questions: trendAnalysis.questions || [],
-        painPoints: trendAnalysis.painPoints || []
-      };
-
-      setAiInsights({ comprehensive: combinedInsights });
     } catch (error) {
       console.error('Error generating insights:', error);
-      setAiInsights({
-        comprehensive: {
-          title: 'Insights Unavailable',
-          insights: [{
-            type: 'error',
-            title: 'Unable to generate insights',
-            description: 'Please try again later or check your data.',
-            actionable: false
-          }],
-          metrics: [],
-          trendingTopics: [],
-          questions: [],
-          painPoints: []
-        }
-      });
+      setAiInsights({ comprehensive: null });
     } finally {
       setLoadingInsights(false);
     }

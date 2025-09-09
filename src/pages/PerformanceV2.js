@@ -12,7 +12,6 @@ import {
   Users,
   Calendar
 } from 'lucide-react';
-import TypingEffect from '../components/TypingEffect';
 import { getAuthorFeed, getFollowers } from '../services/blueskyService';
 import { getPerformanceAnalytics } from '../services/analyticsService';
 import postizService from '../services/postizService';
@@ -32,8 +31,6 @@ function PerformanceV2({ metrics }) {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [expandedPosts, setExpandedPosts] = useState(new Set());
   const [expandedComments, setExpandedComments] = useState(new Set());
-  const [hasTyped, setHasTyped] = useState(false);
-  const [currentObservation, setCurrentObservation] = useState('');
   const [timeRange, setTimeRange] = useState('7'); // '7' for 7 days, '30' for 30 days
   const [newFollowers, setNewFollowers] = useState([]);
   const [topAmplifiers, setTopAmplifiers] = useState([]);
@@ -516,130 +513,33 @@ function PerformanceV2({ metrics }) {
       </div>
 
       {/* AI Performance Insights & Topic Analysis */}
-      <div 
-        className="relative rounded-2xl overflow-hidden"
-        style={{
-          backgroundImage: `url(${gradient1})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-white/10 rounded-xl">
-              <Sparkles size={24} className="text-warning-400" />
+      {/* AI Performance Insights - Not Available */}
+      <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-white/10 rounded-xl">
+            <Sparkles size={24} className="text-gray-400" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-2xl font-bold font-sans">
+                AI Performance Insights
+              </h2>
+              <Badge variant="secondary" size="sm">NOT CONFIGURED</Badge>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold font-sans">
-                  AI Performance Insights & Topic Analysis
-                </h2>
-                <Badge variant="warning" size="sm">LIVE</Badge>
-              </div>
-              
-              {/* AI Observation Section */}
-              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-                {hasTyped || !currentObservation ? (
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                    {currentObservation}
-                  </p>
-                ) : (
-                  <TypingEffect 
-                    text={currentObservation}
-                    speed={30}
-                    onComplete={() => setHasTyped(true)}
-                  />
-                )}
-              </div>
-              
-              {/* 3-Column Performance Insights Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">Top Format</span>
-                  </div>
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                    {analyticsData?.engagementByFormat[0]?.format || 'Text'} posts perform best ({analyticsData?.engagementByFormat[0]?.rate || 0}% engagement)
-                  </p>
-                </div>
-                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Target size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">Top Topic</span>
-                  </div>
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                    {analyticsData?.engagementByTopic[0]?.topic || 'General'} content drives {analyticsData?.engagementByTopic[0]?.rate || 0}% engagement rate
-                  </p>
-                </div>
-                <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap size={16} className="text-success-400" />
-                    <span className="text-success-400 font-semibold text-sm font-sans">Growth Opportunity</span>
-                  </div>
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                    {analyticsData?.summary.avgEngagement?.toFixed(1) || '0'} engagements per post across {analyticsData?.summary.totalPosts || 0} posts analyzed
-                  </p>
-                </div>
-              </div>
-
-              {/* 2-Column Topic Analysis Grid - Only show if data exists */}
-              {analyticsData?.aiTopicInsights && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Topic Targeting Accuracy */}
-                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Target size={16} className={analyticsData.aiTopicInsights.onTarget > 70 ? "text-success-400" : "text-warning-400"} />
-                      <span className={`font-semibold text-sm font-sans ${
-                        analyticsData.aiTopicInsights.onTarget > 70 ? 'text-success-400' : 'text-warning-400'
-                      }`}>
-                        Topic Targeting Accuracy
-                      </span>
-                    </div>
-                    <p className="text-3xl font-bold text-white mb-2 font-sans">
-                      {analyticsData.aiTopicInsights.onTarget}%
-                    </p>
-                    <p className="text-sm text-gray-300 font-sans mb-3">
-                      of your content aligns with target topics
-                    </p>
-                    
-                    {analyticsData.aiTopicInsights.offTarget.length > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-400 font-sans mb-2">Off-target content:</p>
-                        {analyticsData.aiTopicInsights.offTarget.slice(0, 2).map((post, idx) => (
-                          <div key={idx} className="bg-white/5 rounded-lg p-2 mb-2">
-                            <p className="text-xs text-gray-300 font-sans">
-                              {post.topic}: {post.text}
-                            </p>
-                            <p className="text-xs text-warning-400 font-sans">
-                              {post.engagement} interactions
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* AI Recommendations */}
-                  <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles size={16} className="text-success-400" />
-                      <span className="text-success-400 font-semibold text-sm font-sans">
-                        AI Recommendations
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      {analyticsData.aiTopicInsights.recommendations.map((rec, idx) => (
-                        <div key={idx} className="bg-white/5 rounded-lg p-3">
-                          <p className="text-sm text-gray-300 font-sans leading-relaxed">
-                            {rec}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+            
+            <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                AI performance insights require an AI service to be configured. Connect an AI API to get intelligent analysis of your content performance, topic recommendations, and engagement optimization.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/settings'}
+                className="flex items-center gap-2"
+              >
+                <Target size={16} />
+                Configure AI Service
+              </Button>
             </div>
           </div>
         </div>
@@ -1445,148 +1345,33 @@ function PerformanceV2({ metrics }) {
         </div>
       </div>
 
-      {/* AI-Powered Social Media Post Suggestions */}
+      {/* AI Content Suggestions - Not Available */}
       <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white/10 rounded-xl">
-            <Sparkles size={24} className="text-success-400" />
+            <Sparkles size={24} className="text-gray-400" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-6">
               <h2 className="text-2xl font-bold font-sans">
-                AI Social Media Post Suggestions
+                AI Content Suggestions
               </h2>
-              <Badge variant="success" size="sm">AI ENHANCED</Badge>
+              <Badge variant="secondary" size="sm">NOT CONFIGURED</Badge>
             </div>
             
-            {/* AI Analysis Summary */}
             <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-2">
-                Based on your performance data, trending topics, and target keywords (Privacy, Security, Self-Hosting, HomeLab, Small Business), 
-                here are optimized social media posts designed to attract your audience and boost engagement.
+              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                AI-powered content suggestions require an AI service to be configured. Connect an AI API to get personalized post recommendations, engagement optimization, and content strategy insights.
               </p>
-              <div className="flex gap-2 text-xs">
-                <span className="bg-success-900 text-success-200 px-2 py-1 rounded-full">High Engagement Format: {analyticsData?.engagementByFormat[0]?.format || 'Text'}</span>
-                <span className="bg-brand-900 text-brand-200 px-2 py-1 rounded-full">Top Topic: {analyticsData?.engagementByTopic[0]?.topic || 'General'}</span>
-              </div>
-            </div>
-
-            {/* 6 AI-Generated Post Suggestions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(() => {
-                const suggestions = [
-                  {
-                    focus: "HomeLab Security",
-                    template: "🔒 Setting up your first HomeLab? Security should be step one, not an afterthought.\n\nMost people skip VLANs, proper firewall rules, and fail2ban configs. Big mistake.\n\nHere's what I learned securing my setup...\n\n#HomeLab #Security #SelfHosting #NetworkSecurity #Privacy #TechSecurity",
-                    reasoning: "Combines your top-performing security content with HomeLab focus - high engagement potential",
-                    engagement_hook: "Security concerns + personal experience story"
-                  },
-                  {
-                    focus: "Small Business Privacy",
-                    template: "📊 Small businesses: your customer data is worth more than you think.\n\nGoogle Analytics tracks everything. Third-party tools sell insights. Your privacy = their profit.\n\nTime for a self-hosted alternative? Here's what works...\n\n#SmallBusiness #Privacy #SelfHosting #DataProtection #BusinessTech #GDPR",
-                    reasoning: "Targets small business pain point with privacy angle - your core expertise",
-                    engagement_hook: "Problem identification + solution tease"
-                  },
-                  {
-                    focus: "Self-Hosting ROI",
-                    template: "💰 Switched from SaaS to self-hosting last year.\n\nResult: 67% cost reduction, 100% data control, zero vendor lock-in.\n\nHere's the breakdown of what I'm running and real monthly savings...\n\n#SelfHosting #HomeLab #SmallBusiness #CostSavings #TechROI #Independence",
-                    reasoning: "Financial angle appeals to small business owners - quantified results drive engagement",
-                    engagement_hook: "Specific numbers + promise of detailed breakdown"
-                  },
-                  {
-                    focus: "Privacy Tools Comparison",
-                    template: "🛡️ Tested 12 privacy-focused alternatives to Big Tech tools.\n\nWinners: Nextcloud (Google Drive), Bitwarden (passwords), Signal (messaging).\n\nLosers: Anything requiring 20+ config steps for basic functionality.\n\nFull comparison thread below 👇\n\n#Privacy #SelfHosting #TechReviews #DataProtection #OpenSource #DigitalPrivacy",
-                    reasoning: "List format performs well + establishes authority through testing multiple solutions",
-                    engagement_hook: "Comprehensive comparison + thread promise"
-                  },
-                  {
-                    focus: "HomeLab Mistakes",
-                    template: "⚠️ 5 HomeLab mistakes that cost me $2,000+ and countless hours:\n\n1. Buying enterprise gear first (overkill + power hungry)\n2. Skipping backups (learned the hard way)\n3. No monitoring (outages went unnoticed for days)\n4. Single point of failure (one router crash = everything down)\n5. Ignoring power consumption (electricity bill shock)\n\nWhat would you add to this list?\n\n#HomeLab #TechMistakes #LessonsLearned #SelfHosting #InfrastructureDesign",
-                    reasoning: "Mistake-based content gets high engagement + numbered list format performs well",
-                    engagement_hook: "Financial loss + relatable mistakes + community question"
-                  },
-                  {
-                    focus: "Security Automation",
-                    template: "🤖 Automated 90% of my HomeLab security monitoring.\n\nNo more manual log checks. No more missed intrusions. No more 3am alerts for false positives.\n\nStack: Fail2ban + Grafana + Prometheus + custom scripts.\n\nWant the setup guide?\n\n#Automation #Security #HomeLab #Monitoring #DevOps #SelfHosting",
-                    reasoning: "Automation appeals to efficiency-minded audience + specific tech stack shows expertise",
-                    engagement_hook: "Impressive automation percentage + tech stack credibility"
-                  }
-                ];
-
-                return suggestions.map((suggestion, index) => (
-                  <div key={index} className="bg-primary-850 rounded-xl p-4 border border-gray-600 hover:bg-primary-800 transition-colors">
-                    {/* Header */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-2 h-2 bg-success-400 rounded-full"></div>
-                      <span className="text-success-400 font-semibold text-sm font-sans">{suggestion.focus}</span>
-                    </div>
-                    
-                    {/* Post Content */}
-                    <div className="mb-4 p-3 rounded-lg bg-primary-800 border border-gray-600">
-                      <p className="text-sm text-gray-200 font-sans leading-relaxed whitespace-pre-line">
-                        {suggestion.template}
-                      </p>
-                    </div>
-                    
-                    {/* AI Reasoning */}
-                    <div className="mb-3">
-                      <p className="text-xs text-gray-400 font-sans mb-1">AI Analysis:</p>
-                      <p className="text-xs text-gray-300 font-sans leading-relaxed">{suggestion.reasoning}</p>
-                    </div>
-                    
-                    {/* Engagement Hook */}
-                    <div className="mb-4">
-                      <p className="text-xs text-warning-400 font-sans mb-1">Engagement Hook:</p>
-                      <p className="text-xs text-warning-300 font-sans">{suggestion.engagement_hook}</p>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <button 
-                        className="flex-1 bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors"
-                        onClick={() => {
-                          navigator.clipboard.writeText(suggestion.template);
-                          // You could add a toast notification here
-                        }}
-                      >
-                        Copy Post
-                      </button>
-                      <button 
-                        className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors"
-                        onClick={async () => {
-                          try {
-                            await postizService.openScheduleInterface(suggestion.template, 'bluesky');
-                          } catch (error) {
-                            console.error('Schedule button error:', error);
-                            alert('Error scheduling post. Please check the console for details.');
-                          }
-                        }}
-                      >
-                        Schedule
-                      </button>
-                      <button 
-                        className="bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors"
-                        onClick={() => window.open(`https://bsky.app/intent/compose?text=${encodeURIComponent(suggestion.template)}`, '_blank')}
-                      >
-                        Share on Bluesky
-                      </button>
-                    </div>
-                  </div>
-                ));
-              })()}
-            </div>
-
-            {/* Performance Prediction */}
-            <div className="mt-6 p-4 rounded-xl bg-success-900/20 border border-success-600">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp size={16} className="text-success-400" />
-                <span className="text-success-400 font-semibold text-sm font-sans">Performance Prediction</span>
-              </div>
-              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                Based on your {analyticsData?.engagementByFormat[0]?.format || 'Text'} format success rate ({analyticsData?.engagementByFormat[0]?.rate || 0}%) 
-                and {analyticsData?.engagementByTopic[0]?.topic || 'General'} topic performance, 
-                these posts are predicted to achieve 15-25% higher engagement than your current average.
-              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/settings'}
+                className="flex items-center gap-2"
+              >
+                <Target size={16} />
+                Configure AI Service
+              </Button>
             </div>
           </div>
         </div>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
-import TypingEffect from '../components/TypingEffect';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage, getPreviousMetrics, storePreviousMetrics } from '../utils/celebrationUtils';
 import { 
   TrendingUp, 
@@ -45,8 +44,6 @@ function OverviewV2({ metrics }) {
   const [showCelebration, setShowCelebration] = React.useState(false);
   const [celebrationMessage, setCelebrationMessage] = React.useState('');
   const [timeRange, setTimeRange] = React.useState('7'); // '7' for 7 days, '30' for 30 days
-  const [hasTyped, setHasTyped] = React.useState(false);
-  const [currentObservation, setCurrentObservation] = React.useState('');
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -67,29 +64,6 @@ function OverviewV2({ metrics }) {
     }
   }, [metrics]);
   
-  // Generate AI observations based on real data and time range
-  const getAIObservation = React.useMemo(() => {
-    if (!metrics) return '';
-    
-    const postsWithImages = metrics.recentPosts?.filter(p => p.images?.length > 0).length || 0;
-    const totalPosts = metrics.recentPosts?.length || 0;
-    const avgEngagement = totalPosts > 0 ? ((metrics.totalLikes + metrics.totalReplies + metrics.totalReposts) / totalPosts).toFixed(1) : 0;
-    const techPosts = metrics.recentPosts?.filter(p => p.text?.toLowerCase().includes('tech') || p.text?.toLowerCase().includes('ai')).length || 0;
-    
-    if (timeRange === '7') {
-      return `Based on your last 7 days of activity, you're doing well with visual content—${postsWithImages} out of ${totalPosts} posts include images, which typically drive higher engagement. Your average of ${avgEngagement} engagements per post shows solid audience connection. Consider posting more consistently during weekday afternoons when your tech-focused audience is most active. Your ${techPosts} tech-related posts are performing well, so doubling down on AI and development content could boost your reach further.`;
-    } else {
-      return `Over the past 30 days, your content strategy shows strong technical focus with ${techPosts} tech-related posts resonating well with your audience. Your ${metrics.followersCount} followers are highly engaged, giving you an average of ${avgEngagement} interactions per post. The ${postsWithImages}/${totalPosts} posts with images demonstrate good visual content habits. For the next month, consider increasing your posting frequency to 2-3x per week and experiment with more behind-the-scenes development content—your audience clearly values your technical insights and would likely engage with more personal takes on your homelab and privacy-focused projects.`;
-    }
-  }, [metrics, timeRange]);
-  
-  // Update observation when time range changes
-  React.useEffect(() => {
-    if (metrics) {
-      const newObservation = getAIObservation;
-      setCurrentObservation(newObservation);
-    }
-  }, [metrics, timeRange, getAIObservation]);
 
 
   // Real data based on metrics and time range
@@ -368,57 +342,33 @@ function OverviewV2({ metrics }) {
         </div>
       </div>
 
-      {/* AI Insights Section */}
+      {/* AI Insights Section - Not Available */}
       <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white/10 rounded-xl">
-            <Sparkles size={24} className="text-warning-400" />
+            <AlertCircle size={24} className="text-gray-400" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-6">
               <h2 className="text-2xl font-bold font-sans">
-                AI Overview Insights
+                AI Insights
               </h2>
-              <Badge variant="warning" size="sm">LIVE</Badge>
+              <Badge variant="secondary" size="sm">NOT CONFIGURED</Badge>
             </div>
             
-            {/* AI Observation Section */}
             <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-              {hasTyped || !currentObservation ? (
-                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {currentObservation}
-                </p>
-              ) : (
-                <TypingEffect 
-                  text={currentObservation}
-                  speed={30}
-                  onComplete={() => setHasTyped(true)}
-                />
-              )}
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm font-sans">Performance</span>
-                </div>
-                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Posts with images get more engagement ({metrics?.recentPosts?.filter(p => p.images?.length > 0).length || 0}/{metrics?.recentPosts?.length || 0} have images)</p>
-              </div>
-              <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm font-sans">Timing</span>
-                </div>
-                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Your avg {((metrics?.totalLikes + metrics?.totalReplies + metrics?.totalReposts) / (metrics?.recentPosts?.length || 1)).toFixed(1)} engagements per post</p>
-              </div>
-              <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm font-sans">Content</span>
-                </div>
-                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">Tech topics appear in {metrics?.recentPosts?.filter(p => p.text?.toLowerCase().includes('tech') || p.text?.toLowerCase().includes('ai')).length || 0} of your recent posts</p>
-              </div>
+              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                AI insights require an AI service to be configured. Connect an AI API to get intelligent analysis of your social media performance.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/settings'}
+                className="flex items-center gap-2"
+              >
+                <Target size={16} />
+                Configure AI Service
+              </Button>
             </div>
           </div>
         </div>
