@@ -111,6 +111,22 @@ function App() {
     }
   }, [isLoggedIn, fetchData]);
 
+  // Update browser tab title with username
+  useEffect(() => {
+    if (metrics && metrics.displayName) {
+      document.title = `${metrics.displayName} Dashboard`;
+    } else if (FIXED_HANDLE) {
+      document.title = `@${FIXED_HANDLE} Dashboard`;
+    } else {
+      document.title = 'Bluesky Analytics Dashboard';
+    }
+    
+    // Cleanup function to reset title when component unmounts
+    return () => {
+      document.title = 'Bluesky Analytics Dashboard';
+    };
+  }, [metrics, FIXED_HANDLE]);
+
   const handleFirstRunSetup = (e) => {
     e?.preventDefault();
     
