@@ -58,42 +58,7 @@ function BlogAnalytics({ metrics }) {
   const [completedSuggestions, setCompletedSuggestions] = useState(new Set());
   const [suggestionRefreshKey, setSuggestionRefreshKey] = useState(0);
 
-  // Check if required services are configured
-  const blogConfigured = isServiceConfigured('blog');
-  const googleConfigured = isServiceConfigured('google');
-  const missingFeatures = [];
-  
-  if (!blogConfigured) missingFeatures.push('blog');
-  if (!googleConfigured) missingFeatures.push('google');
-
-  // If no services are configured, show feature unavailable message
-  if (!blogConfigured && !googleConfigured) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <FileText className="w-6 h-6 text-brand-500" />
-          <h1 className="text-2xl font-bold text-white">Blog Analytics</h1>
-        </div>
-        
-        <div className="bg-primary-900 rounded-lg border border-gray-800">
-          <div className="p-6">
-            <FeatureRequirements features={['blog', 'google']} />
-            <div className="mt-6 text-center">
-              <Button
-                onClick={() => window.location.href = '/settings'}
-                variant="primary"
-                size="lg"
-              >
-                Configure Blog Analytics
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Fast fallback data function
+  // Fast fallback data function - MOVED TO TOP
   const getFallbackBlogAnalytics = useCallback(() => ({
     overview: {
       totalPosts: 15,
@@ -283,6 +248,41 @@ function BlogAnalytics({ metrics }) {
     loadBlogAnalytics(); // This loads instantly with fallback data
     loadGoogleAnalytics(); // Load GA data in parallel (no delay needed)
   }, [loadBlogAnalytics, loadGoogleAnalytics]);
+
+  // Check if required services are configured - MOVED AFTER ALL HOOKS
+  const blogConfigured = isServiceConfigured('blog');
+  const googleConfigured = isServiceConfigured('google');
+  const missingFeatures = [];
+  
+  if (!blogConfigured) missingFeatures.push('blog');
+  if (!googleConfigured) missingFeatures.push('google');
+
+  // If no services are configured, show feature unavailable message
+  if (!blogConfigured && !googleConfigured) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <FileText className="w-6 h-6 text-brand-500" />
+          <h1 className="text-2xl font-bold text-white">Blog Analytics</h1>
+        </div>
+        
+        <div className="bg-primary-900 rounded-lg border border-gray-800">
+          <div className="p-6">
+            <FeatureRequirements features={['blog', 'google']} />
+            <div className="mt-6 text-center">
+              <Button
+                onClick={() => window.location.href = '/settings'}
+                variant="primary"
+                size="lg"
+              >
+                Configure Blog Analytics
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // AI-Enhanced Social Media Suggestions Generator
   const generateSocialSuggestions = (posts, count = 6) => {

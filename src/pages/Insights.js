@@ -31,29 +31,7 @@ function Insights({ metrics }) {
   const [, setLoadingInsights] = useState(false);
   const [customerSegment] = useState('tech-entrepreneur');
 
-  // Check if AI service is configured
-  const aiConfigured = isServiceConfigured('ai');
-
-  // If AI is not configured, show feature unavailable message
-  if (!aiConfigured) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Lightbulb className="w-6 h-6 text-brand-500" />
-          <h1 className="text-2xl font-bold text-white">AI Insights</h1>
-        </div>
-        
-        <div className="bg-primary-900 rounded-lg border border-gray-800">
-          <FeatureUnavailable 
-            feature="ai" 
-            showSetupButton={true}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Initialize AI insights generator
+  // Initialize AI insights generator - MOVED BEFORE CONDITIONAL LOGIC
   useEffect(() => {
     const generator = new AIInsightsGenerator(customerSegment);
     setInsightsGenerator(generator);
@@ -192,6 +170,27 @@ function Insights({ metrics }) {
     fetchAmplifiers();
   }, [metrics]);
 
+  // Check if AI service is configured - MOVED AFTER ALL HOOKS
+  const aiConfigured = isServiceConfigured('ai');
+
+  // If AI is not configured, show feature unavailable message
+  if (!aiConfigured) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Lightbulb className="w-6 h-6 text-brand-500" />
+          <h1 className="text-2xl font-bold text-white">AI Insights</h1>
+        </div>
+        
+        <div className="bg-primary-900 rounded-lg border border-gray-800">
+          <FeatureUnavailable 
+            feature="ai" 
+            showSetupButton={true}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Content and product ideas data
   const contentIdeas = [

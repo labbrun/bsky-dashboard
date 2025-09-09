@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AlertCircle, RefreshCw, TrendingUp, FileText, Settings } from 'lucide-react';
+import { AlertCircle, RefreshCw, TrendingUp, FileText, Settings as SettingsIcon } from 'lucide-react';
 
 // Import Untitled UI styles
 import './styles/untitled-ui-variables.css';
@@ -224,7 +224,7 @@ function App() {
                 onClick={() => window.location.href = '/settings'}
                 variant="secondary"
                 size="lg"
-                icon={<Settings size={16} />}
+                icon={<SettingsIcon size={16} />}
               >
                 Configure Settings
               </Button>

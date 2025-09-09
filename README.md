@@ -117,8 +117,25 @@ ports:
 
 ### **Build fails:**
 ```bash
+# Try rebuilding from scratch
 docker compose build --no-cache
 docker compose up -d
+
+# If still failing, use fallback configuration
+docker compose -f docker-compose.fallback.yml up -d
+```
+
+### **Compilation errors:**
+```bash
+# If you see "Failed to compile. Syntax error"
+# This is usually due to React build issues
+
+# Quick fix - use simple build:
+docker compose -f docker-compose.fallback.yml up --build -d
+
+# Clean build (removes all cache):
+docker system prune -a
+docker compose up --build -d
 ```
 
 ### **Can't access dashboard:**

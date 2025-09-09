@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, Shield } from 'lucide-react';
 import { Card, Button } from '../components/ui/UntitledUIComponents';
 import { APP_CONFIG } from '../config/app.config';
 import { 
@@ -413,7 +413,7 @@ const Settings = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Settings className="w-6 h-6 text-brand-500" />
+          <SettingsIcon className="w-6 h-6 text-brand-500" />
           <h1 className="text-2xl font-bold text-white">API Settings</h1>
         </div>
         <Button

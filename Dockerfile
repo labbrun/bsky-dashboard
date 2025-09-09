@@ -1,10 +1,10 @@
-# Production-ready Dockerfile - Works on all systems
-FROM node:18-alpine
+# Multi-stage Docker build for production
+FROM node:18-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies (handles Python issues)
+# Install system dependencies required for node-gyp
 RUN apk add --no-cache \
     git \
     python3 \
@@ -12,40 +12,50 @@ RUN apk add --no-cache \
     g++ \
     curl
 
-# Copy package files
+# Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies with comprehensive fallbacks
-RUN npm install --production --legacy-peer-deps --no-optional || \
-    npm install --production --force || \
-    (echo "Fallback install..." && npm install --legacy-peer-deps)
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
 
+# Set environment for production build
+ENV NODE_ENV=production
+ENV GENERATE_SOURCEMAP=false
+ENV CI=false
+
 # Build the React application
-RUN npm run build || npm run build --legacy-peer-deps
+RUN npm run build
 
-# Install serve globally
-RUN npm install -g serve
+# Production stage
+FROM node:18-alpine AS production
 
-# Remove source files to reduce image size
-RUN rm -rf src public node_modules/.cache
+# Install serve and curl for health checks
+RUN apk add --no-cache curl && \
+    npm install -g serve@14
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
+# Create app directory
+WORKDIR /app
 
-# Change ownership of app directory
-RUN chown -R nextjs:nodejs /app
-USER nextjs
+# Copy built application from builder stage
+COPY --from=builder /app/build ./build
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -S appuser -u 1001 -G appgroup
+
+# Set ownership
+RUN chown -R appuser:appgroup /app
+USER appuser
 
 # Expose port
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:3000/ || exit 1
 
 # Start the application
-CMD ["serve", "-s", "build", "-l", "3000", "--no-clipboard"]
+CMD ["serve", "-s", "build", "-l", "3000", "--no-clipboard", "--single"]
