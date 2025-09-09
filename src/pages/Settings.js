@@ -403,11 +403,11 @@ const Settings = () => {
 
   const renderSetupGuide = (guide) => (
     <div className="mt-4 p-4 bg-primary-850 rounded-lg border border-gray-700">
-      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+      <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
         <HelpCircle className="w-4 h-4" />
         {guide.title}
       </h4>
-      <ol className="text-sm text-gray-700 space-y-1 mb-3">
+      <ol className="text-sm text-gray-300 space-y-1 mb-3">
         {guide.steps.map((step, idx) => (
           <li key={idx} className="flex">
             <span className="text-brand-400 mr-2">{idx + 1}.</span>
@@ -416,7 +416,7 @@ const Settings = () => {
         ))}
       </ol>
       {guide.note && (
-        <p className="text-sm text-gray-400 italic mb-3">{guide.note}</p>
+        <p className="text-sm text-gray-300 italic mb-3">{guide.note}</p>
       )}
       {guide.links && (
         <div className="flex flex-wrap gap-2">
@@ -465,8 +465,8 @@ const Settings = () => {
       </div>
 
       <div className="bg-primary-850 rounded-lg p-4 border border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">📋 Configuration Guide</h3>
-        <p className="text-gray-700 text-sm">
+        <h3 className="text-lg font-semibold text-white mb-2">📋 Configuration Guide</h3>
+        <p className="text-gray-300 text-sm">
           Configure the APIs you want to use below. All integrations are optional - the dashboard works with just your Bluesky credentials.
           Click on each section to expand setup instructions.
         </p>
