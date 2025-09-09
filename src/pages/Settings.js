@@ -46,6 +46,44 @@ const API_GUIDES = {
       linkText: 'Open Bluesky Settings'
     }
   },
+
+  database: {
+    title: 'Database (Supabase)',
+    description: 'Connect a database for historical data storage and settings persistence',
+    fields: [
+      {
+        key: 'supabaseUrl',
+        label: 'Supabase URL',
+        type: 'text',
+        placeholder: 'https://your-project.supabase.co',
+        required: false,
+        help: 'Your Supabase project URL'
+      },
+      {
+        key: 'supabaseAnonKey',
+        label: 'Supabase Anon Key',
+        type: 'password',
+        placeholder: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        required: false,
+        help: 'Your Supabase anonymous (public) key'
+      }
+    ],
+    setupGuide: {
+      title: 'How to set up Supabase database:',
+      steps: [
+        'Go to supabase.com and create a free account',
+        'Create a new project',
+        'Go to Settings → API',
+        'Copy your "Project URL"',
+        'Copy your "anon public" key',
+        'Paste both values in the form above',
+        'Save settings to enable database features'
+      ],
+      link: 'https://supabase.com/dashboard',
+      linkText: 'Open Supabase Dashboard',
+      note: 'Database is optional - app works locally without it, but you\'ll lose historical data on refresh'
+    }
+  },
   
   ai: {
     title: 'AI API',

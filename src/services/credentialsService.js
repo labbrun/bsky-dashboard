@@ -59,6 +59,49 @@ export const isServiceConfigured = (service) => {
   }
 };
 
+// Validate database credentials
+export const validateDatabaseCredentials = async (supabaseUrl, supabaseAnonKey) => {
+  try {
+    if (!supabaseUrl && !supabaseAnonKey) {
+      return { valid: true, warning: 'Database not configured - running in local-only mode' };
+    }
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return { valid: false, error: 'Both Supabase URL and Anon Key are required' };
+    }
+
+    // Basic format validation
+    if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
+      return { valid: false, error: 'Invalid Supabase URL format. Should be like: https://your-project.supabase.co' };
+    }
+
+    if (supabaseAnonKey.length < 100 || !supabaseAnonKey.startsWith('eyJ')) {
+      return { valid: false, error: 'Invalid Supabase Anon Key format. Should be a JWT token starting with "eyJ"' };
+    }
+
+    // Test actual connection (basic ping)
+    try {
+      const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`
+        }
+      });
+      
+      if (!response.ok) {
+        return { valid: false, error: 'Cannot connect to Supabase. Check your URL and key.' };
+      }
+      
+      return { valid: true };
+    } catch (fetchError) {
+      return { valid: false, error: 'Network error connecting to Supabase' };
+    }
+    
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+};
+
 // Validate Bluesky credentials
 export const validateBlueskyCredentials = async (handle, appPassword) => {
   try {
@@ -274,6 +317,9 @@ export const validateServiceCredentials = async (service, credentials) => {
   switch (service) {
     case 'bluesky':
       return validateBlueskyCredentials(credentials.handle, credentials.appPassword);
+    
+    case 'database':
+      return validateDatabaseCredentials(credentials.supabaseUrl, credentials.supabaseAnonKey);
     
     case 'ai':
       return validateAICredentials(credentials.provider, credentials.apiKey, credentials.baseUrl);
