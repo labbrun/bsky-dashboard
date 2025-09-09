@@ -27,7 +27,7 @@ import {
 } from '../components/ui/UntitledUIComponents';
 
 // Import mesh gradients for backgrounds
-import gradient2 from '../assets/untitled-ui/Additional assets/Mesh gradients/15.jpg';
+import gradient2 from '../assets/gradients/15.jpg';
 
 // Brand chart colors - using your custom palette
 const CHART_COLORS = {

@@ -31,7 +31,6 @@ import FeatureUnavailable, { DisabledSection, FeatureRequirements } from '../com
 import { isServiceConfigured } from '../services/credentialsService';
 
 // Import mesh gradients for backgrounds (unused but kept for future use)
-// import gradient2 from '../assets/untitled-ui/Additional assets/Mesh gradients/15.jpg';
 
 // Brand chart colors - using your custom palette
 const CHART_COLORS = {

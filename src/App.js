@@ -127,11 +127,21 @@ function App() {
     };
   }, [metrics, FIXED_HANDLE]);
 
-  const handleFirstRunSetup = (e) => {
+  // Simple password hashing function (SHA-256)
+  const hashPassword = async (password) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  };
+
+  const handleFirstRunSetup = async (e) => {
     e?.preventDefault();
     
-    if (!password || password.length < 6) {
-      alert('Password must be at least 6 characters long');
+    if (!password || password.length < 8) {
+      alert('Password must be at least 8 characters long for security');
       return;
     }
     
@@ -140,8 +150,9 @@ function App() {
       return;
     }
     
-    // Save the password and mark setup as complete
-    localStorage.setItem('bluesky-analytics-password', password);
+    // Hash and save the password
+    const hashedPassword = await hashPassword(password);
+    localStorage.setItem('bluesky-analytics-password', hashedPassword);
     setIsFirstRun(false);
     setIsLoggedIn(true);
     localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
@@ -149,11 +160,19 @@ function App() {
     setConfirmPassword('');
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e?.preventDefault();
-    const storedPassword = localStorage.getItem('bluesky-analytics-password') || APP_CONFIG.auth.password;
+    const storedPassword = localStorage.getItem('bluesky-analytics-password');
+    const envPassword = APP_CONFIG.auth.password;
     
-    if (password === storedPassword) {
+    // Hash the entered password
+    const enteredPasswordHash = await hashPassword(password);
+    
+    // Check against stored hash or environment password
+    const isValidPassword = (storedPassword && enteredPasswordHash === storedPassword) || 
+                           (envPassword && password === envPassword);
+    
+    if (isValidPassword) {
       setIsLoggedIn(true);
       localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
       setPassword('');
@@ -219,9 +238,9 @@ function App() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter a secure password (min 6 characters)"
+                  placeholder="Enter a secure password (min 8 characters)"
                   required
-                  minLength="6"
+                  minLength="8"
                   className="untitled-input w-full"
                 />
               </div>
@@ -237,7 +256,7 @@ function App() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
                   required
-                  minLength="6"
+                  minLength="8"
                   className="untitled-input w-full"
                 />
               </div>

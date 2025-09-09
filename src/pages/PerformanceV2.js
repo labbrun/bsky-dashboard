@@ -24,7 +24,7 @@ import {
 } from '../components/ui/UntitledUIComponents';
 
 // Import mesh gradients for backgrounds
-import gradient1 from '../assets/untitled-ui/Additional assets/Mesh gradients/11.jpg';
+import gradient1 from '../assets/gradients/11.jpg';
 
 
 function PerformanceV2({ metrics }) {

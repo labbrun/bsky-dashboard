@@ -47,7 +47,8 @@ export const APP_CONFIG = {
   // Authentication
   auth: {
     storageKey: 'bluesky-analytics-logged-in',
-    password: process.env.REACT_APP_AUTH_PASSWORD || 'change-me-please',
+    // No fallback password - must be set via environment or user setup
+    password: process.env.REACT_APP_AUTH_PASSWORD || null,
   },
   
   // UI Configuration
