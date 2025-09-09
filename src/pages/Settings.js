@@ -365,11 +365,11 @@ const Settings = () => {
 
   const renderSetupGuide = (guide) => (
     <div className="mt-4 p-4 bg-primary-850 rounded-lg border border-gray-700">
-      <h4 className="font-semibold text-gray-100 mb-3 flex items-center gap-2">
+      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
         <HelpCircle className="w-4 h-4" />
         {guide.title}
       </h4>
-      <ol className="text-sm text-gray-300 space-y-1 mb-3">
+      <ol className="text-sm text-gray-700 space-y-1 mb-3">
         {guide.steps.map((step, idx) => (
           <li key={idx} className="flex">
             <span className="text-brand-400 mr-2">{idx + 1}.</span>
@@ -409,12 +409,12 @@ const Settings = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <SettingsIcon className="w-6 h-6 text-brand-500" />
-          <h1 className="text-2xl font-bold text-gray-100">API Settings</h1>
+          <h1 className="text-2xl font-bold text-gray-900">API Settings</h1>
         </div>
         <Button
           onClick={saveSettings}
@@ -427,8 +427,8 @@ const Settings = () => {
       </div>
 
       <div className="bg-primary-850 rounded-lg p-4 border border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-100 mb-2">📋 Configuration Guide</h3>
-        <p className="text-gray-300 text-sm">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">📋 Configuration Guide</h3>
+        <p className="text-gray-700 text-sm">
           Configure the APIs you want to use below. All integrations are optional - the dashboard works with just your Bluesky credentials.
           Click on each section to expand setup instructions.
         </p>
@@ -449,7 +449,7 @@ const Settings = () => {
                 onClick={() => setExpandedSection(isExpanded ? null : section)}
               >
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold text-gray-100">{guide.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{guide.title}</h3>
                   {renderValidationIcon(section)}
                   {hasSettings && !renderValidationIcon(section) && (
                     <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
@@ -474,7 +474,7 @@ const Settings = () => {
                 </div>
               </div>
               
-              <p className="text-gray-400 text-sm mt-2">{guide.description}</p>
+              <p className="text-gray-600 text-sm mt-2">{guide.description}</p>
 
               {/* Section Content */}
               {isExpanded && (
@@ -501,7 +501,7 @@ const Settings = () => {
                       
                       return (
                         <div key={field.key} className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-200">
+                          <label className="block text-sm font-medium text-gray-900">
                             {field.label}
                             {field.required && <span className="text-error-500 ml-1">*</span>}
                           </label>
@@ -541,7 +541,7 @@ const Settings = () => {
                           )}
                           
                           {field.help && (
-                            <p className="text-xs text-gray-400">{field.help}</p>
+                            <p className="text-xs text-gray-600">{field.help}</p>
                           )}
                         </div>
                       );
@@ -560,7 +560,7 @@ const Settings = () => {
       {/* Warning about dummy data */}
       <div className="bg-warning-900/20 border border-warning-600/30 rounded-lg p-4">
         <h3 className="font-semibold text-warning-400 mb-2">⚠️ No Dummy Data Policy</h3>
-        <p className="text-warning-300 text-sm">
+        <p className="text-gray-700 text-sm">
           This dashboard only displays real data from your configured APIs. If a feature shows "No data available" or similar messages, 
           it means the required API credentials are not configured. Follow the setup guides above to enable each feature.
         </p>
