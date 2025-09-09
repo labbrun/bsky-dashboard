@@ -365,7 +365,7 @@ const Settings = () => {
 
   const renderSetupGuide = (guide) => (
     <div className="mt-4 p-4 bg-primary-850 rounded-lg border border-gray-700">
-      <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+      <h4 className="font-semibold text-gray-100 mb-3 flex items-center gap-2">
         <HelpCircle className="w-4 h-4" />
         {guide.title}
       </h4>
@@ -409,12 +409,12 @@ const Settings = () => {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-gray-900 p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <SettingsIcon className="w-6 h-6 text-brand-500" />
-          <h1 className="text-2xl font-bold text-white">API Settings</h1>
+          <h1 className="text-2xl font-bold text-gray-100">API Settings</h1>
         </div>
         <Button
           onClick={saveSettings}
@@ -427,7 +427,7 @@ const Settings = () => {
       </div>
 
       <div className="bg-primary-850 rounded-lg p-4 border border-gray-700">
-        <h3 className="text-lg font-semibold text-white mb-2">📋 Configuration Guide</h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-2">📋 Configuration Guide</h3>
         <p className="text-gray-300 text-sm">
           Configure the APIs you want to use below. All integrations are optional - the dashboard works with just your Bluesky credentials.
           Click on each section to expand setup instructions.
@@ -449,7 +449,7 @@ const Settings = () => {
                 onClick={() => setExpandedSection(isExpanded ? null : section)}
               >
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold text-white">{guide.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-100">{guide.title}</h3>
                   {renderValidationIcon(section)}
                   {hasSettings && !renderValidationIcon(section) && (
                     <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
@@ -501,7 +501,7 @@ const Settings = () => {
                       
                       return (
                         <div key={field.key} className="space-y-2">
-                          <label className="block text-sm font-medium text-white">
+                          <label className="block text-sm font-medium text-gray-200">
                             {field.label}
                             {field.required && <span className="text-error-500 ml-1">*</span>}
                           </label>
