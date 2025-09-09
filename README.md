@@ -1,70 +1,144 @@
-# Getting Started with Create React App
+# 🦋 Bluesky Analytics Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A self-hosted analytics dashboard for your Bluesky social media account.
 
-## Available Scripts
+## 🚀 **One-Command Deploy**
 
-In the project directory, you can run:
+```bash
+git clone <this-repository>
+cd bluesky-analytics-dashboard
+docker compose up -d
+```
 
-### `npm start`
+**That's it!** Dashboard runs at http://localhost:3000
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Default login:** Password `demo123`
+- **Demo account:** `demo.bsky.social`
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## ⚙️ **Quick Customization**
 
-### `npm test`
+Edit `docker-compose.yml` before running:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```yaml
+environment:
+  - REACT_APP_BLUESKY_HANDLE=your-handle.bsky.social  # Your Bluesky handle
+  - REACT_APP_AUTH_PASSWORD=your-secure-password       # Dashboard password
+  - REACT_APP_NAME=My Analytics Dashboard              # Dashboard title
+```
 
-### `npm run build`
+Then run:
+```bash
+docker compose up --build -d
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🎯 **Features**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- ✅ **Real Bluesky data** - Your actual posts, followers, engagement
+- ✅ **Admin settings** - Configure APIs through web interface
+- ✅ **No dummy data** - Only shows real information
+- ✅ **Privacy first** - All data stays on your server
+- ✅ **Optional integrations** - AI insights, Google trends, blog analytics
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🔧 **Optional APIs**
 
-### `npm run eject`
+After deployment, go to **Settings** to configure:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **AI Insights** - OpenAI, Claude, Perplexity, or local AI
+- **Google Trends** - Custom Search API for trend analysis  
+- **Blog Analytics** - RSS feed integration
+- **LinkedIn** - Cross-platform analytics
+- **Postiz** - Social media scheduling
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🛠️ **Management Commands**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+# View logs
+docker compose logs -f
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Stop dashboard
+docker compose down
 
-## Learn More
+# Update to latest version
+git pull
+docker compose up --build -d
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Restart
+docker compose restart
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🌍 **Production Deployment**
 
-### Code Splitting
+### **Environment Variables**
+Set these for production:
+```bash
+export REACT_APP_BLUESKY_HANDLE=your-handle.bsky.social
+export REACT_APP_AUTH_PASSWORD=secure-password-123
+export REACT_APP_NAME="Production Analytics"
+docker compose up -d
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### **Cloud Deployment**
+- **Railway:** One-click deploy button
+- **Vercel:** One-click deploy button  
+- **Heroku:** One-click deploy button
 
-### Analyzing the Bundle Size
+## 📊 **Requirements**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- **Docker Desktop** (includes Docker Compose V2)
+- **Bluesky account** (handle + optional app password)
+- **2GB RAM** minimum
+- **Internet connection** for API access
 
-### Making a Progressive Web App
+### **Check Compatibility**
+```bash
+# Verify your Docker setup
+npm run check-docker
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🔒 **Security**
 
-### Advanced Configuration
+- Dashboard is password protected
+- All data stays on your server
+- No telemetry or tracking
+- API keys stored securely in browser localStorage
+- Optional database encryption with Supabase
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🚨 **Troubleshooting**
 
-### Deployment
+### **Port 3000 in use:**
+```yaml
+ports:
+  - "8080:3000"  # Use port 8080 instead
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### **Build fails:**
+```bash
+docker compose build --no-cache
+docker compose up -d
+```
 
-### `npm run build` fails to minify
+### **Can't access dashboard:**
+```bash
+# Check if running
+docker ps
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# Check logs
+docker compose logs bluesky-analytics
+
+# Test locally
+curl -I http://localhost:3000
+```
+
+## 💡 **Quick Tips**
+
+- **First run takes 3-5 minutes** (building React app)
+- **Subsequent starts are instant** (uses cached build)
+- **Settings page** configures all optional features
+- **Works offline** after initial API data fetch
+- **Mobile friendly** responsive design
+
+---
+
+**🎉 Enjoy your self-hosted Bluesky analytics dashboard!**
+
+For support, open an issue or check the troubleshooting guide.

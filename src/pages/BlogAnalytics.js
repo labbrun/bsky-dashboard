@@ -26,6 +26,10 @@ import {
   Skeleton
 } from '../components/ui/UntitledUIComponents';
 
+// Import feature unavailable components
+import FeatureUnavailable, { DisabledSection, FeatureRequirements } from '../components/FeatureUnavailable';
+import { isServiceConfigured } from '../services/credentialsService';
+
 // Import mesh gradients for backgrounds (unused but kept for future use)
 // import gradient2 from '../assets/untitled-ui/Additional assets/Mesh gradients/15.jpg';
 
@@ -53,6 +57,41 @@ function BlogAnalytics({ metrics }) {
   // Social media suggestions state
   const [completedSuggestions, setCompletedSuggestions] = useState(new Set());
   const [suggestionRefreshKey, setSuggestionRefreshKey] = useState(0);
+
+  // Check if required services are configured
+  const blogConfigured = isServiceConfigured('blog');
+  const googleConfigured = isServiceConfigured('google');
+  const missingFeatures = [];
+  
+  if (!blogConfigured) missingFeatures.push('blog');
+  if (!googleConfigured) missingFeatures.push('google');
+
+  // If no services are configured, show feature unavailable message
+  if (!blogConfigured && !googleConfigured) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <FileText className="w-6 h-6 text-brand-500" />
+          <h1 className="text-2xl font-bold text-white">Blog Analytics</h1>
+        </div>
+        
+        <div className="bg-primary-900 rounded-lg border border-gray-800">
+          <div className="p-6">
+            <FeatureRequirements features={['blog', 'google']} />
+            <div className="mt-6 text-center">
+              <Button
+                onClick={() => window.location.href = '/settings'}
+                variant="primary"
+                size="lg"
+              >
+                Configure Blog Analytics
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Fast fallback data function
   const getFallbackBlogAnalytics = useCallback(() => ({

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AlertCircle, RefreshCw, TrendingUp, FileText } from 'lucide-react';
+import { AlertCircle, RefreshCw, TrendingUp, FileText, Settings } from 'lucide-react';
 
 // Import Untitled UI styles
 import './styles/untitled-ui-variables.css';
@@ -12,6 +12,8 @@ import { APP_CONFIG } from './config/app.config';
 import { testConnection, upsertProfile, insertPosts } from './services/supabaseService';
 import { fetchBlueskyUserData, testBlueskyAPI } from './services/blueskyService';
 import { initializeAIContext } from './services/aiContextProvider';
+import { createLocalStorageService, storeProfile, storePosts, storeFollowers, storeMetricsSnapshot } from './services/localStorageService';
+import { getEffectiveConfig, isServiceConfigured } from './services/credentialsService';
 
 // Import layout and pages
 import DashboardLayout from './layouts/DashboardLayout';
@@ -20,6 +22,7 @@ import PerformanceV2 from './pages/PerformanceV2';
 import Insights from './pages/Insights';
 import BlogAnalytics from './pages/BlogAnalytics';
 import Calendar from './pages/Calendar';
+import Settings from './pages/Settings';
 
 // Import Untitled UI components
 import { Button, Card } from './components/ui/UntitledUIComponents';
@@ -33,7 +36,9 @@ function App() {
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
 
-  const FIXED_HANDLE = APP_CONFIG.api.defaultHandle;
+  // Get handle from credentials or fallback to config
+  const effectiveConfig = getEffectiveConfig();
+  const FIXED_HANDLE = effectiveConfig.bluesky.handle || APP_CONFIG.api.defaultHandle;
 
   // Fetch data from Bluesky API
   const fetchData = useCallback(async () => {
@@ -41,24 +46,42 @@ function App() {
     setError(null);
     
     try {
+      // Check if Bluesky credentials are configured
+      if (!isServiceConfigured('bluesky')) {
+        throw new Error('Bluesky credentials not configured. Please go to Settings to configure your handle and app password.');
+      }
+
+      if (!FIXED_HANDLE) {
+        throw new Error('No Bluesky handle configured. Please check your settings.');
+      }
+      
       const apiWorking = await testBlueskyAPI();
       if (!apiWorking) {
-        throw new Error('Failed to connect to Bluesky API');
+        throw new Error('Failed to connect to Bluesky API. Check your internet connection or try again later.');
       }
       
       const data = await fetchBlueskyUserData(FIXED_HANDLE);
       
       setMetrics(data);
 
-      // Optional: Sync to Supabase for storage/analytics
+      // Optional: Sync to database or local storage for persistence
       try {
-        const connectionResult = await testConnection();
-        if (connectionResult.connected && connectionResult.tablesExist) {
-          await upsertProfile(data);
-          await insertPosts(data.handle, data.recentPosts);
+        if (APP_CONFIG.database.enabled) {
+          // Use Supabase database if configured
+          const connectionResult = await testConnection();
+          if (connectionResult.connected && connectionResult.tablesExist) {
+            await upsertProfile(data);
+            await insertPosts(data.handle, data.recentPosts);
+          }
         } else {
+          // Use local storage as fallback
+          storeProfile(data);
+          storePosts(data.recentPosts, data.handle);
+          storeFollowers(data.sampleFollowers, data.handle);
+          storeMetricsSnapshot(data, data.handle);
         }
-      } catch (dbError) {
+      } catch (storageError) {
+        console.warn('Data storage failed:', storageError.message);
       }
       
     } catch (err) {
@@ -108,7 +131,7 @@ function App() {
               <TrendingUp size={40} color="white" />
             </div>
             <h1 className="text-display-xs font-bold text-primary-900 mb-2">
-              🦋 Labb Analytics Pro
+              🦋 {APP_CONFIG.app.name}
             </h1>
             <p className="text-lg text-primary-600">
               Advanced Bluesky Analytics Suite
@@ -118,10 +141,13 @@ function App() {
           {/* User Card */}
           <div className="bg-gradient-to-br from-brand-50 to-electric-50 border border-brand-200 rounded-xl p-6 text-center mb-8 shadow-sm">
             <p className="text-brand-700 font-bold text-lg mb-1">
-              @labb.run
+              @{APP_CONFIG.api.defaultHandle}
             </p>
             <p className="text-brand-600 text-sm">
               Professional Analytics Dashboard
+            </p>
+            <p className="text-brand-500 text-xs mt-2">
+              Mode: {APP_CONFIG.app.mode} {APP_CONFIG.database.enabled ? '(DB)' : '(Local)'}
             </p>
           </div>
           
@@ -184,14 +210,26 @@ function App() {
           <p className="text-primary-600 text-base mb-8">
             {error}
           </p>
-          <Button
-            onClick={fetchData}
-            variant="primary"
-            size="lg"
-            icon={<RefreshCw size={16} />}
-          >
-            Retry Connection
-          </Button>
+          <div className="flex flex-col gap-4">
+            <Button
+              onClick={fetchData}
+              variant="primary"
+              size="lg"
+              icon={<RefreshCw size={16} />}
+            >
+              Retry Connection
+            </Button>
+            {error.includes('credentials') && (
+              <Button
+                onClick={() => window.location.href = '/settings'}
+                variant="secondary"
+                size="lg"
+                icon={<Settings size={16} />}
+              >
+                Configure Settings
+              </Button>
+            )}
+          </div>
         </Card>
       </div>
     );
@@ -253,6 +291,10 @@ function App() {
           <Route 
             path="/calendar" 
             element={<Calendar metrics={metrics} />} 
+          />
+          <Route 
+            path="/settings" 
+            element={<Settings />} 
           />
           {/* Redirect any unknown routes to overview */}
           <Route 

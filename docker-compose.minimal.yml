@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_BLUESKY_HANDLE=demo.bsky.social
+      - REACT_APP_AUTH_PASSWORD=demo123

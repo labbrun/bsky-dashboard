@@ -1,0 +1,47 @@
+# Bulletproof Dockerfile - Pre-built approach
+# Stage 1: Use a known working base image to build
+FROM node:16.20.0-alpine as builder
+
+# Set working directory
+WORKDIR /build
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies including dev dependencies for building
+RUN npm ci --ignore-scripts
+
+# Copy source code
+COPY . .
+
+# Build the React app
+RUN npm run build
+
+# Stage 2: Runtime - Use minimal static server
+FROM nginx:alpine
+
+# Copy built app from builder stage
+COPY --from=builder /build/build /usr/share/nginx/html
+
+# Copy nginx config
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Add env variable support for runtime
+RUN apk add --no-cache gettext
+
+# Create entrypoint script for environment variable substitution
+RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
+    echo 'set -e' >> /docker-entrypoint.sh && \
+    echo '' >> /docker-entrypoint.sh && \
+    echo '# Replace environment variables in built files' >> /docker-entrypoint.sh && \
+    echo 'find /usr/share/nginx/html -type f -name "*.js" -exec sed -i "s|REACT_APP_BLUESKY_HANDLE_PLACEHOLDER|${REACT_APP_BLUESKY_HANDLE:-}|g" {} +' >> /docker-entrypoint.sh && \
+    echo 'find /usr/share/nginx/html -type f -name "*.js" -exec sed -i "s|REACT_APP_AUTH_PASSWORD_PLACEHOLDER|${REACT_APP_AUTH_PASSWORD:-change-me}|g" {} +' >> /docker-entrypoint.sh && \
+    echo 'find /usr/share/nginx/html -type f -name "*.js" -exec sed -i "s|REACT_APP_NAME_PLACEHOLDER|${REACT_APP_NAME:-Bluesky Analytics}|g" {} +' >> /docker-entrypoint.sh && \
+    echo '' >> /docker-entrypoint.sh && \
+    echo 'exec "$@"' >> /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
+EXPOSE 80
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

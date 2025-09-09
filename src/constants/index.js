@@ -33,6 +33,14 @@ export const NAVIGATION_ITEMS = [
     badgeColor: 'warning',
     description: 'Blog performance and content analysis'
   },
+  { 
+    name: 'Settings', 
+    path: '/settings', 
+    icon: 'Settings',
+    badge: null,
+    description: 'API configuration and integrations',
+    section: 'admin'
+  },
 ];
 
 // Metric Types

@@ -13,7 +13,8 @@
       "WebFetch(domain:docs.postiz.com)",
       "WebFetch(domain:avatar.vercel.sh)",
       "Bash(git checkout:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": []
   }
