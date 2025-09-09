@@ -63,6 +63,13 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
       icon: Calendar,
       description: 'Schedule posts with AI optimization and performance scoring',
       badge: 'Beta'
+    },
+    {
+      path: '/settings',
+      label: 'Settings',
+      icon: Settings,
+      description: 'Configure API credentials and dashboard preferences',
+      badge: null
     }
   ];
 
