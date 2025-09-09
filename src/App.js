@@ -282,70 +282,8 @@ function App() {
     );
   }
 
-  // Error Screen
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-error-25">
-        <Card className="text-center max-w-md">
-          <div className="w-20 h-20 bg-gradient-to-br from-error-500 to-error-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-            <AlertCircle size={40} color="white" />
-          </div>
-          <h2 className="text-display-xs font-bold text-primary-900 mb-4">
-            Connection Error
-          </h2>
-          <p className="text-primary-600 text-base mb-8">
-            {error}
-          </p>
-          <div className="flex flex-col gap-4">
-            <Button
-              onClick={fetchData}
-              variant="primary"
-              size="lg"
-              icon={<RefreshCw size={16} />}
-            >
-              Retry Connection
-            </Button>
-            {error.includes('credentials') && (
-              <Button
-                onClick={() => window.location.href = '/settings'}
-                variant="secondary"
-                size="lg"
-                icon={<SettingsIcon size={16} />}
-              >
-                Configure Settings
-              </Button>
-            )}
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!metrics) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-warning-25">
-        <Card className="text-center max-w-md">
-          <div className="w-20 h-20 bg-gradient-to-br from-warning-500 to-warning-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg">
-            <FileText size={40} color="white" />
-          </div>
-          <h2 className="text-display-xs font-bold text-primary-900 mb-4">
-            No Data Available
-          </h2>
-          <p className="text-primary-600 text-base mb-8">
-            Analytics data is not available
-          </p>
-          <Button
-            onClick={fetchData}
-            variant="primary"
-            size="lg"
-            icon={<RefreshCw size={16} />}
-          >
-            Load Data
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  // Always show the dashboard - let individual pages handle missing data
+  // This ensures Settings is always accessible even with connection errors
 
   // Main Application with Router
   return (
