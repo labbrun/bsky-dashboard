@@ -28,10 +28,19 @@ import Settings from './pages/Settings';
 import { Button, Card } from './components/ui/UntitledUIComponents';
 
 function App() {
+  // Check if this is the first run (no password set)
+  const [isFirstRun, setIsFirstRun] = useState(() => {
+    return !localStorage.getItem('bluesky-analytics-password');
+  });
+  
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // Don't auto-login on first run
+    if (!localStorage.getItem('bluesky-analytics-password')) return false;
     return localStorage.getItem(APP_CONFIG.auth.storageKey) === 'true';
   });
+  
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
@@ -102,11 +111,36 @@ function App() {
     }
   }, [isLoggedIn, fetchData]);
 
+  const handleFirstRunSetup = (e) => {
+    e?.preventDefault();
+    
+    if (!password || password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    
+    // Save the password and mark setup as complete
+    localStorage.setItem('bluesky-analytics-password', password);
+    setIsFirstRun(false);
+    setIsLoggedIn(true);
+    localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
+    setPassword('');
+    setConfirmPassword('');
+  };
+
   const handleLogin = (e) => {
     e?.preventDefault();
-    if (password === APP_CONFIG.auth.password) {
+    const storedPassword = localStorage.getItem('bluesky-analytics-password') || APP_CONFIG.auth.password;
+    
+    if (password === storedPassword) {
       setIsLoggedIn(true);
       localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
+      setPassword('');
     } else {
       alert('Incorrect password');
     }
@@ -120,7 +154,7 @@ function App() {
     localStorage.removeItem(APP_CONFIG.auth.storageKey);
   };
 
-  // Login Screen
+  // First Run Setup or Login Screen
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50 p-8">
@@ -134,7 +168,7 @@ function App() {
               🦋 {APP_CONFIG.app.name}
             </h1>
             <p className="text-lg text-primary-600">
-              Advanced Bluesky Analytics Suite
+              {isFirstRun ? 'Welcome! Let\'s get started' : 'Advanced Bluesky Analytics Suite'}
             </p>
           </div>
           
@@ -144,39 +178,91 @@ function App() {
               @{APP_CONFIG.api.defaultHandle}
             </p>
             <p className="text-brand-600 text-sm">
-              Professional Analytics Dashboard
+              {isFirstRun ? 'First Time Setup' : 'Professional Analytics Dashboard'}
             </p>
             <p className="text-brand-500 text-xs mt-2">
               Mode: {APP_CONFIG.app.mode} {APP_CONFIG.database.enabled ? '(DB)' : '(Local)'}
             </p>
           </div>
           
-          {/* Login Form */}
-          <form onSubmit={handleLogin} className="flex flex-col gap-6">
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-primary-900 mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                className="untitled-input w-full"
-              />
-            </div>
+          {isFirstRun ? (
+            /* First Run Setup Form */
+            <form onSubmit={handleFirstRunSetup} className="flex flex-col gap-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>🎉 Welcome!</strong> Create your dashboard password to get started.
+                </p>
+              </div>
+              
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-primary-900 mb-2">
+                  Create Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter a secure password (min 6 characters)"
+                  required
+                  minLength="6"
+                  className="untitled-input w-full"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-primary-900 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  required
+                  minLength="6"
+                  className="untitled-input w-full"
+                />
+              </div>
 
-            <Button 
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
-            >
-              Access Analytics Suite
-            </Button>
-          </form>
+              <Button 
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full"
+              >
+                Create Dashboard & Get Started
+              </Button>
+            </form>
+          ) : (
+            /* Regular Login Form */
+            <form onSubmit={handleLogin} className="flex flex-col gap-6">
+              <div>
+                <label htmlFor="loginPassword" className="block text-sm font-semibold text-primary-900 mb-2">
+                  Password
+                </label>
+                <input
+                  id="loginPassword"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  className="untitled-input w-full"
+                />
+              </div>
+
+              <Button 
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full"
+              >
+                Access Analytics Suite
+              </Button>
+            </form>
+          )}
         </Card>
       </div>
     );
