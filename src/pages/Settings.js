@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, Shield, User, Target, Plus, X, Upload, Camera, FileText, File, Trash2 } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, User, Target, Plus, X, Upload, Camera, FileText, File, Trash2 } from 'lucide-react';
 import { Card, Button } from '../components/ui/UntitledUIComponents';
-import { APP_CONFIG } from '../config/app.config';
 import { 
   getCredentials, 
   saveCredentials, 
   validateServiceCredentials, 
-  getEffectiveConfig,
   getConfigurationStatus,
   getProfileSettings,
   saveProfileSettings,
-  saveCustomAvatar,
-  getCustomAvatar,
-  removeCustomAvatar,
   saveDocument,
-  getDocument,
   removeDocument,
   getAllDocuments
 } from '../services/credentialsService';
@@ -367,12 +361,6 @@ const Settings = () => {
     }));
   };
 
-  const updateProfileField = (field, value) => {
-    setProfileSettings(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const handleAvatarUpload = (event) => {
     const file = event.target.files[0];

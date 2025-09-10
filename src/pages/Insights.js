@@ -20,7 +20,7 @@ import AIInsightsGenerator, {
 import { Button } from '../components/ui/UntitledUIComponents';
 import TypingEffect from '../components/TypingEffect';
 import { getFollowers, getProfile } from '../services/blueskyService';
-import FeatureUnavailable, { DisabledSection } from '../components/FeatureUnavailable';
+import FeatureUnavailable from '../components/FeatureUnavailable';
 import { isServiceConfigured } from '../services/credentialsService';
 
 function Insights({ metrics }) {

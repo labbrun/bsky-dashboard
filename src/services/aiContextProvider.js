@@ -10,7 +10,6 @@ let aiContext = null;
 // Initialize AI context - call this on app startup
 export const initializeAIContext = async () => {
   try {
-    console.log('Initializing universal AI context...');
     const guidance = await loadAllGuidance();
     
     aiContext = {
@@ -29,13 +28,6 @@ export const initializeAIContext = async () => {
       loadedAt: new Date(),
       isInitialized: true
     };
-    
-    console.log('AI Context initialized successfully:', {
-      hasCustomerAvatar: !!aiContext.customerAvatar,
-      hasContentStrategies: !!aiContext.contentStrategies,
-      hasMarketingPsychology: !!aiContext.marketingPsychology,
-      targetKeywords: aiContext.targetKeywords.length
-    });
     
     return aiContext;
   } catch (error) {

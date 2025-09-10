@@ -45,7 +45,6 @@ export const downloadFavicon = async () => {
     link.href = faviconDataUrl;
     link.click();
     
-    console.log('Favicon downloaded successfully!');
   } catch (error) {
     console.error('Failed to generate favicon:', error);
   }

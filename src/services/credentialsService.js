@@ -209,6 +209,10 @@ export const validateAICredentials = async (provider, apiKey, baseUrl) => {
           return { valid: false, error: 'Perplexity API key should start with pplx-' };
         }
         break;
+      
+      default:
+        // For other providers, skip format validation
+        break;
     }
 
     return { valid: true };

@@ -27,7 +27,7 @@ import {
 } from '../components/ui/UntitledUIComponents';
 
 // Import feature unavailable components
-import FeatureUnavailable, { DisabledSection, FeatureRequirements } from '../components/FeatureUnavailable';
+import { FeatureRequirements } from '../components/FeatureUnavailable';
 import { isServiceConfigured } from '../services/credentialsService';
 
 // Import mesh gradients for backgrounds (unused but kept for future use)

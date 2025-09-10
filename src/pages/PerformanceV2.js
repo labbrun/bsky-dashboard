@@ -30,8 +30,6 @@ function PerformanceV2({ metrics }) {
   const [timeRange, setTimeRange] = useState('7'); // '7' for 7 days, '30' for 30 days
   const [newFollowers, setNewFollowers] = useState([]);
   const [topAmplifiers, setTopAmplifiers] = useState([]);
-  const [currentObservation, setCurrentObservation] = useState('');
-  const [hasTyped, setHasTyped] = useState(false);
 
   // Helper functions for expanding/collapsing posts
   const togglePostExpansion = (postId) => {
@@ -135,11 +133,7 @@ function PerformanceV2({ metrics }) {
   
   // Update observation when analytics data or time range changes
   React.useEffect(() => {
-    if (analyticsData && metrics) {
-      const newObservation = getAIPerformanceObservation;
-      setCurrentObservation(newObservation);
-      setHasTyped(false); // Reset typing effect when time range changes
-    }
+    // Performance analysis data updated
   }, [analyticsData, metrics, timeRange, getAIPerformanceObservation]);
 
   // Fetch audience data for New Followers and Top Amplifiers sections
