@@ -1,5 +1,5 @@
 {
-  "name": "bluesky-analytics-dashboard",
+  "name": "bsky-dashboard",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -19,7 +19,7 @@
     "eject": "react-scripts eject",
     "setup": "node scripts/setup.js",
     "check-docker": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'scripts/check-docker.bat' : 'bash scripts/check-docker.sh', {stdio: 'inherit'})\"",
-    "docker:build": "docker build -t bluesky-analytics-dashboard .",
+    "docker:build": "docker build -t bsky-dashboard .",
     "docker:run": "docker compose up -d",
     "docker:stop": "docker compose down",
     "docker:logs": "docker compose logs -f",

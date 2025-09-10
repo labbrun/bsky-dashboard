@@ -110,7 +110,7 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
               </div>
               {isSidebarOpen && (
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Bluesky Dashboard</h1>
+                  <h1 className="text-lg font-bold text-gray-900">Bsky Dashboard</h1>
                   <p className="text-xs text-gray-500">Analytics & Insights</p>
                 </div>
               )}

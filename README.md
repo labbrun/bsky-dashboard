@@ -1,12 +1,12 @@
-# 🦋 Bluesky Analytics Dashboard
+# 🦋 Bsky Dashboard
 
 A self-hosted analytics dashboard for your Bluesky social media account.
 
 ## 🚀 **One-Command Deploy**
 
 ```bash
-git clone https://github.com/labbrun/bluesky-analytics-dashboard.git
-cd bluesky-analytics-dashboard
+git clone https://github.com/labbrun/bsky-dashboard.git
+cd bsky-dashboard
 
 # If you get permission denied, add user to docker group first:
 # sudo usermod -aG docker $USER && newgrp docker
@@ -188,8 +188,8 @@ sudo usermod -aG docker $USER
 newgrp docker
 
 # Clone and deploy
-git clone https://github.com/labbrun/bluesky-analytics-dashboard.git
-cd bluesky-analytics-dashboard
+git clone https://github.com/labbrun/bsky-dashboard.git
+cd bsky-dashboard
 docker compose up -d
 ```
 
@@ -199,8 +199,8 @@ docker compose up -d
 # Add user to docker group if on Linux
 sudo usermod -aG docker $USER && newgrp docker
 
-git clone https://github.com/labbrun/bluesky-analytics-dashboard.git
-cd bluesky-analytics-dashboard
+git clone https://github.com/labbrun/bsky-dashboard.git
+cd bsky-dashboard
 docker compose up -d
 ```
 
@@ -209,8 +209,8 @@ docker compose up -d
 # On any Linux instance:
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
-git clone https://github.com/yourusername/bluesky-analytics-dashboard.git
-cd bluesky-analytics-dashboard
+git clone https://github.com/labbrun/bsky-dashboard.git
+cd bsky-dashboard
 docker compose up -d
 ```
 

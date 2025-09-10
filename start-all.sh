@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Bluesky Analytics Dashboard with Google Analytics Token Server..."
+echo "🚀 Starting Bsky Dashboard with Google Analytics Token Server..."
 echo
 
 # Start token server in background

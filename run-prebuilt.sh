@@ -3,7 +3,7 @@
 # Bulletproof deployment script - Uses pre-built image
 set -e
 
-echo "🚀 Deploying Bluesky Analytics Dashboard (Pre-built)"
+echo "🚀 Deploying Bsky Dashboard (Pre-built)"
 echo "=================================================="
 
 # Check if Docker is running
@@ -23,7 +23,7 @@ if [ -z "$AUTH_PASSWORD" ]; then
 fi
 
 if [ -z "$APP_NAME" ]; then
-    APP_NAME="My Bluesky Analytics"
+    APP_NAME="My Bsky Dashboard"
 fi
 
 echo
@@ -35,13 +35,13 @@ echo
 
 # Stop existing container if running
 echo "🛑 Stopping existing container..."
-docker stop bluesky-analytics 2>/dev/null || true
-docker rm bluesky-analytics 2>/dev/null || true
+docker stop bsky-dashboard 2>/dev/null || true
+docker rm bsky-dashboard 2>/dev/null || true
 
 # Run the pre-built container
-echo "🚀 Starting Bluesky Analytics Dashboard..."
+echo "🚀 Starting Bsky Dashboard..."
 docker run -d \
-  --name bluesky-analytics \
+  --name bsky-dashboard \
   -p 3000:3000 \
   -e REACT_APP_BLUESKY_HANDLE="$BLUESKY_HANDLE" \
   -e REACT_APP_AUTH_PASSWORD="$AUTH_PASSWORD" \
@@ -52,7 +52,7 @@ docker run -d \
   node:18-alpine sh -c "
     apk add --no-cache git curl && \
     cd /tmp && \
-    git clone https://github.com/yourusername/bluesky-analytics-dashboard.git . && \
+    git clone https://github.com/labbrun/bsky-dashboard.git . && \
     npm install --production --ignore-scripts --no-optional && \
     npm run build && \
     npx serve -s build -l 3000
@@ -63,7 +63,7 @@ echo "⏳ Waiting for application to start..."
 sleep 10
 
 # Check if it's running
-if docker ps | grep -q bluesky-analytics; then
+if docker ps | grep -q bsky-dashboard; then
     echo "✅ Success! Your dashboard is running at:"
     echo "   👉 http://localhost:3000"
     echo
@@ -71,12 +71,12 @@ if docker ps | grep -q bluesky-analytics; then
     echo "   Password: $AUTH_PASSWORD"
     echo
     echo "🛠️  Useful commands:"
-    echo "   View logs: docker logs bluesky-analytics"
-    echo "   Stop app:  docker stop bluesky-analytics"
-    echo "   Restart:   docker restart bluesky-analytics"
+    echo "   View logs: docker logs bsky-dashboard"
+    echo "   Stop app:  docker stop bsky-dashboard"
+    echo "   Restart:   docker restart bsky-dashboard"
     echo
 else
     echo "❌ Failed to start. Check logs:"
-    docker logs bluesky-analytics
+    docker logs bsky-dashboard
     exit 1
 fi

@@ -2,7 +2,7 @@
 export const APP_CONFIG = {
   // Application Info
   app: {
-    name: process.env.REACT_APP_NAME || 'Bluesky Analytics Dashboard',
+    name: process.env.REACT_APP_NAME || 'Bsky Dashboard',
     mode: process.env.REACT_APP_MODE || 'local', // local, cloud, demo
     debug: process.env.REACT_APP_DEBUG === 'true',
   },

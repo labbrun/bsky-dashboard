@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
-  TrendingUp,
   BarChart3,
   Target,
   Zap,
@@ -14,7 +13,6 @@ import {
 } from 'lucide-react';
 import { getAuthorFeed, getFollowers } from '../services/blueskyService';
 import { getPerformanceAnalytics } from '../services/analyticsService';
-import postizService from '../services/postizService';
 import { 
   Card, 
   Badge, 
@@ -22,8 +20,6 @@ import {
   Button
 } from '../components/ui/UntitledUIComponents';
 
-// Import mesh gradients for backgrounds
-import gradient1 from '../assets/gradients/11.jpg';
 
 
 function PerformanceV2({ metrics }) {
@@ -34,6 +30,8 @@ function PerformanceV2({ metrics }) {
   const [timeRange, setTimeRange] = useState('7'); // '7' for 7 days, '30' for 30 days
   const [newFollowers, setNewFollowers] = useState([]);
   const [topAmplifiers, setTopAmplifiers] = useState([]);
+  const [currentObservation, setCurrentObservation] = useState('');
+  const [hasTyped, setHasTyped] = useState(false);
 
   // Helper functions for expanding/collapsing posts
   const togglePostExpansion = (postId) => {

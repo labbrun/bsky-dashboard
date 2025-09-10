@@ -3,16 +3,13 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage, getPreviousMetrics, storePreviousMetrics } from '../utils/celebrationUtils';
 import { 
-  TrendingUp, 
   Users, 
   MessageSquare, 
   Heart, 
   ArrowUp,
   Target,
-  Sparkles,
   AlertCircle,
   CheckCircle,
-  Clock,
   Zap,
   ExternalLink
 } from 'lucide-react';

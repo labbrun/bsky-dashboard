@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AlertCircle, RefreshCw, TrendingUp, FileText, Settings as SettingsIcon } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 // Import Untitled UI styles
 import './styles/untitled-ui-variables.css';
@@ -12,7 +12,7 @@ import { APP_CONFIG } from './config/app.config';
 import { testConnection, upsertProfile, insertPosts } from './services/supabaseService';
 import { fetchBlueskyUserData, testBlueskyAPI } from './services/blueskyService';
 import { initializeAIContext } from './services/aiContextProvider';
-import { createLocalStorageService, storeProfile, storePosts, storeFollowers, storeMetricsSnapshot } from './services/localStorageService';
+import { storeProfile, storePosts, storeFollowers, storeMetricsSnapshot } from './services/localStorageService';
 import { getEffectiveConfig, isServiceConfigured } from './services/credentialsService';
 
 // Import layout and pages
@@ -118,12 +118,12 @@ function App() {
     } else if (FIXED_HANDLE) {
       document.title = `@${FIXED_HANDLE} Dashboard`;
     } else {
-      document.title = 'Bluesky Analytics Dashboard';
+      document.title = 'Bsky Dashboard';
     }
     
     // Cleanup function to reset title when component unmounts
     return () => {
-      document.title = 'Bluesky Analytics Dashboard';
+      document.title = 'Bsky Dashboard';
     };
   }, [metrics, FIXED_HANDLE]);
 
