@@ -25,6 +25,30 @@ export const saveCredentials = (credentials) => {
   }
 };
 
+// Get profile settings (keywords, preferences, etc.)
+export const getProfileSettings = () => {
+  const credentials = getCredentials();
+  return credentials.profile || {
+    keywords: [],
+    displayName: '',
+    bio: '',
+    targetAudience: '',
+    contentGoals: []
+  };
+};
+
+// Save profile settings
+export const saveProfileSettings = (profileSettings) => {
+  try {
+    const credentials = getCredentials();
+    credentials.profile = profileSettings;
+    return saveCredentials(credentials);
+  } catch (error) {
+    console.error('Failed to save profile settings:', error);
+    return false;
+  }
+};
+
 // Get specific service credentials
 export const getServiceCredentials = (service) => {
   const allCredentials = getCredentials();
