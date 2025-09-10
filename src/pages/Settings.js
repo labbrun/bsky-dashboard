@@ -1017,9 +1017,14 @@ const Settings = () => {
                           {validationStatus[section]?.status === 'validating' ? 'Testing...' : 'Test'}
                         </Button>
                       )}
-                      <span className="text-gray-500 text-sm">
-                        {isExpanded ? '−' : '+'}
-                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-45' : ''}`} />
+                        {isExpanded ? 'Collapse' : 'Configure'}
+                      </Button>
                     </div>
                   </div>
                   
