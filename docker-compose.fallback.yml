@@ -1,16 +1,16 @@
 # Fallback Docker Compose configuration for build issues
 services:
-  bluesky-analytics:
+  bsky-dashboard:
     build:
       context: .
       dockerfile: Dockerfile.simple
-    container_name: bluesky-analytics-dashboard-fallback
+    container_name: bsky-dashboard-fallback
     ports:
       - "3000:3000"
     environment:
       - REACT_APP_BLUESKY_HANDLE=demo.bsky.social
       - REACT_APP_AUTH_PASSWORD=demo123
-      - REACT_APP_NAME=Bluesky Analytics Dashboard
+      - REACT_APP_NAME=Bsky Dashboard
       - REACT_APP_MODE=local
       - REACT_APP_DEBUG=false
       - CI=false
