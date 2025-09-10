@@ -127,7 +127,171 @@ const API_GUIDES = {
         required: false,
         help: 'Base URL for local AI providers like Ollama or LM Studio'
       }
-    ]
+    ],
+    setupGuide: {
+      title: 'How to get AI API credentials:',
+      steps: [
+        'Choose your preferred AI provider',
+        'For OpenAI: Go to platform.openai.com → API Keys',
+        'For Anthropic: Go to console.anthropic.com → Get API Keys',
+        'For Perplexity: Go to perplexity.ai → Settings → API',
+        'For Local AI: Install Ollama or LM Studio and note the base URL',
+        'Create an API key and paste it above',
+        'Save settings to enable AI features'
+      ],
+      note: 'AI is optional - basic analytics work without it, but you\'ll miss AI insights and recommendations'
+    }
+  },
+
+  google: {
+    title: 'Google Custom Search',
+    description: 'Google Custom Search API for trend analysis and content research',
+    fields: [
+      {
+        key: 'customSearchApiKey',
+        label: 'Google API Key',
+        type: 'password',
+        placeholder: 'AIzaSy...',
+        required: false,
+        help: 'Google Custom Search API key for trend analysis'
+      },
+      {
+        key: 'searchEngineId',
+        label: 'Search Engine ID',
+        type: 'text',
+        placeholder: '017576662512468239146:omuauf_lfve',
+        required: false,
+        help: 'Your custom search engine ID'
+      }
+    ],
+    setupGuide: {
+      title: 'How to set up Google Custom Search:',
+      steps: [
+        'Go to console.developers.google.com',
+        'Create a new project or select existing one',
+        'Enable the "Custom Search API"',
+        'Go to "Credentials" and create an API key',
+        'Go to cse.google.com/cse/',
+        'Create a new search engine',
+        'Copy the Search Engine ID',
+        'Paste both values in the form above'
+      ],
+      link: 'https://console.developers.google.com',
+      linkText: 'Google Cloud Console',
+      note: 'Google Search is optional - enables trend analysis and content research features'
+    }
+  },
+
+  linkedin: {
+    title: 'LinkedIn Integration',
+    description: 'LinkedIn API for professional network integration and content sharing',
+    fields: [
+      {
+        key: 'clientId',
+        label: 'Client ID',
+        type: 'text',
+        placeholder: '86abc12345',
+        required: false,
+        help: 'LinkedIn application client ID'
+      },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        placeholder: 'WPL_AP1...',
+        required: false,
+        help: 'LinkedIn application client secret'
+      }
+    ],
+    setupGuide: {
+      title: 'How to set up LinkedIn Integration:',
+      steps: [
+        'Go to developer.linkedin.com',
+        'Create a new app for your company',
+        'Add your company page as the app owner',
+        'Request access to LinkedIn Marketing API',
+        'Copy the Client ID and Client Secret',
+        'Paste both values in the form above',
+        'Complete OAuth flow when prompted'
+      ],
+      link: 'https://developer.linkedin.com',
+      linkText: 'LinkedIn Developers',
+      note: 'LinkedIn is optional - enables professional network insights and content cross-posting'
+    }
+  },
+
+  blog: {
+    title: 'Blog RSS Feed',
+    description: 'RSS feed integration for blog content analysis and insights',
+    fields: [
+      {
+        key: 'rssUrl',
+        label: 'RSS Feed URL',
+        type: 'text',
+        placeholder: 'https://yourblog.com/feed.xml',
+        required: false,
+        help: 'Your blog\'s RSS feed URL for content analysis'
+      },
+      {
+        key: 'blogUrl',
+        label: 'Blog URL (Optional)',
+        type: 'text',
+        placeholder: 'https://yourblog.com',
+        required: false,
+        help: 'Your blog\'s main URL for reference'
+      }
+    ],
+    setupGuide: {
+      title: 'How to set up Blog RSS integration:',
+      steps: [
+        'Find your blog\'s RSS feed URL',
+        'For WordPress: Usually /feed or /rss',
+        'For Ghost: Usually /rss',
+        'For Jekyll/Hugo: Usually /feed.xml',
+        'Test the RSS URL in a browser',
+        'Paste the RSS URL in the form above',
+        'Save settings to enable blog analytics'
+      ],
+      note: 'Blog RSS is optional - enables blog content analysis, cross-posting suggestions, and content repurposing insights'
+    }
+  },
+
+  postiz: {
+    title: 'Postiz Integration',
+    description: 'Postiz social media management platform integration for content scheduling',
+    fields: [
+      {
+        key: 'url',
+        label: 'Postiz Instance URL',
+        type: 'text',
+        placeholder: 'https://your-postiz.com',
+        required: false,
+        help: 'Your Postiz instance URL (self-hosted or cloud)'
+      },
+      {
+        key: 'apiKey',
+        label: 'API Key',
+        type: 'password',
+        placeholder: 'postiz_...',
+        required: false,
+        help: 'Postiz API key for integration'
+      }
+    ],
+    setupGuide: {
+      title: 'How to set up Postiz Integration:',
+      steps: [
+        'Deploy Postiz or use cloud version',
+        'Log in to your Postiz dashboard',
+        'Go to Settings → API Keys',
+        'Generate a new API key',
+        'Copy your instance URL and API key',
+        'Paste both values in the form above',
+        'Save settings to enable scheduling features'
+      ],
+      link: 'https://postiz.com',
+      linkText: 'Postiz Website',
+      note: 'Postiz is optional - enables direct social media scheduling and cross-platform posting'
+    }
   }
 };
 
