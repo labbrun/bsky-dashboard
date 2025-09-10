@@ -14,6 +14,7 @@ import { fetchBlueskyUserData, testBlueskyAPI } from './services/blueskyService'
 import { initializeAIContext } from './services/aiContextProvider';
 import { storeProfile, storePosts, storeFollowers, storeMetricsSnapshot } from './services/localStorageService';
 import { getEffectiveConfig, isServiceConfigured } from './services/credentialsService';
+import { initializeFavicon } from './utils/faviconUtils';
 
 // Import layout and pages
 import DashboardLayout from './layouts/DashboardLayout';
@@ -126,6 +127,26 @@ function App() {
       document.title = 'Bsky Dashboard';
     };
   }, [metrics, FIXED_HANDLE]);
+
+  // Initialize custom favicon on app start and listen for updates
+  useEffect(() => {
+    initializeFavicon().catch(error => 
+      console.warn('Favicon initialization failed:', error)
+    );
+
+    // Listen for avatar updates from settings page
+    const handleAvatarUpdate = () => {
+      initializeFavicon().catch(error => 
+        console.warn('Favicon update failed:', error)
+      );
+    };
+
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+    
+    return () => {
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+    };
+  }, []);
 
   // Simple password hashing function (SHA-256)
   const hashPassword = async (password) => {

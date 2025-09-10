@@ -18,7 +18,8 @@
       "Bash(dir \"C:\\Users\\micro\\Projects\\bluesky-analytics-dashboard\\src\\assets\\untitled-ui\\Additional assets\\Mesh gradients\")",
       "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(where docker)"
+      "Bash(where docker)",
+      "Bash(powershell:*)"
     ],
     "deny": []
   }

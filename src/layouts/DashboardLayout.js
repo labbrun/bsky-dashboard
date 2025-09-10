@@ -121,29 +121,29 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
               onClick={() => navigate('/')}
               className={`flex items-center gap-3 hover:opacity-80 transition-opacity ${isSidebarOpen ? '' : 'justify-center'}`}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-brand-500 rounded-xl flex items-center justify-center shadow-lg p-2 overflow-hidden">
-                {customAvatar ? (
+              {customAvatar ? (
+                <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg">
                   <img 
                     src={customAvatar} 
                     alt="Custom Avatar" 
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-cover"
                   />
-                ) : (
-                  <>
-                    <img 
-                      src={require('../assets/bluesky-logo.png')} 
-                      alt="Bluesky Logo" 
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        // Fallback to chart icon if logo doesn't load
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'block';
-                      }}
-                    />
-                    <BarChart3 size={20} className="text-white" style={{display: 'none'}} />
-                  </>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-brand-500 rounded-xl flex items-center justify-center shadow-lg p-2">
+                  <img 
+                    src={require('../assets/bluesky-logo.png')} 
+                    alt="Bluesky Logo" 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      // Fallback to chart icon if logo doesn't load
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <BarChart3 size={20} className="text-white" style={{display: 'none'}} />
+                </div>
+              )}
               {isSidebarOpen && (
                 <div>
                   <h1 className="text-lg font-bold text-gray-900">Bsky Dashboard</h1>
