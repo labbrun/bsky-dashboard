@@ -33,7 +33,8 @@ export const getProfileSettings = () => {
     displayName: '',
     bio: '',
     targetAudience: '',
-    contentGoals: []
+    contentGoals: [],
+    customAvatar: null
   };
 };
 
@@ -429,6 +430,34 @@ export const exportCredentials = () => {
   });
   
   return sanitized;
+};
+
+// Avatar management functions
+export const saveCustomAvatar = (avatarDataUrl) => {
+  try {
+    const profileSettings = getProfileSettings();
+    profileSettings.customAvatar = avatarDataUrl;
+    return saveProfileSettings(profileSettings);
+  } catch (error) {
+    console.error('Failed to save custom avatar:', error);
+    return false;
+  }
+};
+
+export const getCustomAvatar = () => {
+  const profileSettings = getProfileSettings();
+  return profileSettings.customAvatar;
+};
+
+export const removeCustomAvatar = () => {
+  try {
+    const profileSettings = getProfileSettings();
+    profileSettings.customAvatar = null;
+    return saveProfileSettings(profileSettings);
+  } catch (error) {
+    console.error('Failed to remove custom avatar:', error);
+    return false;
+  }
 };
 
 // Get configuration status summary

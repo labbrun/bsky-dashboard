@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   BarChart3,
@@ -16,6 +16,7 @@ import {
   Settings,
   User
 } from 'lucide-react';
+import { getCustomAvatar } from '../services/credentialsService';
 
 function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,8 +26,33 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [customAvatar, setCustomAvatar] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Load custom avatar on component mount and when settings change
+  useEffect(() => {
+    const avatar = getCustomAvatar();
+    setCustomAvatar(avatar);
+  }, []);
+
+  // Listen for storage changes to update avatar
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const avatar = getCustomAvatar();
+      setCustomAvatar(avatar);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events from settings page
+    window.addEventListener('avatarUpdated', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('avatarUpdated', handleStorageChange);
+    };
+  }, []);
 
   const navigationItems = [
     {
@@ -95,18 +121,28 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
               onClick={() => navigate('/')}
               className={`flex items-center gap-3 hover:opacity-80 transition-opacity ${isSidebarOpen ? '' : 'justify-center'}`}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-brand-500 rounded-xl flex items-center justify-center shadow-lg p-2">
-                <img 
-                  src={require('../assets/bluesky-logo.png')} 
-                  alt="Bluesky Logo" 
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    // Fallback to chart icon if logo doesn't load
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
-                  }}
-                />
-                <BarChart3 size={20} className="text-white" style={{display: 'none'}} />
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-brand-500 rounded-xl flex items-center justify-center shadow-lg p-2 overflow-hidden">
+                {customAvatar ? (
+                  <img 
+                    src={customAvatar} 
+                    alt="Custom Avatar" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <>
+                    <img 
+                      src={require('../assets/bluesky-logo.png')} 
+                      alt="Bluesky Logo" 
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback to chart icon if logo doesn't load
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <BarChart3 size={20} className="text-white" style={{display: 'none'}} />
+                  </>
+                )}
               </div>
               {isSidebarOpen && (
                 <div>

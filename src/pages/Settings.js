@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, Shield, User, Target, Plus, X } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, Shield, User, Target, Plus, X, Upload, Camera } from 'lucide-react';
 import { Card, Button } from '../components/ui/UntitledUIComponents';
 import { APP_CONFIG } from '../config/app.config';
 import { 
@@ -9,7 +9,10 @@ import {
   getEffectiveConfig,
   getConfigurationStatus,
   getProfileSettings,
-  saveProfileSettings
+  saveProfileSettings,
+  saveCustomAvatar,
+  getCustomAvatar,
+  removeCustomAvatar
 } from '../services/credentialsService';
 
 const API_GUIDES = {
@@ -131,9 +134,11 @@ const Settings = () => {
     displayName: '',
     bio: '',
     targetAudience: '',
-    contentGoals: []
+    contentGoals: [],
+    customAvatar: null
   });
   const [newKeyword, setNewKeyword] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [showPasswords, setShowPasswords] = useState({});
   const [validationStatus, setValidationStatus] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -162,6 +167,7 @@ const Settings = () => {
     try {
       const saved = getProfileSettings();
       setProfileSettings(saved);
+      setAvatarPreview(saved.customAvatar);
     } catch (error) {
       console.error('Failed to load profile settings:', error);
     }
@@ -191,6 +197,42 @@ const Settings = () => {
     }));
   };
 
+  const handleAvatarUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        setAvatarPreview(dataUrl);
+        setProfileSettings(prev => ({
+          ...prev,
+          customAvatar: dataUrl
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatarPreview(null);
+    setProfileSettings(prev => ({
+      ...prev,
+      customAvatar: null
+    }));
+  };
+
   const saveSettings = async () => {
     setIsSaving(true);
     try {
@@ -205,6 +247,9 @@ const Settings = () => {
       if (!profileSuccess) {
         throw new Error('Failed to save profile settings');
       }
+      
+      // Notify other components about avatar update
+      window.dispatchEvent(new CustomEvent('avatarUpdated'));
       
       // Validate settings after saving
       await validateAllSettings();
@@ -435,6 +480,69 @@ const Settings = () => {
               Configure your profile settings and keywords to help AI analyze your content performance and provide targeted suggestions.
             </p>
           </div>
+
+          {/* Avatar Upload Section */}
+          <Card className="border-gray-700">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Avatar</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Upload a custom avatar or logo to display in the header instead of the default Bluesky icon.
+              </p>
+              
+              <div className="flex items-start gap-6">
+                {/* Avatar Preview */}
+                <div className="flex flex-col items-center">
+                  <div className="w-20 h-20 rounded-full border-2 border-gray-300 overflow-hidden mb-3 bg-gray-100 flex items-center justify-center">
+                    {avatarPreview ? (
+                      <img 
+                        src={avatarPreview} 
+                        alt="Avatar preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Camera size={24} className="text-gray-400" />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    Square images work best<br />
+                    Max size: 2MB
+                  </p>
+                </div>
+
+                {/* Upload Controls */}
+                <div className="flex-1">
+                  <div className="flex gap-3">
+                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 cursor-pointer transition-colors">
+                      <Upload size={16} />
+                      Choose Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    
+                    {avatarPreview && (
+                      <button
+                        onClick={removeAvatar}
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <X size={16} />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="mt-2 text-sm text-gray-500">
+                    <p>• Recommended: 200x200px or larger</p>
+                    <p>• Supported formats: JPG, PNG, GIF</p>
+                    <p>• Will be automatically resized to fit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
 
           {/* Bluesky Account Section */}
           <Card className="border-gray-700">
