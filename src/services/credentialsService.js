@@ -34,7 +34,11 @@ export const getProfileSettings = () => {
     bio: '',
     targetAudience: '',
     contentGoals: [],
-    customAvatar: null
+    customAvatar: null,
+    documents: {
+      customerAvatar: null,
+      targetAudience: null
+    }
   };
 };
 
@@ -458,6 +462,49 @@ export const removeCustomAvatar = () => {
     console.error('Failed to remove custom avatar:', error);
     return false;
   }
+};
+
+// Document management functions
+export const saveDocument = (documentType, content, filename) => {
+  try {
+    const profileSettings = getProfileSettings();
+    if (!profileSettings.documents) {
+      profileSettings.documents = {};
+    }
+    profileSettings.documents[documentType] = {
+      content,
+      filename,
+      uploadedAt: new Date().toISOString()
+    };
+    return saveProfileSettings(profileSettings);
+  } catch (error) {
+    console.error(`Failed to save ${documentType} document:`, error);
+    return false;
+  }
+};
+
+export const getDocument = (documentType) => {
+  const profileSettings = getProfileSettings();
+  return profileSettings.documents?.[documentType] || null;
+};
+
+export const removeDocument = (documentType) => {
+  try {
+    const profileSettings = getProfileSettings();
+    if (profileSettings.documents && profileSettings.documents[documentType]) {
+      delete profileSettings.documents[documentType];
+      return saveProfileSettings(profileSettings);
+    }
+    return true;
+  } catch (error) {
+    console.error(`Failed to remove ${documentType} document:`, error);
+    return false;
+  }
+};
+
+export const getAllDocuments = () => {
+  const profileSettings = getProfileSettings();
+  return profileSettings.documents || {};
 };
 
 // Get configuration status summary

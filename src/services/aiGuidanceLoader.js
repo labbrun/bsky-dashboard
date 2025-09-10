@@ -50,20 +50,94 @@ export const loadAllGuidance = async () => {
 // Load brand assets (voice, audience, customer avatar)
 const loadBrandAssets = async () => {
   try {
-    const [customerAvatarContent, targetAudienceContent] = await Promise.all([
-      loadMarkdownFile('/src/data/ai-guidance/brand-assets/custom-avatar.md'),
-      loadMarkdownFile('/src/data/ai-guidance/brand-assets/target-audience.md')
-    ]);
+    // First try to get user-uploaded documents
+    const { getDocument } = await import('./credentialsService');
+    const customerAvatarDoc = getDocument('customerAvatar');
+    const targetAudienceDoc = getDocument('targetAudience');
+
+    let customerAvatarContent, targetAudienceContent;
+
+    // Use uploaded documents if available, otherwise provide generic guidance
+    if (customerAvatarDoc && customerAvatarDoc.content) {
+      customerAvatarContent = customerAvatarDoc.content;
+    } else {
+      console.log('No customer avatar document uploaded - using generic guidance');
+      customerAvatarContent = `# Customer Avatar - Generic Profile
+
+## Overview
+This is a placeholder customer avatar. Upload your own customer avatar document in Settings > Profile & Keywords to personalize AI recommendations.
+
+## Demographics
+- Age Range: 25-65+
+- Location: Global
+- Education: Varies
+- Income: Varies
+
+## Goals
+- Achieve their business/personal objectives
+- Find relevant, valuable content
+- Stay informed about topics they care about
+
+## Pain Points
+- Information overload
+- Limited time and resources
+- Need for actionable insights
+
+## Values
+- Quality and relevance
+- Authenticity and transparency
+- Practical, actionable advice
+
+Upload your own customer avatar document to get personalized AI insights based on your specific audience.`;
+    }
+
+    if (targetAudienceDoc && targetAudienceDoc.content) {
+      targetAudienceContent = targetAudienceDoc.content;
+    } else {
+      console.log('No target audience document uploaded - using generic guidance');
+      targetAudienceContent = `# Target Audience - Generic Profile
+
+## Primary Audience
+General audience interested in the content and insights provided.
+
+## Demographics
+- Age Range: 25-65+
+- Gender: All
+- Location: Global
+- Education: Varies
+
+## Interests
+- Staying informed
+- Learning new things
+- Finding valuable insights
+- Engaging with quality content
+
+## Behavior Patterns
+- Active on social media
+- Values authentic, helpful content
+- Engages with content that provides value
+- Shares content that resonates with them
+
+## Goals
+- Stay informed about relevant topics
+- Find actionable insights and advice
+- Connect with like-minded individuals
+- Learn and grow personally/professionally
+
+Upload your own target audience document to get personalized AI insights based on your specific audience.`;
+    }
 
     return {
       customerAvatar: {
         rawContent: customerAvatarContent,
         // Parse structured data from markdown content
-        parsed: parseCustomerAvatar(customerAvatarContent)
+        parsed: parseCustomerAvatar(customerAvatarContent),
+        source: customerAvatarDoc ? 'user-uploaded' : 'default'
       },
       targetAudience: {
         rawContent: targetAudienceContent,
-        parsed: parseTargetAudience(targetAudienceContent)
+        parsed: parseTargetAudience(targetAudienceContent),
+        source: targetAudienceDoc ? 'user-uploaded' : 'default'
       }
     };
   } catch (error) {

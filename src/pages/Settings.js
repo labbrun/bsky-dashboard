@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, Shield, User, Target, Plus, X, Upload, Camera } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, Shield, User, Target, Plus, X, Upload, Camera, FileText, File, Trash2 } from 'lucide-react';
 import { Card, Button } from '../components/ui/UntitledUIComponents';
 import { APP_CONFIG } from '../config/app.config';
 import { 
@@ -12,7 +12,11 @@ import {
   saveProfileSettings,
   saveCustomAvatar,
   getCustomAvatar,
-  removeCustomAvatar
+  removeCustomAvatar,
+  saveDocument,
+  getDocument,
+  removeDocument,
+  getAllDocuments
 } from '../services/credentialsService';
 
 const API_GUIDES = {
@@ -135,10 +139,15 @@ const Settings = () => {
     bio: '',
     targetAudience: '',
     contentGoals: [],
-    customAvatar: null
+    customAvatar: null,
+    documents: {
+      customerAvatar: null,
+      targetAudience: null
+    }
   });
   const [newKeyword, setNewKeyword] = useState('');
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [documents, setDocuments] = useState({});
   const [showPasswords, setShowPasswords] = useState({});
   const [validationStatus, setValidationStatus] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -168,6 +177,10 @@ const Settings = () => {
       const saved = getProfileSettings();
       setProfileSettings(saved);
       setAvatarPreview(saved.customAvatar);
+      
+      // Load documents
+      const allDocuments = getAllDocuments();
+      setDocuments(allDocuments);
     } catch (error) {
       console.error('Failed to load profile settings:', error);
     }
@@ -231,6 +244,65 @@ const Settings = () => {
       ...prev,
       customAvatar: null
     }));
+  };
+
+  const handleDocumentUpload = (documentType, event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+
+      // Check file type (text/markdown files)
+      if (!file.type.includes('text') && !file.name.endsWith('.md') && !file.name.endsWith('.txt')) {
+        alert('Please select a text or markdown file (.txt, .md)');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target.result;
+        const success = saveDocument(documentType, content, file.name);
+        if (success) {
+          setDocuments(prev => ({
+            ...prev,
+            [documentType]: {
+              content,
+              filename: file.name,
+              uploadedAt: new Date().toISOString()
+            }
+          }));
+          
+          // Notify other components about document update
+          window.dispatchEvent(new CustomEvent('aiDocumentsUpdated', {
+            detail: { documentType, filename: file.name }
+          }));
+        } else {
+          alert('Failed to save document');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const removeDocumentHandler = (documentType) => {
+    const success = removeDocument(documentType);
+    if (success) {
+      setDocuments(prev => {
+        const updated = { ...prev };
+        delete updated[documentType];
+        return updated;
+      });
+      
+      // Notify other components about document removal
+      window.dispatchEvent(new CustomEvent('aiDocumentsUpdated', {
+        detail: { documentType, action: 'removed' }
+      }));
+    } else {
+      alert('Failed to remove document');
+    }
   };
 
   const saveSettings = async () => {
@@ -538,6 +610,125 @@ const Settings = () => {
                     <p>• Recommended: 200x200px or larger</p>
                     <p>• Supported formats: JPG, PNG, GIF</p>
                     <p>• Will be automatically resized to fit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* AI Training Documents Section */}
+          <Card className="border-gray-700">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Training Documents</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Upload your own customer avatar and target audience documents to personalize AI recommendations and insights.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Customer Avatar Document */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                    <User size={16} />
+                    Customer Avatar Document
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    Detailed profile of your ideal customer (demographics, goals, pain points, etc.)
+                  </p>
+                  
+                  {documents.customerAvatar ? (
+                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FileText size={20} className="text-blue-600" />
+                          <div>
+                            <p className="font-medium text-gray-900">{documents.customerAvatar.filename}</p>
+                            <p className="text-xs text-gray-500">
+                              Uploaded {new Date(documents.customerAvatar.uploadedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeDocumentHandler('customerAvatar')}
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          title="Remove document"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <File size={24} className="text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Click to upload customer avatar document</p>
+                      <p className="text-xs text-gray-500 mt-1">.txt or .md files, max 5MB</p>
+                      <input
+                        type="file"
+                        accept=".txt,.md,text/*"
+                        onChange={(e) => handleDocumentUpload('customerAvatar', e)}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Target Audience Document */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                    <Target size={16} />
+                    Target Audience Document
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    Description of your target audience (personas, behaviors, preferences, etc.)
+                  </p>
+                  
+                  {documents.targetAudience ? (
+                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FileText size={20} className="text-green-600" />
+                          <div>
+                            <p className="font-medium text-gray-900">{documents.targetAudience.filename}</p>
+                            <p className="text-xs text-gray-500">
+                              Uploaded {new Date(documents.targetAudience.uploadedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeDocumentHandler('targetAudience')}
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          title="Remove document"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <File size={24} className="text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Click to upload target audience document</p>
+                      <p className="text-xs text-gray-500 mt-1">.txt or .md files, max 5MB</p>
+                      <input
+                        type="file"
+                        accept=".txt,.md,text/*"
+                        onChange={(e) => handleDocumentUpload('targetAudience', e)}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <AlertCircle size={16} className="text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">How AI uses these documents:</p>
+                    <ul className="text-xs text-blue-700 mt-1 space-y-1">
+                      <li>• Personalizes content recommendations and insights</li>
+                      <li>• Tailors audience analysis to your specific market</li>
+                      <li>• Improves content strategy suggestions</li>
+                      <li>• Provides more relevant performance feedback</li>
+                    </ul>
                   </div>
                 </div>
               </div>
