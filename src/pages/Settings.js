@@ -841,37 +841,111 @@ const Settings = () => {
           {/* AI Training Documents Section */}
           <Card className="border-gray-700">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Training Documents</h3>
-              <p className="text-sm text-gray-600 mb-6">
-                Upload your own customer avatar and target audience documents to personalize AI recommendations and insights.
-              </p>
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <FileText size={20} className="text-brand-500" />
+                    AI Training Documents
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Upload documents to personalize AI recommendations based on your specific audience and goals.
+                  </p>
+                </div>
+                
+                {/* Status Overview */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium">
+                  {Object.keys(documents).length === 0 ? (
+                    <div className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full">
+                      <AlertCircle size={12} />
+                      No documents uploaded
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-success-100 text-success-700 px-3 py-1.5 rounded-full">
+                      <CheckCircle size={12} />
+                      {Object.keys(documents).length}/2 documents uploaded
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Start Guide */}
+              {Object.keys(documents).length === 0 && (
+                <div className="mb-6 p-4 bg-primary-850 rounded-lg border border-gray-700">
+                  <h4 className="font-medium text-white mb-2 flex items-center gap-2">
+                    <HelpCircle size={16} />
+                    Quick Start Guide
+                  </h4>
+                  <p className="text-gray-300 text-sm mb-3">
+                    Upload these optional documents to enhance AI analysis quality:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">1</span>
+                      </div>
+                      <div className="text-gray-300">
+                        <span className="font-medium text-white">Customer Avatar:</span> Demographics, goals, pain points, and characteristics of your ideal customer
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">2</span>
+                      </div>
+                      <div className="text-gray-300">
+                        <span className="font-medium text-white">Target Audience:</span> Broader audience description, behaviors, preferences, and segments
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Customer Avatar Document */}
                 <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <User size={16} />
-                    Customer Avatar Document
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Detailed profile of your ideal customer (demographics, goals, pain points, etc.)
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <User size={16} className="text-blue-600" />
+                      </div>
+                      Customer Avatar
+                    </h4>
+                    {documents.customerAvatar && (
+                      <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                        <CheckCircle size={12} />
+                        Active
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p><strong>Purpose:</strong> Define your ideal customer profile</p>
+                    <p><strong>Include:</strong> Demographics, goals, challenges, motivations</p>
+                    <p><strong>Format:</strong> .txt or .md file, up to 5MB</p>
+                  </div>
                   
                   {documents.customerAvatar ? (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <FileText size={20} className="text-blue-600" />
-                          <div>
-                            <p className="font-medium text-gray-900">{documents.customerAvatar.filename}</p>
-                            <p className="text-xs text-gray-500">
-                              Uploaded {new Date(documents.customerAvatar.uploadedAt).toLocaleDateString()}
+                    <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText size={18} className="text-white" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 truncate">{documents.customerAvatar.filename}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Uploaded {new Date(documents.customerAvatar.uploadedAt).toLocaleDateString()} at {new Date(documents.customerAvatar.uploadedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-700">
+                                <CheckCircle size={10} className="mr-1" />
+                                AI Ready
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <button
                           onClick={() => removeDocumentHandler('customerAvatar')}
-                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all ml-3"
                           title="Remove document"
                         >
                           <Trash2 size={16} />
@@ -879,10 +953,12 @@ const Settings = () => {
                       </div>
                     </div>
                   ) : (
-                    <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors">
-                      <File size={24} className="text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Click to upload customer avatar document</p>
-                      <p className="text-xs text-gray-500 mt-1">.txt or .md files, max 5MB</p>
+                    <label className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all group">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-100 transition-colors">
+                        <Upload size={20} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-900 mb-1">Upload Customer Avatar</p>
+                      <p className="text-xs text-gray-500">Click or drag a .txt or .md file here</p>
                       <input
                         type="file"
                         accept=".txt,.md,text/*"
@@ -895,29 +971,50 @@ const Settings = () => {
 
                 {/* Target Audience Document */}
                 <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <Target size={16} />
-                    Target Audience Document
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Description of your target audience (personas, behaviors, preferences, etc.)
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Target size={16} className="text-green-600" />
+                      </div>
+                      Target Audience
+                    </h4>
+                    {documents.targetAudience && (
+                      <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                        <CheckCircle size={12} />
+                        Active
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p><strong>Purpose:</strong> Describe your broader audience segments</p>
+                    <p><strong>Include:</strong> Personas, behaviors, preferences, interests</p>
+                    <p><strong>Format:</strong> .txt or .md file, up to 5MB</p>
+                  </div>
                   
                   {documents.targetAudience ? (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <FileText size={20} className="text-green-600" />
-                          <div>
-                            <p className="font-medium text-gray-900">{documents.targetAudience.filename}</p>
-                            <p className="text-xs text-gray-500">
-                              Uploaded {new Date(documents.targetAudience.uploadedAt).toLocaleDateString()}
+                    <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText size={18} className="text-white" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 truncate">{documents.targetAudience.filename}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Uploaded {new Date(documents.targetAudience.uploadedAt).toLocaleDateString()} at {new Date(documents.targetAudience.uploadedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-700">
+                                <CheckCircle size={10} className="mr-1" />
+                                AI Ready
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <button
                           onClick={() => removeDocumentHandler('targetAudience')}
-                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all ml-3"
                           title="Remove document"
                         >
                           <Trash2 size={16} />
@@ -925,10 +1022,12 @@ const Settings = () => {
                       </div>
                     </div>
                   ) : (
-                    <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors">
-                      <File size={24} className="text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Click to upload target audience document</p>
-                      <p className="text-xs text-gray-500 mt-1">.txt or .md files, max 5MB</p>
+                    <label className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all group">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-green-100 transition-colors">
+                        <Upload size={20} className="text-gray-400 group-hover:text-green-500 transition-colors" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-900 mb-1">Upload Target Audience</p>
+                      <p className="text-xs text-gray-500">Click or drag a .txt or .md file here</p>
                       <input
                         type="file"
                         accept=".txt,.md,text/*"
@@ -940,17 +1039,50 @@ const Settings = () => {
                 </div>
               </div>
               
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              {/* Benefits Section - Only show if at least one document is uploaded */}
+              {Object.keys(documents).length > 0 && (
+                <div className="mt-6 p-4 bg-success-50 rounded-lg border border-success-200">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle size={16} className="text-success-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-success-900 mb-2">
+                        AI Enhanced Analysis Active
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-success-700">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-success-600 rounded-full"></div>
+                          Personalized content recommendations
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-success-600 rounded-full"></div>
+                          Audience-specific performance insights
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-success-600 rounded-full"></div>
+                          Tailored content strategy suggestions
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-success-600 rounded-full"></div>
+                          Context-aware analytics feedback
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Help Section - Always visible */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-start gap-3">
-                  <AlertCircle size={16} className="text-blue-600 mt-0.5" />
+                  <HelpCircle size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-blue-900">How AI uses these documents:</p>
-                    <ul className="text-xs text-blue-700 mt-1 space-y-1">
-                      <li>• Personalizes content recommendations and insights</li>
-                      <li>• Tailors audience analysis to your specific market</li>
-                      <li>• Improves content strategy suggestions</li>
-                      <li>• Provides more relevant performance feedback</li>
-                    </ul>
+                    <p className="text-sm font-medium text-gray-900 mb-2">Document Tips</p>
+                    <div className="space-y-1 text-xs text-gray-600">
+                      <div>• <strong>Format:</strong> Use plain text (.txt) or Markdown (.md) files for best results</div>
+                      <div>• <strong>Length:</strong> Aim for 200-2000 words per document for optimal AI processing</div>
+                      <div>• <strong>Content:</strong> Be specific and detailed - more context leads to better AI recommendations</div>
+                      <div>• <strong>Privacy:</strong> Documents are stored locally and never shared with third parties</div>
+                    </div>
                   </div>
                 </div>
               </div>
