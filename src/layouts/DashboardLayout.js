@@ -89,15 +89,16 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
       icon: Calendar,
       description: 'Schedule posts with AI optimization and performance scoring',
       badge: 'Beta'
-    },
-    {
-      path: '/settings',
-      label: 'Settings',
-      icon: Settings,
-      description: 'Configure API credentials and dashboard preferences',
-      badge: null
     }
   ];
+
+  const settingsItem = {
+    path: '/settings',
+    label: 'Settings',
+    icon: Settings,
+    description: 'Configure API credentials and dashboard preferences',
+    badge: null
+  };
 
   if (!metrics && !loading && !error) {
     return (
@@ -113,7 +114,7 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-80' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-lg`}>
+      <div className={`${isSidebarOpen ? 'w-80' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-lg fixed left-0 top-0 h-full z-30`}>
         {/* Sidebar Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -177,8 +178,8 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
+        <nav className="flex-1 p-4 flex flex-col">
+          <div className="space-y-2 flex-1">
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
@@ -217,6 +218,47 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
                 </NavLink>
               );
             })}
+          </div>
+
+          {/* Settings Section */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            {(() => {
+              const isActive = location.pathname === settingsItem.path;
+              return (
+                <NavLink
+                  to={settingsItem.path}
+                  className={`group flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 relative ${
+                    isActive
+                      ? 'text-white shadow-lg' 
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  style={isActive ? { backgroundColor: '#0c2146' } : {}}
+                >
+                  <settingsItem.icon size={20} className={`${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'} transition-colors`} />
+                  {isSidebarOpen && (
+                    <>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">{settingsItem.label}</span>
+                          {settingsItem.badge && (
+                            <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                              settingsItem.badge === 'New' 
+                                ? 'bg-success-100 text-success-700' 
+                                : 'bg-brand-100 text-brand-700'
+                            }`}>
+                              {settingsItem.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-xs mt-0.5 ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                          {settingsItem.description}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })()}
           </div>
         </nav>
 
@@ -286,17 +328,17 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className={`flex-1 flex flex-col min-h-screen ${isSidebarOpen ? 'ml-80' : 'ml-20'} transition-all duration-300`}>
         {/* Top Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
           <div className="flex items-center justify-between">
             {/* Page Title */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {navigationItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
+                {[...navigationItems, settingsItem].find(item => item.path === location.pathname)?.label || 'Dashboard'}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                {navigationItems.find(item => item.path === location.pathname)?.description || 'Analytics Overview'}
+                {[...navigationItems, settingsItem].find(item => item.path === location.pathname)?.description || 'Analytics Overview'}
               </p>
             </div>
 
@@ -341,7 +383,7 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
