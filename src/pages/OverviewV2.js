@@ -61,6 +61,44 @@ function OverviewV2({ metrics }) {
     }
   }, [metrics]);
   
+  // Filter posts based on selected time period
+  const getFilteredPosts = React.useMemo(() => {
+    if (!metrics?.recentPosts) return [];
+    
+    if (timePeriod === 'lifetime') {
+      return metrics.recentPosts; // Use all available posts for lifetime
+    }
+    
+    const days = parseInt(timePeriod);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return metrics.recentPosts.filter(post => {
+      if (!post.indexedAt) return true; // Include posts without dates as fallback
+      const postDate = new Date(post.indexedAt);
+      return postDate >= cutoffDate;
+    });
+  }, [metrics, timePeriod]);
+
+  // Calculate engagement metrics based on filtered posts
+  const filteredEngagementMetrics = React.useMemo(() => {
+    const filteredPosts = getFilteredPosts;
+    
+    const totalLikes = filteredPosts.reduce((sum, post) => sum + (post.likeCount || 0), 0);
+    const totalReplies = filteredPosts.reduce((sum, post) => sum + (post.replyCount || 0), 0);
+    const totalReposts = filteredPosts.reduce((sum, post) => sum + (post.repostCount || 0), 0);
+    const totalEngagement = totalLikes + totalReplies + totalReposts;
+    
+    return {
+      totalLikes,
+      totalReplies,
+      totalReposts,
+      totalEngagement,
+      postCount: filteredPosts.length,
+      avgEngagementPerPost: filteredPosts.length > 0 ? totalEngagement / filteredPosts.length : 0
+    };
+  }, [getFilteredPosts]);
+  
 
 
   // Real data based on metrics and time period
@@ -111,10 +149,9 @@ function OverviewV2({ metrics }) {
     if (!metrics) return [];
     
     const data = [];
-    // Calculate base rate from actual metrics
-    const totalEngagement = (metrics.totalLikes || 0) + (metrics.totalReplies || 0) + (metrics.totalReposts || 0);
-    const baseRate = metrics.followersCount > 0 
-      ? Math.min(8.0, Math.max(1.0, (totalEngagement / metrics.followersCount) * 100))
+    // Calculate base rate from filtered metrics based on time period
+    const baseRate = metrics.followersCount > 0 && filteredEngagementMetrics.totalEngagement > 0
+      ? Math.min(8.0, Math.max(1.0, (filteredEngagementMetrics.totalEngagement / metrics.followersCount) * 100))
       : 4.5;
     
     if (timePeriod === 'lifetime') {
@@ -149,7 +186,7 @@ function OverviewV2({ metrics }) {
       
       return data;
     }
-  }, [metrics, timePeriod]);
+  }, [metrics, timePeriod, filteredEngagementMetrics]);
 
   // Community breakdown data - using real API data when available
   const communityBreakdown = React.useMemo(() => {
@@ -160,10 +197,10 @@ function OverviewV2({ metrics }) {
     let devPercentage = 20;
     let generalPercentage = 10;
 
-    // If we have real data, adjust percentages based on content
-    if (metrics?.recentPosts && metrics.recentPosts.length > 0) {
+    // If we have real data, adjust percentages based on content from filtered posts
+    if (getFilteredPosts && getFilteredPosts.length > 0) {
       
-      const posts = metrics.recentPosts;
+      const posts = getFilteredPosts;
       let techScore = 0;
       let businessScore = 0;
       let devScore = 0;
@@ -231,7 +268,7 @@ function OverviewV2({ metrics }) {
     }
     
     return result;
-  }, [metrics]);
+  }, [metrics, getFilteredPosts]);
 
 
   if (!metrics) {
@@ -443,40 +480,34 @@ function OverviewV2({ metrics }) {
         <MetricCard
           title={timePeriod === 'lifetime' ? 'Lifetime Engagement (Est.)' : 'Total Engagement'}
           value={(() => {
-            const recentEngagement = (metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0);
-            if (timePeriod === 'lifetime' && metrics?.postsCount && metrics?.recentPosts?.length) {
-              // Estimate lifetime engagement by extrapolating from recent posts
-              const avgPerPost = recentEngagement / metrics.recentPosts.length;
+            if (timePeriod === 'lifetime' && metrics?.postsCount && filteredEngagementMetrics.postCount > 0) {
+              // Estimate lifetime engagement by extrapolating from available posts
+              const avgPerPost = filteredEngagementMetrics.avgEngagementPerPost;
               const lifetimeEstimate = Math.round(avgPerPost * metrics.postsCount);
               return lifetimeEstimate.toLocaleString();
             }
-            return recentEngagement.toLocaleString();
+            return filteredEngagementMetrics.totalEngagement.toLocaleString();
           })()}
           description={timePeriod === 'lifetime' 
             ? `Estimated total engagement\nacross all ${metrics?.postsCount?.toLocaleString() || 0} posts`
-            : `Likes, replies, and reposts\nacross ${metrics?.recentPosts?.length || 0} recent posts`
+            : `Likes, replies, and reposts\nin ${timePeriod === '7' ? 'last 7 days' : 'last 30 days'} (${filteredEngagementMetrics.postCount} posts)`
           }
           change={timePeriod === 'lifetime'
-            ? `Based on recent ${metrics?.recentPosts?.length || 0} posts average`
-            : `${metrics?.totalLikes || 0} likes, ${metrics?.totalReplies || 0} replies, ${metrics?.totalReposts || 0} reposts`
+            ? `Based on ${filteredEngagementMetrics.postCount} available posts`
+            : `${filteredEngagementMetrics.totalLikes} likes, ${filteredEngagementMetrics.totalReplies} replies, ${filteredEngagementMetrics.totalReposts} reposts`
           }
           changeType="positive"
           icon={<Heart size={20} />}
         />
         <MetricCard
           title="Avg Engagement Per Post"
-          value={(() => {
-            if (!metrics?.recentPosts?.length) return '0';
-            const recentEngagement = (metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0);
-            const avgPerPost = recentEngagement / metrics.recentPosts.length;
-            return avgPerPost.toFixed(1);
-          })()}
+          value={filteredEngagementMetrics.avgEngagementPerPost.toFixed(1)}
           description={`Average engagement per post\n(likes + replies + reposts)`}
           change={timePeriod === 'lifetime'
             ? `Estimated across all posts`
-            : `Based on ${metrics?.recentPosts?.length || 0} recent posts`
+            : `Based on ${filteredEngagementMetrics.postCount} posts in selected period`
           }
-          changeType={((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)) > 0 ? "positive" : "neutral"}
+          changeType={filteredEngagementMetrics.totalEngagement > 0 ? "positive" : "neutral"}
           icon={<Target size={20} />}
         />
       </div>
