@@ -67,7 +67,11 @@ export class RealAIService {
       logger.info('Making AI API call', {
         provider: this.config.provider,
         baseUrl: this.config.baseUrl,
-        messageCount: messages.length
+        messageCount: messages.length,
+        hasApiKey: !!this.config.apiKey,
+        apiUrlWillBe: this.config.provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 
+                      this.config.provider === 'anthropic' ? 'https://api.anthropic.com/v1/messages' : 
+                      this.config.baseUrl
       });
 
       const controller = new AbortController();
@@ -128,7 +132,24 @@ export class RealAIService {
         throw new Error(`AI API request failed: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      
+      // Check if response looks like HTML (common error response)
+      if (responseText.trim().startsWith('<!doctype') || responseText.trim().startsWith('<html')) {
+        throw new Error(`AI API returned HTML instead of JSON. This usually means:
+1. Wrong API endpoint URL (check baseUrl in settings)
+2. Invalid API key (check API key in settings)
+3. Service unavailable or network issue
+
+Response preview: ${responseText.substring(0, 200)}...`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error(`AI API returned invalid JSON. Response: ${responseText.substring(0, 200)}...`);
+      }
       
       // Extract response content based on provider
       let content = '';
