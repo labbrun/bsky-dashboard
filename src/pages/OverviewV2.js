@@ -268,7 +268,7 @@ function OverviewV2({ metrics }) {
     }
     
     return result;
-  }, [metrics, getFilteredPosts]);
+  }, [getFilteredPosts]);
 
 
   if (!metrics) {
@@ -358,7 +358,7 @@ function OverviewV2({ metrics }) {
               
               {/* Bio in styled container - full width */}
               <div className="bg-primary-800 border border-gray-600 rounded-xl p-4 mb-4 hover:border-brand-400 transition-colors">
-                <p className="text-gray-300 leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                <p className="text-gray-300 leading-5 font-sans">{metrics.description || 'Configure your Bluesky account in Settings to see your profile description here.'}</p>
               </div>
               
               {/* Stats grid - full width */}
@@ -372,7 +372,7 @@ function OverviewV2({ metrics }) {
                   <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.mutualsPercentage || '--'}%</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
@@ -380,11 +380,11 @@ function OverviewV2({ metrics }) {
                   <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.currentEngagement || '--'}</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.targetPercentage || '--'}%</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
                 </div>
               </div>

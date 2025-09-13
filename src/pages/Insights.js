@@ -18,7 +18,6 @@ import AIInsightsGenerator, {
   INSIGHT_CATEGORIES
 } from '../services/aiInsightsService';
 import { Button } from '../components/ui/UntitledUIComponents';
-import TypingEffect from '../components/TypingEffect';
 import { getFollowers, getProfile } from '../services/blueskyService';
 import FeatureUnavailable from '../components/FeatureUnavailable';
 import { isServiceConfigured } from '../services/credentialsService';
@@ -549,7 +548,7 @@ function Insights({ metrics }) {
               
               {/* Bio in styled container - full width */}
               <div className="bg-primary-800 border border-gray-600 rounded-xl p-4 mb-4 hover:border-brand-400 transition-colors">
-                <p className="text-gray-300 leading-5 font-sans">{metrics.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                <p className="text-gray-300 leading-5 font-sans">{metrics.description || 'Configure your Bluesky account in Settings to see your profile description here.'}</p>
               </div>
                 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -562,7 +561,7 @@ function Insights({ metrics }) {
                     <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
                   </div>
                   <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
+                    <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.mutualsPercentage || '--'}%</p>
                     <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
                   </div>
                   <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
@@ -570,11 +569,11 @@ function Insights({ metrics }) {
                     <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
                   </div>
                   <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
+                    <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.currentEngagement || '--'}</p>
                     <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
                   </div>
                   <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                    <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
+                    <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.targetPercentage || '--'}%</p>
                     <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
                   </div>
               </div>
@@ -605,38 +604,37 @@ function Insights({ metrics }) {
             
             {/* AI Performance Summary */}
             <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-              <TypingEffect 
-                text="Content-Trend Alignment Analysis: Your AI Privacy & Security content is perfectly aligned with trending searches (+85% match), driving 4.2k views and strong engagement. Homelab Setup Guides show excellent trend correlation with 'self hosted security' searches (+78% relevance). However, your general tech content is slightly misaligned with current trends - consider focusing more on specific privacy tools and homelab tutorials. Cloud cost optimization is trending but underrepresented in your content strategy. Overall trend match score: 74% - strong alignment with growth opportunities in security-focused content."
-                speed={30}
-              />
+              <p className="text-sm text-gray-300">
+                Configure your analytics integrations in Settings to see AI-powered performance insights and trend analysis here.
+              </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp size={16} className="text-success-400" />
-                  <span className="text-success-400 font-semibold text-sm font-sans">Trend Alignment Score</span>
+                  <span className="text-success-400 font-semibold text-sm font-sans">Trend Alignment</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  <span className="text-lg font-bold text-success-400">74%</span> content-trend match with strongest alignment in AI Privacy & Security topics
+                  Analytics data required to calculate content-trend alignment
                 </p>
               </div>
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <Target size={16} className="text-warning-400" />
-                  <span className="text-warning-400 font-semibold text-sm font-sans">Trending Gaps</span>
+                  <span className="text-warning-400 font-semibold text-sm font-sans">Content Gaps</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  Cloud cost optimization & self-hosted security are trending but underrepresented in your content
+                  Configure Google Trends to identify content opportunities
                 </p>
               </div>
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
                 <div className="flex items-center gap-2 mb-2">
                   <MessageSquare size={16} className="text-electric-400" />
-                  <span className="text-electric-400 font-semibold text-sm font-sans">Top Performing Match</span>
+                  <span className="text-electric-400 font-semibold text-sm font-sans">Performance Insights</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  AI Privacy content shows <span className="text-electric-400 font-semibold">85% trend correlation</span> with 4.2k+ views
+                  Real performance insights will appear when analytics data is available
                 </p>
               </div>
             </div>

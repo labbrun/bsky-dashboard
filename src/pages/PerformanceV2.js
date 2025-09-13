@@ -459,7 +459,7 @@ function PerformanceV2({ metrics }) {
                   <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.mutualsPercentage || '--'}%</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
@@ -467,11 +467,11 @@ function PerformanceV2({ metrics }) {
                   <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.currentEngagement || '--'}</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.targetPercentage || '--'}%</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
                 </div>
               </div>
@@ -608,7 +608,7 @@ function PerformanceV2({ metrics }) {
                   <p className="text-2xl font-bold text-white mb-1 font-sans">
                     {metrics?.recentPosts?.filter(p => p.isReply).length || 0} comments
                   </p>
-                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-2">Total comments • Reach: 1,234 accounts</p>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-2">Total comments • Reach: {metrics?.recentPosts?.reduce((sum, post) => sum + (post.replyCount || 0), 0) || 0} interactions</p>
                   <p className="text-xs font-sans text-success-400">
                     Avg ER: {analyticsData?.summary?.avgEngagement ? (analyticsData.summary.avgEngagement / (metrics?.followersCount || 1) * 100).toFixed(1) : 0}%
                   </p>
@@ -1370,84 +1370,40 @@ function PerformanceV2({ metrics }) {
       </div>
 
       {/* Recommended Posting Times */}
-      <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
-        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <Calendar className="text-brand-400" size={20} />
-          Recommended Posting Times (Next Week)
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
-            <h4 className="font-semibold text-white">Monday</h4>
-            <p className="text-lg font-bold text-brand-200 my-2">2:00 PM</p>
-            <p className="text-xs text-brand-100 mb-2">Peak professional audience</p>
-            <div className="flex items-center gap-1">
-              <div className="w-full bg-gray-600 rounded-full h-1.5">
-                <div 
-                  className="bg-brand-400 h-1.5 rounded-full" 
-                  style={{ width: '92%' }}
-                ></div>
+      {analyticsData?.postingTimes && analyticsData.postingTimes.length > 0 ? (
+        <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
+          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <Calendar className="text-brand-400" size={20} />
+            Recommended Posting Times
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {analyticsData.postingTimes.map((timing, index) => (
+              <div key={index} className="border border-brand-600 rounded-lg p-4 bg-brand-900">
+                <h4 className="font-semibold text-white">{timing.day}</h4>
+                <p className="text-lg font-bold text-brand-200 my-2">{timing.time}</p>
+                <p className="text-xs text-brand-100 mb-2">{timing.description}</p>
+                <div className="flex items-center gap-1">
+                  <div className="w-full bg-gray-600 rounded-full h-1.5">
+                    <div 
+                      className="bg-brand-400 h-1.5 rounded-full" 
+                      style={{ width: `${timing.percentage}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-brand-200 ml-1">{timing.percentage}%</span>
+                </div>
               </div>
-              <span className="text-xs text-brand-200 ml-1">92%</span>
-            </div>
-          </div>
-          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
-            <h4 className="font-semibold text-white">Tuesday</h4>
-            <p className="text-lg font-bold text-brand-200 my-2">3:30 PM</p>
-            <p className="text-xs text-brand-100 mb-2">High engagement window</p>
-            <div className="flex items-center gap-1">
-              <div className="w-full bg-gray-600 rounded-full h-1.5">
-                <div 
-                  className="bg-brand-400 h-1.5 rounded-full" 
-                  style={{ width: '88%' }}
-                ></div>
-              </div>
-              <span className="text-xs text-brand-200 ml-1">88%</span>
-            </div>
-          </div>
-          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
-            <h4 className="font-semibold text-white">Wednesday</h4>
-            <p className="text-lg font-bold text-brand-200 my-2">1:00 PM</p>
-            <p className="text-xs text-brand-100 mb-2">Lunch break activity spike</p>
-            <div className="flex items-center gap-1">
-              <div className="w-full bg-gray-600 rounded-full h-1.5">
-                <div 
-                  className="bg-brand-400 h-1.5 rounded-full" 
-                  style={{ width: '85%' }}
-                ></div>
-              </div>
-              <span className="text-xs text-brand-200 ml-1">85%</span>
-            </div>
-          </div>
-          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
-            <h4 className="font-semibold text-white">Thursday</h4>
-            <p className="text-lg font-bold text-brand-200 my-2">2:45 PM</p>
-            <p className="text-xs text-brand-100 mb-2">Mid-week momentum</p>
-            <div className="flex items-center gap-1">
-              <div className="w-full bg-gray-600 rounded-full h-1.5">
-                <div 
-                  className="bg-brand-400 h-1.5 rounded-full" 
-                  style={{ width: '90%' }}
-                ></div>
-              </div>
-              <span className="text-xs text-brand-200 ml-1">90%</span>
-            </div>
-          </div>
-          <div className="border border-brand-600 rounded-lg p-4 bg-brand-900">
-            <h4 className="font-semibold text-white">Friday</h4>
-            <p className="text-lg font-bold text-brand-200 my-2">11:30 AM</p>
-            <p className="text-xs text-brand-100 mb-2">Pre-weekend engagement</p>
-            <div className="flex items-center gap-1">
-              <div className="w-full bg-gray-600 rounded-full h-1.5">
-                <div 
-                  className="bg-brand-400 h-1.5 rounded-full" 
-                  style={{ width: '78%' }}
-                ></div>
-              </div>
-              <span className="text-xs text-brand-200 ml-1">78%</span>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
+          <div className="text-center py-12">
+            <Calendar size={48} className="mx-auto mb-4 opacity-50" />
+            <h3 className="text-white font-sans mb-2">Optimal Posting Times</h3>
+            <p className="text-sm text-gray-400 font-sans">Collect more engagement data to see AI-recommended posting times for maximum reach.</p>
+          </div>
+        </div>
+      )}
 
 
     </div>

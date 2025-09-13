@@ -18,6 +18,7 @@ import {
 // Services
 import { getComprehensiveBlogAnalytics } from '../services/blogAnalyticsService';
 import { getBlogTrafficOverview, getReferralTraffic } from '../services/googleAnalyticsService';
+import logger from '../services/loggingService';
 
 // Import Untitled UI components
 import { 
@@ -53,132 +54,50 @@ function BlogAnalytics({ metrics }) {
   const [referralData, setReferralData] = useState(null);
   const [gaLoading, setGaLoading] = useState(false);
   
-  // Social media suggestions state
-  const [completedSuggestions, setCompletedSuggestions] = useState(new Set());
-  const [suggestionRefreshKey, setSuggestionRefreshKey] = useState(0);
 
-  // Fast fallback data function - MOVED TO TOP
-  const getFallbackBlogAnalytics = useCallback(() => ({
-    overview: {
-      totalPosts: 15,
-      blogMetrics: {
-        postingFrequency: "Regular (2+ per month)",
-        averageWordsPerPost: 1200,
-        topCategories: [
-          { category: "AI & Technology", count: 8 },
-          { category: "Privacy & Security", count: 4 },
-          { category: "Development", count: 3 }
-        ]
-      }
-    },
-    content: {
-      metrics: {
-        averageAlignmentScore: 78
-      },
-      recentPosts: [
-        {
-          title: "AI Privacy Fundamentals: Building Secure Systems",
-          pubDate: new Date('2024-08-15'),
-          wordCount: 1247,
-          readingTime: 6,
-          analysis: {
-            alignmentScore: 85,
-            alignmentAnalysis: "Excellent alignment with your target audience. Strong focus on AI and privacy."
-          }
-        },
-        {
-          title: "Complete Homelab Security Guide",
-          pubDate: new Date('2024-08-10'),
-          wordCount: 892,
-          readingTime: 4,
-          analysis: {
-            alignmentScore: 79,
-            alignmentAnalysis: "Good alignment. Covers relevant homelab security topics."
-          }
-        }
-      ],
-      repurposingOpportunities: [
-        {
-          priority: "high",
-          type: "technical_breakdown",
-          description: "Break down AI privacy concepts into Twitter-sized threads",
-          postTitle: "AI Privacy Fundamentals",
-          strategy: "Create 5-part thread explaining key privacy concepts",
-          timeline: "This week"
-        }
-      ]
-    },
-    traffic: {
-      overview: [
-        { date: "08/15", sessions: 245, users: 198 },
-        { date: "08/16", sessions: 267, users: 213 },
-        { date: "08/17", sessions: 234, users: 187 },
-        { date: "08/18", sessions: 289, users: 231 },
-        { date: "08/19", sessions: 301, users: 248 },
-        { date: "08/20", sessions: 278, users: 225 },
-        { date: "08/21", sessions: 312, users: 251 }
-      ],
-      referrals: [
-        { source: "google", medium: "organic", sessions: 245, users: 198, displayName: "Google", isBluesky: false, isSearch: true, isSocial: false },
-        { source: "bsky.app", medium: "referral", sessions: 67, users: 52, displayName: "Bluesky", isBluesky: true, isSearch: false, isSocial: true },
-        { source: "twitter", medium: "social", sessions: 34, users: 29, displayName: "Twitter", isBluesky: false, isSearch: false, isSocial: true }
-      ],
-      topPosts: [
-        {
-          title: "AI Privacy Fundamentals: Building Secure Systems",
-          pageviews: 1247,
-          avgTimeOnPage: 245,
-          bounceRate: 23.4,
-          url: "https://labb.run/ai-privacy-fundamentals/"
-        }
-      ]
-    },
-    insights: {
-      trafficPerformance: {
-        totalSessions: 1842,
-        averageBounceRate: 23.4
-      },
-      repurposingInsights: {
-        highPriorityOpportunities: 3
-      }
-    }
-  }), []);
+  // Check if blog RSS is configured
+  const isBlogConfigured = useMemo(() => {
+    return isServiceConfigured('blog');
+  }, []);
 
-  // Load blog analytics data - Optimized for instant loading
+  // Load blog analytics data - Real data only
   const loadBlogAnalytics = useCallback(async () => {
-    // Start with fallback data immediately for instant page load
-    const fallbackData = getFallbackBlogAnalytics();
-    setBlogAnalytics(fallbackData);
-    setLoading(false); // Page loads instantly with fallback data
+    if (!isBlogConfigured) {
+      setLoading(false);
+      setError('Blog RSS feed not configured. Please configure it in Settings to view blog analytics.');
+      setBlogAnalytics(null);
+      return;
+    }
+
+    setLoading(true);
     setError(null);
+    setBlogAnalytics(null);
     
     try {
-      // Try to get real data in background with shorter timeout
-      const analyticsPromise = getComprehensiveBlogAnalytics(timeRange);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Loading timeout')), 1500) // Reduced from 5s to 1.5s
-      );
+      logger.info('Loading blog analytics data');
+      const analytics = await getComprehensiveBlogAnalytics(timeRange);
       
-      const analytics = await Promise.race([analyticsPromise, timeoutPromise]);
-      
-      // Only update if we got real data (not an error)
+      // Only set data if we got valid analytics
       if (analytics && !analytics.error) {
         setBlogAnalytics(analytics);
-        console.log('✅ Real blog analytics data loaded');
+        logger.info('Blog analytics data loaded successfully', { hasAnalytics: !!analytics });
       } else {
-        console.warn('❌ Blog analytics returned error, keeping fallback data');
+        throw new Error(analytics?.error || 'Failed to load blog analytics');
       }
     } catch (err) {
-      // Keep fallback data, don't show error to user
-      console.warn('Blog analytics failed, keeping fallback data:', err.message);
+      console.error('Blog analytics failed:', err.message);
+      setError(`Failed to load blog analytics: ${err.message}. Please check your blog RSS configuration in Settings.`);
+      setBlogAnalytics(null);
+    } finally {
+      setLoading(false);
     }
-  }, [timeRange, getFallbackBlogAnalytics]);
+  }, [timeRange, isBlogConfigured]);
 
   // Load Google Analytics data - Optimized with timeout
   const loadGoogleAnalytics = useCallback(async () => {
     setGaLoading(true);
     try {
-      console.log('Loading Google Analytics data for', timeRange, 'days...');
+      logger.info('Loading Google Analytics data', { timeRangeDays: timeRange });
       
       // Use Promise.allSettled with a reasonable timeout
       const gaDataPromise = Promise.allSettled([
@@ -198,7 +117,7 @@ function BlogAnalytics({ metrics }) {
       
       // Process traffic overview results
       if (trafficOverview.status === 'fulfilled' && trafficOverview.value && trafficOverview.value.length > 0) {
-        console.log('✅ Real Google Analytics traffic data loaded:', trafficOverview.value.length, 'data points');
+        logger.info('Google Analytics traffic data loaded', { dataPoints: trafficOverview.value?.length || 0 });
         setTrafficData(trafficOverview.value);
       } else {
         console.warn('❌ Traffic data failed or empty, reason:', trafficOverview.reason?.message || 'No data');
@@ -207,7 +126,7 @@ function BlogAnalytics({ metrics }) {
       
       // Process referral traffic results  
       if (referralTraffic.status === 'fulfilled' && referralTraffic.value && referralTraffic.value.length > 0) {
-        console.log('✅ Real Google Analytics referral data loaded:', referralTraffic.value.length, 'sources');
+        logger.info('Google Analytics referral data loaded', { sources: referralTraffic.value?.length || 0 });
         setReferralData(referralTraffic.value);
       } else {
         console.warn('❌ Referral data failed or empty, reason:', referralTraffic.reason?.message || 'No data');
@@ -283,154 +202,7 @@ function BlogAnalytics({ metrics }) {
     );
   }
 
-  // AI-Enhanced Social Media Suggestions Generator
-  const generateSocialSuggestions = (posts, count = 6) => {
-    if (!posts || posts.length === 0) return [];
-    
-    // Your target keywords and keyphrases for content repurposing
-    const targetKeywords = [
-      'homelab', 'self-hosting', 'privacy', 'security', 'automation', 'DevOps',
-      'small business', 'productivity', 'infrastructure', 'networking', 'containers',
-      'monitoring', 'backup', 'cloud', 'open source', 'enterprise', 'tech stack'
-    ];
 
-    // AI-powered content repurposing templates based on your blog content
-    const aiTemplates = [
-      {
-        template: "🔒 New post: {title}\n\nKey takeaway: {insight}\n\nPerfect for anyone building secure {topic} setups. What's your approach? 👇\n\n{hashtags}",
-        focus: "security",
-        hashtags: "#Privacy #Security #SelfHosting #HomeLab #TechSecurity #DataProtection"
-      },
-      {
-        template: "🏠 Just shared: {title}\n\n{insight}\n\nThis could save you hours if you're setting up your own {topic} infrastructure. Questions? 💬\n\n{hashtags}",
-        focus: "homelab",
-        hashtags: "#HomeLab #SelfHosting #Infrastructure #DevOps #TechSetup #HomeServer"
-      },
-      {
-        template: "⚡ Latest guide: {title}\n\n💡 Pro tip: {insight}\n\nGame-changer for small businesses wanting to control their {topic}. Thoughts?\n\n{hashtags}",
-        focus: "business",
-        hashtags: "#SmallBusiness #Productivity #Automation #TechSolutions #BusinessTech #Efficiency"
-      },
-      {
-        template: "🛠️ New tutorial: {title}\n\n{insight}\n\nStep-by-step guide that covers the essentials of {topic}. Who else is working on this?\n\n{hashtags}",
-        focus: "tutorial",
-        hashtags: "#Tutorial #DevOps #TechGuide #LearnTech #Development #BestPractices"
-      },
-      {
-        template: "📊 Deep dive: {title}\n\nKey insight: {insight}\n\nData-driven approach to optimizing {topic} for better performance. What metrics do you track?\n\n{hashtags}",
-        focus: "analytics",
-        hashtags: "#Analytics #Performance #Monitoring #DataDriven #TechMetrics #Optimization"
-      },
-      {
-        template: "🚀 Fresh content: {title}\n\n{insight}\n\nPractical solutions for {topic} challenges. Perfect for the privacy-conscious crowd 🔐\n\n{hashtags}",
-        focus: "privacy",
-        hashtags: "#PrivacyFirst #DataPrivacy #Security #SelfHosting #DigitalRights #TechPrivacy"
-      }
-    ];
-
-    // AI-generated insights based on post content
-    const generateInsight = (post, focus) => {
-      const insights = {
-        security: [
-          "Zero-trust architecture isn't just enterprise anymore",
-          "Local-first approach reduces attack surface significantly",
-          "End-to-end encryption should be your baseline, not optional"
-        ],
-        homelab: [
-          "Hardware costs have dropped 60% while performance doubled",
-          "Container orchestration makes scaling effortless",
-          "Power efficiency matters more than raw compute for 24/7 setups"
-        ],
-        business: [
-          "ROI on self-hosting hits break-even at ~50 users",
-          "Control over your data = competitive advantage",
-          "Automation reduces manual tasks by 80%+"
-        ],
-        tutorial: [
-          "Documentation is half the battle - automate it",
-          "Start simple, scale incrementally",
-          "Backup strategy should be tested monthly"
-        ],
-        analytics: [
-          "Real-time monitoring prevents 90% of downtime",
-          "Baseline metrics today, optimize tomorrow",
-          "Alert fatigue kills incident response"
-        ],
-        privacy: [
-          "Your data, your rules - it's that simple",
-          "Privacy by design > privacy by compliance",
-          "Local processing beats cloud for sensitive data"
-        ]
-      };
-      
-      const categoryInsights = insights[focus] || insights.business;
-      return categoryInsights[Math.floor(Math.random() * categoryInsights.length)];
-    };
-
-    // Generate topic based on post title and content
-    const extractTopic = (post) => {
-      const title = post.title.toLowerCase();
-      if (title.includes('homelab') || title.includes('server') || title.includes('self-host')) return 'homelab';
-      if (title.includes('security') || title.includes('privacy') || title.includes('secure')) return 'security';
-      if (title.includes('automation') || title.includes('devops') || title.includes('deploy')) return 'automation';
-      if (title.includes('monitoring') || title.includes('analytics') || title.includes('performance')) return 'monitoring';
-      if (title.includes('backup') || title.includes('recovery') || title.includes('restore')) return 'backup';
-      if (title.includes('network') || title.includes('vpn') || title.includes('proxy')) return 'networking';
-      return 'infrastructure';
-    };
-
-    const suggestions = [];
-    
-    for (let i = 0; i < Math.min(count, 6); i++) {
-      const post = posts[i % posts.length];
-      const template = aiTemplates[i % aiTemplates.length];
-      const topic = extractTopic(post);
-      const insight = generateInsight(post, template.focus);
-      
-      // Calculate alignment score based on keyword presence
-      let alignmentScore = 65; // base score
-      const titleLower = post.title.toLowerCase();
-      targetKeywords.forEach(keyword => {
-        if (titleLower.includes(keyword)) alignmentScore += 5;
-      });
-      alignmentScore = Math.min(95, alignmentScore);
-
-      const postText = template.template
-        .replace('{title}', post.title)
-        .replace('{insight}', insight)
-        .replace('{topic}', topic)
-        .replace('{hashtags}', template.hashtags);
-
-      suggestions.push({
-        id: `ai-suggestion-${i}-${suggestionRefreshKey}`,
-        post: post,
-        alignmentScore: alignmentScore,
-        text: postText,
-        hashtags: template.hashtags.split(' '),
-        type: alignmentScore > 85 ? 'high-impact' : alignmentScore > 75 ? 'good-fit' : 'potential',
-        views: Math.floor((alignmentScore / 100) * 1200), // Based on alignment score only
-        readTime: `${Math.floor(post.wordCount / 200) || 3} min read`,
-        engagement: Math.floor((alignmentScore / 100) * 75) + 25, // Base engagement + alignment
-        focus: template.focus,
-        aiGenerated: true
-      });
-    }
-
-    return suggestions.filter(s => !completedSuggestions.has(s.id));
-  };
-
-  // Handle suggestion completion
-  const handleSuggestionComplete = (suggestionId) => {
-    setCompletedSuggestions(prev => new Set([...prev, suggestionId]));
-  };
-
-  // Refresh all suggestions
-  const refreshAllSuggestions = () => {
-    setSuggestionRefreshKey(prev => prev + 1);
-    setCompletedSuggestions(new Set());
-  };
-
-  // Loading State
   if (loading) {
     return (
       <div className="space-y-8">
@@ -489,14 +261,14 @@ function BlogAnalytics({ metrics }) {
 
   // Use the same Bluesky profile data structure as other pages
   const profileData = metrics || {
-    displayName: "Your Name",
-    handle: "yourhandle.bsky.social", 
-    description: "Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.",
-    avatar: "https://avatar.vercel.sh/yourhandle.bsky.social.svg?text=YH",
+    displayName: "Loading...",
+    handle: "loading.bsky.social", 
+    description: "Configure your Bluesky account in Settings to see your profile data here.",
+    avatar: "https://avatar.vercel.sh/loading.bsky.social.svg?text=L",
     banner: null,
-    followersCount: 1234,
-    followsCount: 567,
-    postsCount: 89
+    followersCount: 0,
+    followsCount: 0,
+    postsCount: 0
   };
 
   return (
@@ -562,7 +334,7 @@ function BlogAnalytics({ metrics }) {
               
               {/* Bio in styled container - full width */}
               <div className="bg-primary-800 border border-gray-600 rounded-xl p-4 mb-4 hover:border-brand-400 transition-colors">
-                <p className="text-gray-300 leading-5 font-sans">{profileData.description || 'Building the future with Home Lab, Self Hosting, and Privacy-first solutions for Small Business.'}</p>
+                <p className="text-gray-300 leading-5 font-sans">{profileData.description || 'Configure your Bluesky account in Settings to see your profile description here.'}</p>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -575,7 +347,7 @@ function BlogAnalytics({ metrics }) {
                   <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">23%</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.mutualsPercentage || '--'}%</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
@@ -583,11 +355,11 @@ function BlogAnalytics({ metrics }) {
                   <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">12/14</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.currentEngagement || '--'}</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">87%</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.targetPercentage || '--'}%</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
                 </div>
               </div>
@@ -1091,491 +863,63 @@ function BlogAnalytics({ metrics }) {
           </div>
         </div>
 
-        {/* Top Performing Topics & Formats & Improvement Opportunities */}
-        <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
-          <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-            <BookOpen className="text-green-400" size={20} />
-            Top Performing Topics & Formats & Improvement Opportunities
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Top Performing Topics */}
-            <div className="border border-green-600 rounded-lg bg-green-900 p-4">
-              <h4 className="font-semibold text-green-200 mb-3">🎯 Best Performing Topics</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">AI Privacy & Security</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-green-300">4.2k views</span>
-                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">85%</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">Homelab Setup Guides</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-green-300">3.8k views</span>
-                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">78%</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">Productivity Tools</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-green-300">2.9k views</span>
-                    <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">72%</span>
-                  </div>
-                </div>
+        {/* Content Performance Insights - Show only when data is available */}
+        {blogAnalytics?.contentAnalysis && (
+          <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <BookOpen className="text-green-400" size={20} />
+              Content Performance Analysis
+            </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Real performance data will be displayed here when available */}
+              <div className="border border-gray-600 rounded-lg bg-primary-800 p-4">
+                <h4 className="font-semibold text-gray-200 mb-3">📊 Performance Insights</h4>
+                <p className="text-sm text-gray-300">
+                  Configure Google Analytics in Settings to see detailed content performance insights.
+                </p>
               </div>
-              
-              <h5 className="font-semibold text-green-200 mt-4 mb-2">📝 Best Performing Formats</h5>
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">Step-by-step Tutorials</span>
-                  <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">89%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">Tool Comparisons</span>
-                  <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">76%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-100">Case Studies</span>
-                  <span className="bg-green-700 text-green-200 text-xs px-2 py-1 rounded">71%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Improvement Opportunities */}
-            <div className="border border-warning-600 rounded-lg bg-warning-900 p-4">
-              <h4 className="font-semibold text-warning-200 mb-3">⚡ Improvement Opportunities</h4>
-              <div className="space-y-3">
-                <div className="bg-warning-800 rounded-lg p-3">
-                  <h5 className="text-warning-200 font-medium text-sm mb-1">Increase Technical Depth</h5>
-                  <p className="text-warning-100 text-xs">Add more code examples and configuration details to tutorials</p>
-                </div>
-                <div className="bg-warning-800 rounded-lg p-3">
-                  <h5 className="text-warning-200 font-medium text-sm mb-1">Cost Analysis Focus</h5>
-                  <p className="text-warning-100 text-xs">Include detailed cost breakdowns and ROI calculations</p>
-                </div>
-                <div className="bg-warning-800 rounded-lg p-3">
-                  <h5 className="text-warning-200 font-medium text-sm mb-1">Update Frequency</h5>
-                  <p className="text-warning-100 text-xs">Maintain consistent publishing schedule for better engagement</p>
-                </div>
-                <div className="bg-warning-800 rounded-lg p-3">
-                  <h5 className="text-warning-200 font-medium text-sm mb-1">SEO Optimization</h5>
-                  <p className="text-warning-100 text-xs">Improve keyword targeting and meta descriptions</p>
-                </div>
+              <div className="border border-gray-600 rounded-lg bg-primary-800 p-4">
+                <h4 className="font-semibold text-gray-200 mb-3">💡 Recommendations</h4>
+                <p className="text-sm text-gray-300">
+                  AI-powered content recommendations will appear when blog analytics data is available.
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* AI-Powered Blog Article Suggestions */}
-        <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-white font-sans flex items-center gap-2">
-                <BookOpen size={18} className="text-success-500" />
-                AI Blog Article Suggestions
-              </h3>
-              <p className="text-sm text-gray-300 mt-1 font-sans">
-                Strategic blog topics based on performance data, trending content, and target audience analysis
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={() => {/* Refresh function can be added later */}}
-                variant="secondary"
-                size="sm"
-                icon={<RefreshCw size={14} />}
-                className="bg-primary-900 hover:bg-primary-800 border-gray-600 text-gray-300 hover:text-white"
-              >
-                Refresh Ideas
-              </Button>
-              <Badge variant="success" size="sm">
-                AI-Enhanced
-              </Badge>
-            </div>
-          </div>
-          
-          {(() => {
-            // Generate 6 strategic blog article suggestions based on performance data and trending topics
-            const suggestions = [
-              {
-                id: 'blog-1',
-                title: 'HomeLab Security Automation: 10 Tools That Changed My Setup',
-                subtitle: 'Complete guide to automated security monitoring and threat detection',
-                type: 'high-impact',
-                category: 'Security',
-                targetKeywords: ['homelab security', 'security automation', 'threat detection', 'monitoring tools'],
-                reasoning: 'Security content performs 85% above average. Automation angle appeals to efficiency-focused audience.',
-                trendingFactor: 'HomeLab automation searches increased 340% in past 30 days',
-                estimatedViews: '4.2k - 6.8k',
-                difficulty: 'Medium',
-                seoScore: 92,
-                outline: [
-                  'Why automated security beats manual monitoring',
-                  'Essential tools: Fail2ban, Grafana, Prometheus setup',
-                  'Real-world attack scenarios and automated responses',
-                  'Cost breakdown: Open source vs commercial solutions',
-                  'Step-by-step implementation guide'
-                ]
-              },
-              {
-                id: 'blog-2',
-                title: 'Small Business Privacy Compliance: GDPR to CCPA in 2024',
-                subtitle: 'Practical guide for implementing privacy frameworks without enterprise budgets',
-                type: 'high-impact',
-                category: 'Privacy',
-                targetKeywords: ['small business privacy', 'GDPR compliance', 'CCPA requirements', 'privacy frameworks'],
-                reasoning: 'Privacy content drives 78% engagement rate. Small business angle targets underserved market.',
-                trendingFactor: 'Privacy compliance queries up 280% due to new regulations',
-                estimatedViews: '3.8k - 5.4k',
-                difficulty: 'High',
-                seoScore: 89,
-                outline: [
-                  'Privacy regulation landscape for small businesses',
-                  'Self-hosted solutions vs third-party compliance tools',
-                  'Budget-friendly privacy audit checklist',
-                  'Implementation timeline and priority matrix',
-                  'Real compliance costs: What I spent in year one'
-                ]
-              },
-              {
-                id: 'blog-3',
-                title: 'Self-Hosting ROI Calculator: When DIY Beats SaaS',
-                subtitle: 'Data-driven analysis of switching from cloud services to self-hosted alternatives',
-                type: 'good-fit',
-                category: 'Self-Hosting',
-                targetKeywords: ['self-hosting ROI', 'SaaS alternatives', 'cloud costs', 'hosting comparison'],
-                reasoning: 'ROI-focused content gets shared 65% more. Appeals to cost-conscious small businesses.',
-                trendingFactor: 'Self-hosting interest up 180% as SaaS prices increase',
-                estimatedViews: '2.9k - 4.1k',
-                difficulty: 'Medium',
-                seoScore: 87,
-                outline: [
-                  'True cost comparison: Hidden SaaS fees vs self-hosting',
-                  'ROI calculator tool with real-world examples',
-                  'Break-even analysis by business size',
-                  'Risk assessment: What could go wrong',
-                  'Migration timeline and cost projections'
-                ]
-              },
-              {
-                id: 'blog-4',
-                title: 'Privacy-First Analytics: Ditching Google for Good',
-                subtitle: 'Complete migration guide to self-hosted analytics solutions',
-                type: 'high-impact',
-                category: 'Analytics',
-                targetKeywords: ['privacy analytics', 'Google Analytics alternatives', 'self-hosted analytics', 'web tracking'],
-                reasoning: 'Analytics content performs well (72% engagement). Privacy angle differentiates from generic alternatives posts.',
-                trendingFactor: 'Privacy-focused tools trending due to increasing data concerns',
-                estimatedViews: '3.2k - 4.8k',
-                difficulty: 'Medium',
-                seoScore: 85,
-                outline: [
-                  'Why Google Analytics is a privacy nightmare',
-                  'Top 5 self-hosted alternatives compared',
-                  'Migration guide: Preserving historical data',
-                  'Setting up Plausible, Matomo, or Umami',
-                  'Performance impact and accuracy comparison'
-                ]
-              },
-              {
-                id: 'blog-5',
-                title: 'Productivity Stack for Privacy-Conscious Teams',
-                subtitle: 'Building efficient workflows without Big Tech dependencies',
-                type: 'good-fit',
-                category: 'Productivity',
-                targetKeywords: ['privacy productivity tools', 'team collaboration', 'self-hosted office', 'business tools'],
-                reasoning: 'Productivity content appeals to broad audience. Privacy focus creates unique angle.',
-                trendingFactor: 'Remote work privacy concerns driving tool evaluations',
-                estimatedViews: '2.4k - 3.6k',
-                difficulty: 'Low',
-                seoScore: 83,
-                outline: [
-                  'Privacy risks in popular productivity tools',
-                  'Self-hosted alternatives: Nextcloud, Rocket.Chat, more',
-                  'Team migration strategies and change management',
-                  'Cost comparison and feature matrix',
-                  'Implementation checklist for small teams'
-                ]
-              },
-              {
-                id: 'blog-6',
-                title: 'Network Security Fundamentals: Beyond the Basics',
-                subtitle: 'Advanced techniques for securing small business networks',
-                type: 'medium-fit',
-                category: 'Networking',
-                targetKeywords: ['network security', 'firewall configuration', 'VPN setup', 'network monitoring'],
-                reasoning: 'Technical content performs well with engaged audience. Advanced angle targets experienced readers.',
-                trendingFactor: 'Cybersecurity awareness month driving security content consumption',
-                estimatedViews: '2.1k - 3.2k',
-                difficulty: 'High',
-                seoScore: 81,
-                outline: [
-                  'Network segmentation strategies for small offices',
-                  'Advanced firewall rules and monitoring',
-                  'VPN technologies: WireGuard vs OpenVPN vs IPSec',
-                  'Intrusion detection and response automation',
-                  'Penetration testing your own network'
-                ]
-              }
-            ];
-            
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {suggestions.map((suggestion, index) => (
-                  <div 
-                    key={suggestion.id} 
-                    className="bg-primary-900 border border-gray-700 rounded-xl p-4 hover:bg-primary-800 transition-colors"
-                  >
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs bg-success-500 text-white px-2 py-1 rounded font-sans">
-                          {suggestion.category}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded font-sans ${
-                          suggestion.type === 'high-impact' ? 'bg-brand-500 text-white' : 
-                          suggestion.type === 'good-fit' ? 'bg-warning-500 text-white' : 'bg-gray-600 text-white'
-                        }`}>
-                          SEO {suggestion.seoScore}
-                        </span>
-                      </div>
-                      <span className={`text-xs px-2 py-1 rounded font-sans ${
-                        suggestion.difficulty === 'Low' ? 'bg-success-900 text-success-200' :
-                        suggestion.difficulty === 'Medium' ? 'bg-warning-900 text-warning-200' : 'bg-error-900 text-error-200'
-                      }`}>
-                        {suggestion.difficulty}
-                      </span>
-                    </div>
-                    
-                    {/* Title and Subtitle */}
-                    <div className="mb-4">
-                      <h4 className="text-white font-semibold text-sm font-sans mb-2 leading-tight">
-                        {suggestion.title}
-                      </h4>
-                      <p className="text-gray-300 text-xs font-sans leading-relaxed">
-                        {suggestion.subtitle}
-                      </p>
-                    </div>
-                    
-                    {/* AI Reasoning */}
-                    <div className="mb-3 p-3 bg-primary-800 rounded-lg border border-gray-600">
-                      <p className="text-xs text-brand-400 font-sans mb-1">🧠 AI Analysis:</p>
-                      <p className="text-xs text-gray-300 font-sans leading-relaxed">
-                        {suggestion.reasoning}
-                      </p>
-                    </div>
-                    
-                    {/* Trending Factor */}
-                    <div className="mb-3 p-3 bg-success-900/20 rounded-lg border border-success-600">
-                      <p className="text-xs text-success-400 font-sans mb-1">📈 Trending:</p>
-                      <p className="text-xs text-success-300 font-sans leading-relaxed">
-                        {suggestion.trendingFactor}
-                      </p>
-                    </div>
-                    
-                    {/* Keywords */}
-                    <div className="mb-3">
-                      <p className="text-xs text-gray-400 font-sans mb-2">Target Keywords:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {suggestion.targetKeywords.map((keyword, idx) => (
-                          <span 
-                            key={idx}
-                            className="text-xs bg-brand-500/30 text-brand-200 px-2 py-1 rounded font-sans"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Metrics and Actions */}
-                    <div className="flex items-center justify-between text-xs border-t border-gray-600 pt-3">
-                      <div className="text-gray-400">
-                        <span className="mr-3">📊 {suggestion.estimatedViews}</span>
-                        <span>🎯 {suggestion.seoScore}/100</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button 
-                          className="text-xs bg-brand-600 hover:bg-brand-700 text-white px-3 py-1 rounded transition-colors"
-                          onClick={() => {
-                            const outline = suggestion.outline.map((point, i) => `${i + 1}. ${point}`).join('\n');
-                            navigator.clipboard.writeText(`${suggestion.title}\n\nOutline:\n${outline}\n\nKeywords: ${suggestion.targetKeywords.join(', ')}`);
-                          }}
-                        >
-                          Copy Outline
-                        </button>
-                        <button 
-                          className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded transition-colors"
-                          onClick={() => {
-                            // Create a simple blog post template
-                            const template = `# ${suggestion.title}\n\n${suggestion.subtitle}\n\n## Outline\n\n${suggestion.outline.map((point, i) => `${i + 1}. ${point}`).join('\n')}\n\n## Target Keywords\n\n${suggestion.targetKeywords.join(', ')}\n\n## AI Analysis\n\n${suggestion.reasoning}\n\n## Trending Context\n\n${suggestion.trendingFactor}`;
-                            
-                            // Create a data URL for download
-                            const blob = new Blob([template], { type: 'text/markdown' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `${suggestion.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.md`;
-                            a.click();
-                            URL.revokeObjectURL(url);
-                          }}
-                        >
-                          Download
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+        {/* AI Blog Article Suggestions - Shows when data is available */}
+        {blogAnalytics?.suggestions && blogAnalytics.suggestions.length > 0 ? (
+          <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white font-sans flex items-center gap-2">
+                  <BookOpen size={18} className="text-success-500" />
+                  AI Blog Article Suggestions
+                </h3>
+                <p className="text-sm text-gray-300 mt-1 font-sans">
+                  Strategic blog topics based on your performance data and trending content
+                </p>
               </div>
-            );
-          })()}
-          
-          {/* Performance Prediction */}
-          <div className="mt-6 p-4 rounded-xl bg-success-900/20 border border-success-600">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={16} className="text-success-400" />
-              <span className="text-success-400 font-semibold text-sm font-sans">Content Strategy Insights</span>
             </div>
-            <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-              Based on your blog performance data, security and privacy topics drive 85% higher engagement. 
-              These suggestions target trending keywords with 180-340% search volume increases, optimized for your 
-              target audience of privacy-conscious professionals and small business owners.
-            </p>
-          </div>
-        </div>
-
-        {/* Enhanced Social Media Post Suggestions */}
-        <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-white font-sans flex items-center gap-2">
-                <Sparkles size={18} className="text-brand-500" />
-                Social Media Post Suggestions
-              </h3>
-              <p className="text-sm text-gray-300 mt-1 font-sans">
-                AI-generated Bluesky posts from your high-performing blog content
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={refreshAllSuggestions}
-                variant="secondary"
-                size="sm"
-                icon={<RefreshCw size={14} />}
-                className="bg-primary-900 hover:bg-primary-800 border-gray-600 text-gray-300 hover:text-white"
-              >
-                Refresh All
-              </Button>
-              <Badge variant="brand" size="sm">
-                AI-Powered
-              </Badge>
-            </div>
-          </div>
-          
-          {(() => {
-            // Generate 6 suggestions using the new function
-            const availablePosts = analytics.content?.recentPosts || [];
-            const suggestions = generateSocialSuggestions(availablePosts, 6);
-            
-            if (suggestions.length > 0) {
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {suggestions.map((suggestion, index) => (
-                    <div 
-                      key={suggestion.id} 
-                      className="bg-primary-900 border border-gray-700 rounded-xl p-4 hover:bg-primary-800 transition-colors"
-                    >
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs bg-brand-500 text-white px-2 py-1 rounded font-sans">
-                            AI Generated
-                          </span>
-                          <span className={`text-xs px-2 py-1 rounded font-sans ${
-                            suggestion.type === 'high-impact' ? 'bg-success-500 text-white' : 
-                            suggestion.type === 'good-fit' ? 'bg-warning-500 text-white' : 'bg-gray-600 text-white'
-                          }`}>
-                            {suggestion.alignmentScore}%
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => handleSuggestionComplete(suggestion.id)}
-                          className="text-xs text-gray-400 hover:text-success-400 transition-colors font-sans"
-                          title="Mark as used"
-                        >
-                          ✓ Mark Used
-                        </button>
-                      </div>
-
-                      {/* Source Post */}
-                      <div className="mb-3 p-3 bg-primary-800 rounded-lg border border-gray-600">
-                        <p className="text-xs text-brand-300 font-sans mb-1">Source:</p>
-                        <h4 className="text-white font-medium text-sm font-sans">
-                          {suggestion.post.title}
-                        </h4>
-                      </div>
-                      
-                      {/* Generated Post Content */}
-                      <div className="mb-4 p-3 bg-gray-800 rounded-lg border-l-4 border-brand-500">
-                        <p className="text-xs text-brand-400 font-sans mb-2">
-                          🚀 Bluesky Post:
-                        </p>
-                        <div className="text-sm text-gray-100 font-sans leading-relaxed">
-                          {suggestion.text.split('\n').map((line, idx) => (
-                            <p key={idx} className={line.startsWith('#') ? 'text-brand-300 mt-2' : 'mb-1'}>
-                              {line}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Hashtags */}
-                      {suggestion.hashtags && (
-                        <div className="mb-3">
-                          <p className="text-xs text-gray-400 font-sans mb-2">Hashtags:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {suggestion.hashtags.map((hashtag, idx) => (
-                              <span 
-                                key={idx}
-                                className="text-xs bg-brand-500/30 text-brand-200 px-2 py-1 rounded font-sans"
-                              >
-                                {hashtag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Metrics and Actions */}
-                      <div className="flex items-center justify-between text-xs border-t border-gray-600 pt-3">
-                        <div className="text-gray-400">
-                          <span className="mr-3">📊 {suggestion.views} views</span>
-                          <span>📈 {suggestion.engagement}% ER</span>
-                        </div>
-                        <button
-                          onClick={() => navigator.clipboard.writeText(suggestion.text)}
-                          className="text-gray-400 hover:text-white transition-colors font-sans"
-                          title="Copy to clipboard"
-                        >
-                          📋 Copy
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {blogAnalytics.suggestions.map((suggestion, index) => (
+                <div key={index} className="bg-primary-900 border border-gray-700 rounded-xl p-4">
+                  <h4 className="text-white font-semibold text-sm mb-2">{suggestion.title}</h4>
+                  <p className="text-gray-300 text-xs">{suggestion.description}</p>
                 </div>
-              );
-            }
-            
-            return (
-              <div className="text-center text-gray-400 py-12">
-                <Sparkles size={48} className="mx-auto mb-4 opacity-50" />
-                <p className="text-white font-sans mb-2">No blog posts available</p>
-                <p className="text-sm text-gray-400 font-sans">Loading blog data to generate suggestions...</p>
-              </div>
-            );
-          })()}
-        </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white">
+            <div className="text-center py-12">
+              <BookOpen size={48} className="mx-auto mb-4 opacity-50" />
+              <h3 className="text-white font-sans mb-2">AI Blog Suggestions</h3>
+              <p className="text-sm text-gray-400 font-sans">Configure your blog analytics to get AI-powered content suggestions.</p>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

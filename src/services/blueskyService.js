@@ -1,15 +1,25 @@
-// Bluesky API Service
-// Connects to the public Bluesky API to fetch real profile and post data
-//
-// ⚠️  MANDATORY IMAGE EXTRACTION RULE ⚠️
-// ALL functions in this service MUST extract and provide images/avatars when available
-// This includes: profile avatars, post images, banner images, external thumbnails
-// NEVER return data without attempting image extraction first
-// Use comprehensive fallback chains for missing images
+/**
+ * Bluesky API Service
+ * Connects to the public Bluesky API to fetch real profile and post data
+ * 
+ * ⚠️  MANDATORY IMAGE EXTRACTION RULE ⚠️
+ * ALL functions in this service MUST extract and provide images/avatars when available
+ * This includes: profile avatars, post images, banner images, external thumbnails
+ * NEVER return data without attempting image extraction first
+ * Use comprehensive fallback chains for missing images
+ * @module blueskyService
+ */
 
 const BLUESKY_API_BASE = 'https://public.api.bsky.app';
 
-// MANDATORY IMAGE EXTRACTION UTILITY
+/**
+ * MANDATORY IMAGE EXTRACTION UTILITY
+ * Extracts avatar from profile data with comprehensive fallback chain
+ * @private
+ * @param {Object} profileData - The profile data object
+ * @param {string} fallbackHandle - Handle to use for fallback avatar generation
+ * @returns {string} Avatar URL or generated fallback
+ */
 const extractAvatar = (profileData, fallbackHandle = 'user') => {
   // Comprehensive avatar extraction with multiple fallback paths
   const avatar = profileData.avatar || 
@@ -22,7 +32,12 @@ const extractAvatar = (profileData, fallbackHandle = 'user') => {
   return avatar;
 };
 
-// Get user profile information
+/**
+ * Fetches user profile information from Bluesky API
+ * @param {string} handle - The user handle (with or without @)
+ * @returns {Promise<Object>} Profile data with extracted images
+ * @throws {Error} When profile cannot be fetched
+ */
 export const getProfile = async (handle) => {
   try {
     const response = await fetch(`${BLUESKY_API_BASE}/xrpc/app.bsky.actor.getProfile?actor=${handle}`);

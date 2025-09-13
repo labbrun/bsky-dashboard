@@ -1,6 +1,8 @@
 // Google Analytics Service
 // Integrates with Google Analytics 4 to fetch blog traffic data
 
+import logger from './loggingService';
+
 const GA_PROPERTY_ID = 'properties/493502283';
 const GA_BASE_URL = 'https://analyticsdata.googleapis.com/v1beta';
 
@@ -12,7 +14,7 @@ let tokenExpiration = null;
 // Get fresh access token from token server
 const getTokenFromServer = async () => {
   try {
-    console.log('🔄 Fetching Google Analytics token from server...');
+    logger.info('Fetching Google Analytics token from server');
     const response = await fetch(`${TOKEN_SERVER_URL}/api/token`);
     
     if (!response.ok) {
@@ -25,7 +27,10 @@ const getTokenFromServer = async () => {
       accessToken = data.access_token;
       tokenExpiration = Date.now() + (data.expires_in * 1000);
       
-      console.log(`✅ Got ${data.cached ? 'cached' : 'fresh'} Google Analytics token (expires in ${Math.floor(data.expires_in/60)} min)`);
+      logger.info('Retrieved Google Analytics token', { 
+        cached: data.cached, 
+        expiresInMinutes: Math.floor(data.expires_in/60) 
+      });
       return true;
     } else {
       throw new Error(data.error || 'No access token in response');
@@ -42,7 +47,7 @@ const checkEnvironmentToken = () => {
   if (envToken) {
     accessToken = envToken;
     tokenExpiration = Date.now() + (50 * 60 * 1000); // Assume 50 min validity
-    console.log('📱 Using manual Google Analytics token from environment');
+    logger.info('Using manual Google Analytics token from environment');
     return true;
   }
   return false;
@@ -130,8 +135,8 @@ export const testGAConnection = async () => {
 export const getBlogTrafficOverview = async (days = 30) => {
   const authenticated = await ensureValidToken();
   if (!authenticated) {
-    // Return mock data when credentials not available
-    return generateMockTrafficData(days);
+    // Return empty data when credentials not available
+    throw new Error('Google Analytics not configured. Configure it in Settings to view traffic data.');
   }
 
   try {
@@ -170,9 +175,9 @@ export const getBlogTrafficOverview = async (days = 30) => {
     const data = await response.json();
     return processTrafficDataGA4(data);
   } catch (error) {
-    console.warn('Traffic overview error, using mock data:', error.message);
-    // Fallback to mock data on error
-    return generateMockTrafficData(days);
+    console.warn('Traffic overview error:', error.message);
+    // Throw error instead of returning mock data
+    throw new Error(`Failed to fetch Google Analytics traffic data: ${error.message}`);
   }
 };
 
@@ -180,7 +185,7 @@ export const getBlogTrafficOverview = async (days = 30) => {
 export const getReferralTraffic = async (days = 30) => {
   const authenticated = await ensureValidToken();
   if (!authenticated) {
-    return generateMockReferralData(days);
+    throw new Error('Google Analytics not configured. Configure it in Settings to view referral data.');
   }
 
   try {
@@ -220,8 +225,8 @@ export const getReferralTraffic = async (days = 30) => {
     const data = await response.json();
     return processReferralDataGA4(data);
   } catch (error) {
-    console.warn('Referral traffic error, using mock data:', error.message);
-    return generateMockReferralData(days);
+    console.warn('Referral traffic error:', error.message);
+    throw new Error(`Failed to fetch Google Analytics referral data: ${error.message}`);
   }
 };
 
@@ -229,7 +234,7 @@ export const getReferralTraffic = async (days = 30) => {
 export const getTopBlogPosts = async (days = 30) => {
   const authenticated = await ensureValidToken();
   if (!authenticated) {
-    return generateMockTopPostsData();
+    throw new Error('Google Analytics not configured. Configure it in Settings to view top posts data.');
   }
 
   try {
@@ -273,8 +278,8 @@ export const getTopBlogPosts = async (days = 30) => {
     const data = await response.json();
     return processTopPostsDataGA4(data);
   } catch (error) {
-    console.warn('Top posts error, using mock data:', error.message);
-    return generateMockTopPostsData();
+    console.warn('Top posts error:', error.message);
+    throw new Error(`Failed to fetch Google Analytics top posts data: ${error.message}`);
   }
 };
 
@@ -359,66 +364,7 @@ const formatGADate = (gaDate) => {
   return `${month}/${day}`;
 };
 
-// Generate mock data when GA credentials not available
-const generateMockTrafficData = (days) => {
-  const data = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }),
-      sessions: Math.floor(Math.random() * 150) + 50,
-      users: Math.floor(Math.random() * 120) + 40,
-      pageviews: Math.floor(Math.random() * 300) + 100,
-      bounceRate: Math.random() * 30 + 45,
-      avgSessionDuration: Math.random() * 200 + 120
-    });
-  }
-  return data;
-};
-
-const generateMockReferralData = (days) => {
-  return [
-    { source: 'google', medium: 'organic', sessions: 245, users: 198, displayName: 'Google', isBluesky: false, isSearch: true, isSocial: false },
-    { source: 'bsky.app', medium: 'referral', sessions: 67, users: 52, displayName: 'Bluesky', isBluesky: true, isSearch: false, isSocial: true },
-    { source: 'twitter', medium: 'social', sessions: 34, users: 29, displayName: 'Twitter', isBluesky: false, isSearch: false, isSocial: true },
-    { source: '(direct)', medium: '(none)', sessions: 89, users: 76, displayName: 'Direct', isBluesky: false, isSearch: false, isSocial: false },
-    { source: 'linkedin', medium: 'social', sessions: 23, users: 19, displayName: 'LinkedIn', isBluesky: false, isSearch: false, isSocial: true }
-  ];
-};
-
-const generateMockTopPostsData = () => {
-  return [
-    {
-      path: '/ai-privacy-fundamentals/',
-      title: 'AI Privacy Fundamentals: Building Secure Systems',
-      pageviews: 1247,
-      uniquePageviews: 1156,
-      avgTimeOnPage: 245,
-      bounceRate: 23.4,
-      url: 'https://labb.run/ai-privacy-fundamentals/'
-    },
-    {
-      path: '/homelab-security-guide/',
-      title: 'Complete Homelab Security Guide',
-      pageviews: 892,
-      uniquePageviews: 834,
-      avgTimeOnPage: 312,
-      bounceRate: 18.7,
-      url: 'https://labb.run/homelab-security-guide/'
-    },
-    {
-      path: '/productivity-automation-tools/',
-      title: 'Productivity Automation Tools for Developers',
-      pageviews: 634,
-      uniquePageviews: 598,
-      avgTimeOnPage: 189,
-      bounceRate: 31.2,
-      url: 'https://labb.run/productivity-automation-tools/'
-    }
-  ];
-};
+// No mock data generators - use only real data from Google Analytics API
 
 const googleAnalyticsService = {
   testGAConnection,

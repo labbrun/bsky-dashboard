@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, User, Target, Plus, X, Upload, Camera, FileText, File, Trash2 } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, User, Target, Plus, X, Upload, Camera, FileText, Trash2 } from 'lucide-react';
 import { Card, Button } from '../components/ui/UntitledUIComponents';
 import { 
   getCredentials, 

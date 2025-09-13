@@ -1,30 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { MessageSquare, Users, FileText, ExternalLink } from 'lucide-react';
 import { fetchProfileData, generateCommentUrl } from '../services/profileService';
 import { Card, Button, Avatar, Skeleton } from '../components/ui/UntitledUIComponents';
+import { useAsyncOperation } from '../hooks/useAsyncOperation';
 import ImageGallery from './ImageGallery';
 
-function ProfileCard({ handle, showRecentPost = false, showReadMore = false, className = '' }) {
-  const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
+const ProfileCard = memo(function ProfileCard({ handle, showRecentPost = false, showReadMore = false, className = '' }) {
   const [showAllPosts, setShowAllPosts] = useState(false);
+  
+  const {
+    loading,
+    data: profileData,
+    execute: loadProfile
+  } = useAsyncOperation(
+    () => fetchProfileData(handle),
+    { logContext: `ProfileCard for @${handle}` }
+  );
 
   useEffect(() => {
-    async function loadProfile() {
-      setLoading(true);
-      try {
-        const data = await fetchProfileData(handle);
-        setProfileData(data);
-      } catch (error) {
-      } finally {
-        setLoading(false);
-      }
-    }
-
     if (handle) {
       loadProfile();
     }
-  }, [handle]);
+  }, [handle, loadProfile]);
 
   if (loading) {
     return (
@@ -145,6 +142,6 @@ function ProfileCard({ handle, showRecentPost = false, showReadMore = false, cla
       )}
     </Card>
   );
-}
+});
 
 export default ProfileCard;

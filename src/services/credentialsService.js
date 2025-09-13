@@ -1,9 +1,19 @@
-// Credentials Service
-// Manages API credentials and validation for all integrations
+/**
+ * Credentials Service
+ * Manages API credentials and validation for all integrations
+ * @module credentialsService
+ */
+
+import logger from './loggingService';
 
 const STORAGE_KEY = 'bluesky-analytics-settings';
 
-// Backup credentials to database (if configured)
+/**
+ * Backs up credentials to database if Supabase is configured
+ * @private
+ * @param {Object} credentials - The credentials to backup
+ * @throws {Error} When backup fails
+ */
 const backupCredentialsToDatabase = async (credentials) => {
   // Only attempt backup if Supabase is configured
   const supabaseConfig = credentials.database;
@@ -33,18 +43,26 @@ const backupCredentialsToDatabase = async (credentials) => {
   }
 };
 
-// Get all saved credentials
+/**
+ * Retrieves all saved credentials from localStorage
+ * @returns {Object} Object containing all saved credentials or empty object if none found
+ */
 export const getCredentials = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : {};
   } catch (error) {
-    console.error('Failed to load credentials:', error);
+    logger.error('Failed to load credentials', error);
     return {};
   }
 };
 
-// Save credentials
+/**
+ * Saves credentials to localStorage and optionally backs them up to database
+ * @param {Object} credentials - The credentials object to save
+ * @returns {Promise<void>}
+ * @throws {Error} When save operation fails
+ */
 export const saveCredentials = async (credentials) => {
   try {
     // Get existing credentials first to merge with new ones

@@ -6,6 +6,7 @@ import { getBlogTrafficOverview, getReferralTraffic, getTopBlogPosts } from './g
 import { analyzeAndRepurposeBlogContent } from './enhancedContentRepurposingService';
 import { getAIContext } from './aiContextProvider';
 import { getServiceCredentials } from './credentialsService';
+import logger from './loggingService';
 
 // Main blog analytics orchestrator
 export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
@@ -20,7 +21,7 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
   };
 
   try {
-    console.log('Loading comprehensive blog analytics...');
+    logger.info('Loading comprehensive blog analytics', { timeRange });
     
     // Load AI context for analysis
     const aiContext = await getAIContext();
@@ -53,24 +54,24 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
     if (trafficData.status === 'fulfilled') {
       analytics.traffic.overview = processTrafficData(trafficData.value);
     } else {
-      console.warn('Traffic data loading failed, using mock data:', trafficData.reason);
-      analytics.traffic.overview = generateMockTrafficOverview(timeRange);
+      console.warn('Traffic data loading failed, no Google Analytics configured');
+      analytics.traffic.overview = [];
     }
 
     // Process referral data
     if (referralData.status === 'fulfilled') {
       analytics.traffic.referrals = processReferralData(referralData.value);
     } else {
-      console.warn('Referral data loading failed, using mock data:', referralData.reason);
-      analytics.traffic.referrals = generateMockReferralData();
+      console.warn('Referral data loading failed, no Google Analytics configured');
+      analytics.traffic.referrals = [];
     }
 
     // Process top posts
     if (topPosts.status === 'fulfilled') {
       analytics.traffic.topPosts = topPosts.value;
     } else {
-      console.warn('Top posts loading failed, using mock data:', topPosts.reason);
-      analytics.traffic.topPosts = generateMockTopPosts();
+      console.warn('Top posts loading failed, no Google Analytics configured');
+      analytics.traffic.topPosts = [];
     }
 
     // Generate comprehensive insights
@@ -79,7 +80,7 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
     // Generate actionable recommendations
     analytics.recommendations = generateRecommendations(analytics, aiContext);
 
-    console.log('Blog analytics loaded successfully:', {
+    logger.info('Blog analytics loaded successfully', {
       posts: analytics.overview.totalPosts,
       trafficPoints: analytics.traffic.overview?.length || 0,
       referrals: analytics.traffic.referrals?.length || 0,
@@ -89,7 +90,7 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
     return analytics;
 
   } catch (error) {
-    console.error('Blog analytics loading failed:', error);
+    logger.error('Blog analytics loading failed', error);
     return {
       ...analytics,
       error: error.message,
@@ -218,7 +219,7 @@ const processBlogContent = async (blogData, aiContext) => {
 // Process traffic data for visualization
 const processTrafficData = (trafficData) => {
   if (!trafficData || trafficData.length === 0) {
-    return generateMockTrafficOverview();
+    return [];
   }
 
   return trafficData.map(data => ({
@@ -234,7 +235,7 @@ const processTrafficData = (trafficData) => {
 // Process referral data with Bluesky focus
 const processReferralData = (referralData) => {
   if (!referralData || referralData.length === 0) {
-    return generateMockReferralData();
+    return [];
   }
 
   return referralData.map(ref => ({
@@ -421,52 +422,7 @@ const getMostCommonOpportunityType = (opportunities) => {
   return mostCommon ? mostCommon[0].replace('_', ' ') : 'general content';
 };
 
-// Mock data generators for when APIs aren't available
-const generateMockTrafficOverview = (days = 30) => {
-  const data = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }),
-      sessions: Math.floor(Math.random() * 100) + 30,
-      users: Math.floor(Math.random() * 80) + 25,
-      pageviews: Math.floor(Math.random() * 200) + 60,
-      bounceRate: Math.random() * 20 + 40,
-      avgSessionDuration: Math.random() * 150 + 90
-    });
-  }
-  return data;
-};
-
-const generateMockReferralData = () => [
-  { source: 'google', medium: 'organic', sessions: 185, users: 156, isBluesky: false, isSearch: true, isSocial: false, category: 'search', displayName: 'Google Search' },
-  { source: 'bsky.app', medium: 'referral', sessions: 42, users: 38, isBluesky: true, isSearch: false, isSocial: true, category: 'bluesky', displayName: 'Bluesky' },
-  { source: 'direct', medium: '(none)', sessions: 67, users: 58, isBluesky: false, isSearch: false, isSocial: false, category: 'direct', displayName: 'Direct Traffic' },
-  { source: 'twitter.com', medium: 'social', sessions: 23, users: 21, isBluesky: false, isSearch: false, isSocial: true, category: 'social', displayName: 'Twitter/X' }
-];
-
-const generateMockTopPosts = () => [
-  {
-    path: '/ai-privacy-fundamentals/',
-    title: 'AI Privacy Fundamentals: Building Secure Systems',
-    pageviews: 847,
-    uniquePageviews: 782,
-    avgTimeOnPage: 245,
-    bounceRate: 23.4,
-    url: 'https://labb.run/ai-privacy-fundamentals/'
-  },
-  {
-    path: '/homelab-security-guide/',
-    title: 'Complete Homelab Security Guide',
-    pageviews: 623,
-    uniquePageviews: 589,
-    avgTimeOnPage: 312,
-    bounceRate: 18.7,
-    url: 'https://labb.run/homelab-security-guide/'
-  }
-];
+// No mock data generators - use only real data from configured sources
 
 // Get specific blog post analysis
 export const getPostAnalysis = async (postId) => {
