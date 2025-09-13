@@ -63,26 +63,22 @@ function OverviewV2({ metrics }) {
     }
   }, [aiServiceReady, metrics, loadingInsights]);
   
-  // Initialize AI service
+  // Initialize AI service and auto-generate insights
   useEffect(() => {
     const initAI = async () => {
       const ready = await realAIService.initialize();
       setAiServiceReady(ready);
-      
-      // Auto-generate insights if ready and we have metrics
-      if (ready && metrics && !aiInsights) {
-        generateOverviewInsights();
-      }
     };
     initAI();
-  }, [metrics, aiInsights, generateOverviewInsights]);
+  }, []);
   
-  // Auto-generate insights when metrics change
+  // Auto-generate insights when conditions are met
   useEffect(() => {
     if (aiServiceReady && metrics && !loadingInsights && !aiInsights) {
       generateOverviewInsights();
     }
-  }, [aiServiceReady, metrics, loadingInsights, aiInsights, generateOverviewInsights]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiServiceReady, metrics, loadingInsights, aiInsights]);
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
