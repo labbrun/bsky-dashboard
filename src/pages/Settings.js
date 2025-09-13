@@ -137,42 +137,42 @@ const API_GUIDES = {
     }
   },
 
-  googleSearch: {
-    title: 'Google Trends & Search API',
-    description: 'Google Custom Search API for trend analysis and content research',
+  googleTrends: {
+    title: 'Google Trends API',
+    description: 'Google Trends API for monitoring keyword trends and providing AI insights',
     fields: [
       {
-        key: 'customSearchApiKey',
-        label: 'Google API Key',
-        type: 'password',
-        placeholder: 'AIzaSy...',
+        key: 'clientId',
+        label: 'Client ID',
+        type: 'text',
+        placeholder: '123456789-abc123.apps.googleusercontent.com',
         required: false,
-        help: 'Google API key for Custom Search and Trends access'
+        help: 'Google Trends API Client ID from Google Cloud Console'
       },
       {
-        key: 'searchEngineId',
-        label: 'Search Engine ID',
-        type: 'text',
-        placeholder: '017576662512468239146:omuauf_lfve',
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        placeholder: 'GOCSPX-...',
         required: false,
-        help: 'Your custom search engine ID for content research'
+        help: 'Google Trends API Client Secret for OAuth authentication'
       }
     ],
     setupGuide: {
-      title: 'How to set up Google Search & Trends API:',
+      title: 'How to set up Google Trends API:',
       steps: [
         'Go to console.developers.google.com',
         'Create a new project or select existing one',
-        'Enable "Custom Search API" and "Trends API"',
-        'Go to "Credentials" and create an API key',
-        'Go to cse.google.com/cse/',
-        'Create a new search engine',
-        'Copy the Search Engine ID',
+        'Enable "Google Trends API"',
+        'Go to "Credentials" → Create OAuth 2.0 Client ID',
+        'Set application type to "Web application"',
+        'Add authorized redirect URIs for your domain',
+        'Copy the Client ID and Client Secret',
         'Paste both values in the form above'
       ],
       link: 'https://console.developers.google.com',
       linkText: 'Google Cloud Console',
-      note: 'Google Search & Trends is optional - enables trend analysis and content research features'
+      note: 'Google Trends API monitors your configured keywords and provides trend data for AI analysis and recommendations'
     }
   },
 

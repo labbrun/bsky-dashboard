@@ -134,8 +134,8 @@ export const isServiceConfigured = (service) => {
     case 'ai':
       return !!(credentials.apiKey || credentials.provider === 'local');
     
-    case 'googleSearch':
-      return !!(credentials.customSearchApiKey && credentials.searchEngineId);
+    case 'googleTrends':
+      return !!(credentials.clientId && credentials.clientSecret);
     
     case 'googleAnalytics':
       return !!(credentials.clientId && credentials.clientSecret && credentials.propertyId);
@@ -288,32 +288,29 @@ export const validateAICredentials = async (provider, apiKey, baseUrl) => {
   }
 };
 
-// Validate Google Search & Trends credentials
-export const validateGoogleSearchCredentials = async (apiKey, searchEngineId) => {
+// Validate Google Trends credentials
+export const validateGoogleTrendsCredentials = async (clientId, clientSecret) => {
   try {
-    if (!apiKey || !searchEngineId) {
-      return { valid: false, error: 'Both API key and Search Engine ID are required' };
+    if (!clientId || !clientSecret) {
+      return { valid: false, error: 'Both Client ID and Client Secret are required' };
     }
 
-    if (!apiKey.startsWith('AIza')) {
-      return { valid: false, error: 'Google API key should start with AIza' };
+    // Validate Client ID format (Google OAuth client IDs have specific format)
+    if (!clientId.includes('.apps.googleusercontent.com')) {
+      return { valid: false, error: 'Invalid Client ID format. Should end with .apps.googleusercontent.com' };
     }
 
-    // Test the API
-    const testUrl = `https://customsearch.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=test`;
-    
-    try {
-      const response = await fetch(testUrl);
-      const data = await response.json();
-      
-      if (response.ok && data.searchInformation) {
-        return { valid: true };
-      } else {
-        return { valid: false, error: data.error?.message || 'Invalid credentials' };
-      }
-    } catch (error) {
-      return { valid: false, error: 'Failed to test Google API connection' };
+    // Validate Client Secret format
+    if (!clientSecret.startsWith('GOCSPX-')) {
+      return { valid: false, error: 'Invalid Client Secret format. Should start with GOCSPX-' };
     }
+
+    // For Google Trends API, we can't easily test without going through full OAuth flow
+    // But we can validate the credential format
+    return { 
+      valid: true, 
+      note: 'Credentials format is correct. Google Trends will monitor your configured keywords for AI analysis.' 
+    };
     
   } catch (error) {
     return { valid: false, error: error.message };
@@ -458,8 +455,8 @@ export const validateServiceCredentials = async (service, credentials) => {
     case 'ai':
       return validateAICredentials(credentials.provider, credentials.apiKey, credentials.baseUrl);
     
-    case 'googleSearch':
-      return validateGoogleSearchCredentials(credentials.customSearchApiKey, credentials.searchEngineId);
+    case 'googleTrends':
+      return validateGoogleTrendsCredentials(credentials.clientId, credentials.clientSecret);
     
     case 'googleAnalytics':
       return validateGoogleAnalyticsCredentials(credentials.clientId, credentials.clientSecret, credentials.propertyId, credentials.refreshToken);
