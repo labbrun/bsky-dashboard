@@ -18,6 +18,7 @@ import { initializeFavicon } from './utils/faviconUtils';
 
 // Import layout and pages
 import DashboardLayout from './layouts/DashboardLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 import OverviewV2 from './pages/OverviewV2';
 import PerformanceV2 from './pages/PerformanceV2';
 import Insights from './pages/Insights';
@@ -354,27 +355,51 @@ function App() {
         <Routes>
           <Route 
             path="/" 
-            element={<OverviewV2 metrics={metrics} />} 
+            element={
+              <ErrorBoundary>
+                <OverviewV2 metrics={metrics} />
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/performance" 
-            element={<PerformanceV2 metrics={metrics} />} 
+            element={
+              <ErrorBoundary>
+                <PerformanceV2 metrics={metrics} />
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/insights" 
-            element={<Insights metrics={metrics} />} 
+            element={
+              <ErrorBoundary>
+                <Insights metrics={metrics} />
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/blog-analytics" 
-            element={<BlogAnalytics metrics={metrics} />} 
+            element={
+              <ErrorBoundary>
+                <BlogAnalytics metrics={metrics} />
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/calendar" 
-            element={<Calendar metrics={metrics} />} 
+            element={
+              <ErrorBoundary>
+                <Calendar metrics={metrics} />
+              </ErrorBoundary>
+            } 
           />
           <Route 
             path="/settings" 
-            element={<Settings />} 
+            element={
+              <ErrorBoundary>
+                <Settings />
+              </ErrorBoundary>
+            } 
           />
           {/* Redirect any unknown routes to overview */}
           <Route 

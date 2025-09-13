@@ -78,7 +78,8 @@ function OverviewV2({ metrics }) {
     } finally {
       setLoadingInsights(false);
     }
-  }, [aiServiceReady, metrics, loadingInsights]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiServiceReady, metrics]);
   
   // Initialize AI service and auto-generate insights
   useEffect(() => {

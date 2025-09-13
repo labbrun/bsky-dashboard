@@ -96,14 +96,16 @@ function BlogAnalytics({ metrics }) {
     } finally {
       setLoadingAIAnalysis(false);
     }
-  }, [aiServiceReady, blogAnalytics, loadingAIAnalysis]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiServiceReady, blogAnalytics]);
   
   // Auto-generate AI analysis when blog data loads
   useEffect(() => {
     if (aiServiceReady && blogAnalytics && !loadingAIAnalysis && !blogAIAnalysis) {
       generateBlogAIAnalysis();
     }
-  }, [aiServiceReady, blogAnalytics, loadingAIAnalysis, blogAIAnalysis, generateBlogAIAnalysis]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiServiceReady, blogAnalytics]);
   
 
   // Check if blog RSS is configured
