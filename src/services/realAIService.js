@@ -74,6 +74,14 @@ export class RealAIService {
                       this.config.baseUrl
       });
 
+      console.log('🚀 AI API Request Details:', {
+        provider: this.config.provider,
+        baseUrl: this.config.baseUrl,
+        apiKey: this.config.apiKey?.substring(0, 10) + '...',
+        messageCount: messages.length,
+        context: 'Browser'
+      });
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -125,6 +133,13 @@ export class RealAIService {
         };
       }
 
+      console.log('🔗 Final API Call:', {
+        url: apiUrl,
+        method: 'POST',
+        headers: headers,
+        bodyPreview: JSON.stringify(body).substring(0, 200) + '...'
+      });
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers,
@@ -141,6 +156,14 @@ export class RealAIService {
 
       const responseText = await response.text();
       
+      console.log('📥 API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        responsePreview: responseText.substring(0, 300),
+        isHTML: responseText.trim().startsWith('<!doctype') || responseText.trim().startsWith('<html')
+      });
+      
       // Check if response looks like HTML (common error response)
       if (responseText.trim().startsWith('<!doctype') || responseText.trim().startsWith('<html')) {
         throw new Error(`AI API returned HTML instead of JSON. This usually means:
@@ -148,6 +171,7 @@ export class RealAIService {
 2. Invalid API key (check API key in settings)
 3. Service unavailable or network issue
 
+Actual URL called: ${apiUrl}
 Response preview: ${responseText.substring(0, 200)}...`);
       }
 
