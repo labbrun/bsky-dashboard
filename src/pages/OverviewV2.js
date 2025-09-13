@@ -50,11 +50,28 @@ function OverviewV2({ metrics }) {
   
   // Generate AI insights for overview
   const generateOverviewInsights = React.useCallback(async () => {
-    if (!aiServiceReady || !metrics || loadingInsights) return;
+    console.log('generateOverviewInsights called:', { aiServiceReady, metrics: !!metrics, loadingInsights });
     
+    if (!aiServiceReady) {
+      console.log('AI service not ready');
+      return;
+    }
+    
+    if (!metrics) {
+      console.log('No metrics available');
+      return;
+    }
+    
+    if (loadingInsights) {
+      console.log('Already loading insights');
+      return;
+    }
+    
+    console.log('Starting AI insights generation...');
     setLoadingInsights(true);
     try {
       const insights = await realAIService.generateBlueskyInsights(metrics);
+      console.log('AI insights generated:', insights);
       setAiInsights(insights);
     } catch (error) {
       console.error('Failed to generate overview insights:', error);
@@ -66,7 +83,9 @@ function OverviewV2({ metrics }) {
   // Initialize AI service and auto-generate insights
   useEffect(() => {
     const initAI = async () => {
+      console.log('Initializing AI service...');
       const ready = await realAIService.initialize();
+      console.log('AI service initialization result:', ready);
       setAiServiceReady(ready);
     };
     initAI();
