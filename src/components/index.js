@@ -8,7 +8,6 @@
 export { default as ProfileCard } from './ProfileCard';
 export { default as ImageGallery } from './ImageGallery';
 export { default as CelebrationOverlay } from './CelebrationOverlay';
-export { default as TypingEffect } from './TypingEffect';
 export { default as FeatureUnavailable } from './FeatureUnavailable';
 
 // UI Library

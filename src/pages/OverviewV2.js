@@ -50,31 +50,24 @@ function OverviewV2({ metrics }) {
   
   // Generate AI insights for overview
   const generateOverviewInsights = React.useCallback(async () => {
-    console.log('generateOverviewInsights called:', { aiServiceReady, metrics: !!metrics, loadingInsights });
     
     if (!aiServiceReady) {
-      console.log('AI service not ready');
       return;
     }
     
     if (!metrics) {
-      console.log('No metrics available');
       return;
     }
     
     if (loadingInsights) {
-      console.log('Already loading insights');
       return;
     }
     
-    console.log('Starting AI insights generation...');
     setLoadingInsights(true);
     try {
       const insights = await realAIService.generateBlueskyInsights(metrics);
-      console.log('AI insights generated:', insights);
       setAiInsights(insights);
     } catch (error) {
-      console.error('Failed to generate overview insights:', error);
     } finally {
       setLoadingInsights(false);
     }
@@ -84,9 +77,7 @@ function OverviewV2({ metrics }) {
   // Initialize AI service and auto-generate insights
   useEffect(() => {
     const initAI = async () => {
-      console.log('Initializing AI service...');
       const ready = await realAIService.initialize();
-      console.log('AI service initialization result:', ready);
       setAiServiceReady(ready);
     };
     initAI();
@@ -95,7 +86,6 @@ function OverviewV2({ metrics }) {
   // Auto-generate insights when conditions are met (only once)
   useEffect(() => {
     if (aiServiceReady && metrics && !loadingInsights && !aiInsights) {
-      console.log('Triggering AI insights generation (one-time)');
       generateOverviewInsights();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

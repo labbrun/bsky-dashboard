@@ -36,9 +36,7 @@ const backupCredentialsToDatabase = async (credentials) => {
     };
     
     await saveUserSettings('credentials_backup', backupData);
-    console.log('Credentials backed up to database successfully');
   } catch (error) {
-    console.warn('Database backup failed:', error.message);
     throw error; // Re-throw to be caught by calling function
   }
 };
@@ -95,13 +93,11 @@ export const saveCredentials = async (credentials) => {
     try {
       await backupCredentialsToDatabase(merged);
     } catch (error) {
-      console.warn('Failed to backup credentials to database:', error.message);
       // Don't fail the save operation if database backup fails
     }
     
     return true;
   } catch (error) {
-    console.error('Failed to save credentials:', error);
     return false;
   }
 };
@@ -130,7 +126,6 @@ export const saveProfileSettings = (profileSettings) => {
     credentials.profile = profileSettings;
     return saveCredentials(credentials);
   } catch (error) {
-    console.error('Failed to save profile settings:', error);
     return false;
   }
 };
@@ -525,7 +520,6 @@ export const clearCredentials = () => {
     localStorage.removeItem(STORAGE_KEY);
     return true;
   } catch (error) {
-    console.error('Failed to clear credentials:', error);
     return false;
   }
 };
@@ -558,7 +552,6 @@ export const saveCustomAvatar = (avatarDataUrl) => {
     profileSettings.customAvatar = avatarDataUrl;
     return saveProfileSettings(profileSettings);
   } catch (error) {
-    console.error('Failed to save custom avatar:', error);
     return false;
   }
 };
@@ -574,7 +567,6 @@ export const removeCustomAvatar = () => {
     profileSettings.customAvatar = null;
     return saveProfileSettings(profileSettings);
   } catch (error) {
-    console.error('Failed to remove custom avatar:', error);
     return false;
   }
 };
@@ -593,7 +585,6 @@ export const saveDocument = (documentType, content, filename) => {
     };
     return saveProfileSettings(profileSettings);
   } catch (error) {
-    console.error(`Failed to save ${documentType} document:`, error);
     return false;
   }
 };
@@ -612,7 +603,6 @@ export const removeDocument = (documentType) => {
     }
     return true;
   } catch (error) {
-    console.error(`Failed to remove ${documentType} document:`, error);
     return false;
   }
 };

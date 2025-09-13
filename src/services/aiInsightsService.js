@@ -26,11 +26,6 @@ export class AIInsightsGenerator {
   async initialize() {
     if (!this.aiContext) {
       this.aiContext = await getAIContext();
-      console.log('AIInsightsGenerator initialized with universal context:', {
-        hasCustomerAvatar: !!this.aiContext.customerAvatar,
-        hasContentStrategies: !!this.aiContext.contentStrategies,
-        targetKeywords: this.aiContext.targetKeywords?.length || 0
-      });
     }
     return this.aiContext;
   }
@@ -365,7 +360,6 @@ Keep insights practical, data-driven, and specifically relevant to the target au
     
     // Return null if no AI API is configured - UI will show settings link
     if (!aiConfig.apiKey || !aiConfig.baseUrl) {
-      console.log('AI service not configured - missing API key or base URL');
       return null;
     }
     
@@ -388,7 +382,6 @@ Keep insights practical, data-driven, and specifically relevant to the target au
       
       return null;
     } catch (error) {
-      console.error('AI insights generation failed:', error);
       return null;
     }
   }
@@ -453,7 +446,6 @@ Keep insights practical, data-driven, and specifically relevant to the target au
       }
       
     } catch (error) {
-      console.error('AI service call failed:', error);
       throw error;
     }
   }

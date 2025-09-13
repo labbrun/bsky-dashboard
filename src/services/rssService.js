@@ -98,7 +98,6 @@ export const fetchBlogFeed = async (rssUrl) => {
   }
   
   try {
-    console.log('Fetching RSS feed from:', rssUrl);
     
     // Try direct fetch first
     let response;
@@ -117,10 +116,8 @@ export const fetchBlogFeed = async (rssUrl) => {
       }
       
       xmlText = await response.text();
-      console.log('Direct RSS fetch successful');
       
     } catch (directError) {
-      console.warn('Direct fetch failed, trying CORS proxy:', directError.message);
       
       // Fallback to CORS proxy
       const proxyUrl = `${CORS_PROXY}${encodeURIComponent(rssUrl)}`;
@@ -132,23 +129,16 @@ export const fetchBlogFeed = async (rssUrl) => {
       
       const proxyData = await response.json();
       xmlText = proxyData.contents;
-      console.log('CORS proxy fetch successful');
     }
     
     if (!xmlText) {
       throw new Error('No XML content received');
     }
     
-    console.log('Parsing RSS feed data...');
     const feedData = parseRSSFeed(xmlText);
-    console.log('RSS feed parsed successfully:', {
-      posts: feedData.posts.length,
-      title: feedData.feed.title
-    });
     
     return feedData;
   } catch (error) {
-    console.error('RSS feed error:', error);
     throw new Error(`RSS feed error: ${error.message}`);
   }
 };

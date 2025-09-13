@@ -42,11 +42,6 @@ function Insights({ metrics }) {
     setLoadingInsights(true);
     
     try {
-      console.log('Generating REAL AI insights with metrics:', {
-        followers: metrics.followersCount,
-        posts: metrics.postsCount,
-        hasRecentPosts: !!metrics.recentPosts?.length
-      });
       
       // Generate REAL AI insights using the user's configured API
       const [insights, strategy] = await Promise.all([
@@ -55,7 +50,6 @@ function Insights({ metrics }) {
       ]);
       
       if (!insights && !strategy) {
-        console.log('AI service not configured or failed');
         setAiInsights(null);
         setContentStrategy(null);
         return;
@@ -64,9 +58,6 @@ function Insights({ metrics }) {
       setAiInsights(insights);
       setContentStrategy(strategy);
       
-      console.log('Real AI insights generated successfully:', {
-        hasInsights: !!insights,
-        hasStrategy: !!strategy
       });
 
     } catch (error) {

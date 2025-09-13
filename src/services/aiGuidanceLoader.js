@@ -32,15 +32,9 @@ export const loadAllGuidance = async () => {
       examples: await loadExamples()
     };
 
-    console.log('AI Guidance loaded successfully:', {
-      brandAssets: Object.keys(guidanceCache.brandAssets).length,
-      contentStrategies: Object.keys(guidanceCache.contentStrategies).length,
-      marketingPsychology: Object.keys(guidanceCache.marketingPsychology).length
-    });
 
     return guidanceCache;
   } catch (error) {
-    console.error('Error loading AI guidance:', error);
     return getDefaultGuidance();
   } finally {
     isLoading = false;
@@ -61,7 +55,6 @@ const loadBrandAssets = async () => {
     if (customerAvatarDoc && customerAvatarDoc.content) {
       customerAvatarContent = customerAvatarDoc.content;
     } else {
-      console.log('No customer avatar document uploaded - using generic guidance');
       customerAvatarContent = `# Customer Avatar - Generic Profile
 
 ## Overview
@@ -94,7 +87,6 @@ Upload your own customer avatar document to get personalized AI insights based o
     if (targetAudienceDoc && targetAudienceDoc.content) {
       targetAudienceContent = targetAudienceDoc.content;
     } else {
-      console.log('No target audience document uploaded - using generic guidance');
       targetAudienceContent = `# Target Audience - Generic Profile
 
 ## Primary Audience
@@ -141,7 +133,6 @@ Upload your own target audience document to get personalized AI insights based o
       }
     };
   } catch (error) {
-    console.warn('Could not load brand assets, using defaults:', error.message);
     return getDefaultBrandAssets();
   }
 };
@@ -175,7 +166,6 @@ const loadContentStrategies = async () => {
       }
     };
   } catch (error) {
-    console.warn('Could not load content strategies, using defaults:', error.message);
     return getDefaultContentStrategies();
   }
 };
@@ -204,7 +194,6 @@ const loadMarketingPsychology = async () => {
       }
     };
   } catch (error) {
-    console.warn('Could not load marketing psychology, using defaults:', error.message);
     return getDefaultMarketingPsychology();
   }
 };
@@ -231,7 +220,6 @@ const loadMarkdownFile = async (filePath) => {
     
     return await response.text();
   } catch (error) {
-    console.warn(`Could not load markdown file ${filePath}:`, error.message);
     return '';
   }
 };
