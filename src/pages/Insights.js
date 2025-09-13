@@ -492,17 +492,22 @@ function Insights({ metrics }) {
   };
 
 
+  // Safety check for undefined metrics
   if (!metrics) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Lightbulb size={48} className="text-warning-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-primary-900">Generating Insights</h2>
-          <p className="text-primary-600 mt-2">Analyzing your data to provide actionable recommendations...</p>
+          <h2 className="text-xl font-semibold text-primary-900">Loading Insights</h2>
+          <p className="text-primary-600 mt-2">Waiting for analytics data...</p>
         </div>
       </div>
     );
   }
+
+  // Safety check for required data arrays
+  const safeContentIdeas = contentIdeas || [];
+  const safeProductIdeas = productIdeas || [];
 
   return (
     <div className="space-y-8 font-sans">
@@ -747,7 +752,7 @@ function Insights({ metrics }) {
 
         {/* Content Grid - Dynamic based on active platform */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {platformContent[activePlatform].map((item, index) => (
+          {(platformContent[activePlatform] || []).map((item, index) => (
             <div key={index} className="bg-primary-800 border border-gray-600 rounded-lg p-4 hover:border-orange-400 transition-colors">
               <div className="mb-3">
                 <h4 className="font-semibold text-white text-sm leading-tight mb-2">{item.title}</h4>
@@ -786,7 +791,7 @@ function Insights({ metrics }) {
             6 Content Ideas Ready to Create
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {contentIdeas.map((idea, index) => (
+            {safeContentIdeas.map((idea, index) => (
               <div key={index} className="border border-gray-600 rounded-lg p-4 hover:border-brand-400 transition-colors bg-primary-800">
                 <div className="mb-3">
                   <h4 className="font-semibold text-white mb-2">{idea.title}</h4>
@@ -868,7 +873,7 @@ function Insights({ metrics }) {
             6 Digital Product Ideas
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {productIdeas.map((product, index) => (
+            {safeProductIdeas.map((product, index) => (
               <div key={index} className="border border-gray-600 rounded-lg p-4 hover:border-accent-400 transition-colors bg-primary-800">
                 <div className="mb-3">
                   <div className="flex items-start gap-3 mb-2">
@@ -885,7 +890,7 @@ function Insights({ metrics }) {
                     <strong>Trend:</strong> {product.trend}
                   </p>
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {product.outline.map((item, idx) => (
+                    {(product.outline || []).map((item, idx) => (
                       <span key={idx} className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
                         {item}
                       </span>
