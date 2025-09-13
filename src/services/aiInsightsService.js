@@ -359,8 +359,103 @@ Keep insights practical, data-driven, and specifically relevant to the target au
 
   // Check if AI service is configured and available
   async generateInsights(metrics, category = INSIGHT_CATEGORIES.CONTENT_STRATEGY) {
+    // Get AI configuration
+    const { getServiceCredentials } = await import('./credentialsService');
+    const aiConfig = getServiceCredentials('ai');
+    
     // Return null if no AI API is configured - UI will show settings link
-    return null;
+    if (!aiConfig.apiKey || !aiConfig.baseUrl) {
+      console.log('AI service not configured - missing API key or base URL');
+      return null;
+    }
+    
+    try {
+      // Build the insight prompt
+      const context = await this.buildContext(metrics, category);
+      const prompts = this.generateInsightPrompts(metrics, [category]);
+      const prompt = prompts[0];
+      
+      // Make API call to configured AI service
+      const response = await this.callAIService(context, prompt.instructions, aiConfig);
+      
+      if (response) {
+        return {
+          category,
+          content: response,
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('AI insights generation failed:', error);
+      return null;
+    }
+  }
+  
+  // Make API call to configured AI service
+  async callAIService(context, instructions, aiConfig) {
+    const { provider, apiKey, baseUrl } = aiConfig;
+    
+    try {
+      let apiUrl = baseUrl;
+      let headers = {
+        'Content-Type': 'application/json',
+      };
+      let body = {};
+      
+      // Configure for different providers
+      if (provider === 'openai' || !provider) {
+        // OpenAI-compatible API
+        apiUrl = `${baseUrl}/v1/chat/completions`;
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        body = {
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert social media and content marketing analyst. Provide actionable insights based on the data provided.'
+            },
+            {
+              role: 'user',
+              content: `${context}\n\n${instructions}`
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7
+        };
+      } else {
+        // Generic API format
+        body = {
+          prompt: `${context}\n\n${instructions}`,
+          max_tokens: 500
+        };
+      }
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        timeout: 15000 // 15 second timeout
+      });
+      
+      if (!response.ok) {
+        throw new Error(`AI API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Extract response based on provider
+      if (provider === 'openai' || !provider) {
+        return data.choices?.[0]?.message?.content || data.response;
+      } else {
+        return data.response || data.text || data.content;
+      }
+      
+    } catch (error) {
+      console.error('AI service call failed:', error);
+      throw error;
+    }
   }
 }
 

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { getAuthorFeed, getFollowers } from '../services/blueskyService';
 import { getPerformanceAnalytics } from '../services/analyticsService';
+import realAIService from '../services/realAIService';
 import { 
   Card, 
   Badge, 
@@ -30,6 +31,43 @@ function PerformanceV2({ metrics }) {
   const [timeRange, setTimeRange] = useState('7'); // '7' for 7 days, '30' for 30 days
   const [newFollowers, setNewFollowers] = useState([]);
   const [topAmplifiers, setTopAmplifiers] = useState([]);
+  const [postAnalyses, setPostAnalyses] = useState(new Map());
+  const [analyzingPosts, setAnalyzingPosts] = useState(new Set());
+  const [aiServiceReady, setAiServiceReady] = useState(false);
+
+  // Initialize AI service
+  useEffect(() => {
+    const initAI = async () => {
+      const ready = await realAIService.initialize();
+      setAiServiceReady(ready);
+    };
+    initAI();
+  }, []);
+
+  // Analyze individual post performance with AI
+  const analyzePost = async (post) => {
+    if (!aiServiceReady || !metrics) return;
+    
+    const postId = post.uri || post.cid;
+    if (analyzingPosts.has(postId)) return;
+    
+    setAnalyzingPosts(prev => new Set([...prev, postId]));
+    
+    try {
+      const analysis = await realAIService.analyzePostPerformance(post, metrics);
+      if (analysis) {
+        setPostAnalyses(prev => new Map([...prev, [postId, analysis]]));
+      }
+    } catch (error) {
+      console.error('Failed to analyze post:', error);
+    } finally {
+      setAnalyzingPosts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(postId);
+        return newSet;
+      });
+    }
+  };
 
   // Helper functions for expanding/collapsing posts
   const togglePostExpansion = (postId) => {
@@ -505,34 +543,47 @@ function PerformanceV2({ metrics }) {
       </div>
 
       {/* AI Performance Insights & Topic Analysis */}
-      {/* AI Performance Insights - Not Available */}
+      {/* REAL AI Performance Insights */}
       <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white/10 rounded-xl">
-            <Sparkles size={24} className="text-gray-400" />
+            <Sparkles size={24} className={aiServiceReady ? "text-brand-400" : "text-gray-400"} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-6">
               <h2 className="text-2xl font-bold font-sans">
                 AI Performance Insights
               </h2>
-              <Badge variant="secondary" size="sm">NOT CONFIGURED</Badge>
+              <Badge variant={aiServiceReady ? "success" : "secondary"} size="sm">
+                {aiServiceReady ? "LIVE" : "NOT CONFIGURED"}
+              </Badge>
             </div>
             
-            <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
-                AI performance insights require an AI service to be configured. Connect an AI API to get intelligent analysis of your content performance, topic recommendations, and engagement optimization.
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.location.href = '/settings'}
-                className="flex items-center gap-2"
-              >
-                <Target size={16} />
-                Configure AI Service
-              </Button>
-            </div>
+            {!aiServiceReady ? (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                  Configure your AI API (API Key and Base URL) in Settings to get real AI analysis of individual posts.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/settings'}
+                  className="flex items-center gap-2"
+                >
+                  <Target size={16} />
+                  Configure AI Service
+                </Button>
+              </div>
+            ) : (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                  🤖 AI service is ready! Click "Analyze Post" on any post below to get real AI analysis of its performance.
+                </p>
+                <div className="text-xs text-gray-500">
+                  Individual post analysis shows: performance factors, content elements that worked, and suggestions for future posts.
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -766,6 +817,38 @@ function PerformanceV2({ metrics }) {
                                       Format: {post.format || 'Unknown'}
                                     </div>
                                   </div>
+                                  
+                                  {/* REAL AI Analysis Section */}
+                                  {aiServiceReady && (
+                                    <div className="mt-3 pt-3 border-t border-gray-600">
+                                      {!postAnalyses.has(postId) ? (
+                                        <Button 
+                                          size="sm"
+                                          onClick={() => analyzePost(post)}
+                                          disabled={analyzingPosts.has(postId)}
+                                          className="w-full bg-brand-500 hover:bg-brand-600 text-xs"
+                                        >
+                                          {analyzingPosts.has(postId) ? (
+                                            <>🤖 Analyzing...</>
+                                          ) : (
+                                            <>🤖 Analyze Post with AI</>
+                                          )}
+                                        </Button>
+                                      ) : (
+                                        <div className="bg-primary-800 rounded p-3 border border-gray-600">
+                                          <div className="text-xs text-brand-400 font-semibold mb-2">
+                                            🤖 AI Analysis Results:
+                                          </div>
+                                          <div className="text-xs text-gray-300 leading-relaxed whitespace-pre-line">
+                                            {postAnalyses.get(postId).content}
+                                          </div>
+                                          <div className="text-xs text-gray-500 mt-2">
+                                            Generated: {new Date(postAnalyses.get(postId).timestamp).toLocaleString()}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>

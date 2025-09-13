@@ -13,58 +13,77 @@ import {
   Clock
 } from 'lucide-react';
 
-// Import AI insights system
-import AIInsightsGenerator, { 
-  INSIGHT_CATEGORIES
-} from '../services/aiInsightsService';
+// Import REAL AI service
+import realAIService from '../services/realAIService';
 import { Button } from '../components/ui/UntitledUIComponents';
 import { getFollowers, getProfile } from '../services/blueskyService';
 import FeatureUnavailable from '../components/FeatureUnavailable';
 import { isServiceConfigured } from '../services/credentialsService';
 
 function Insights({ metrics }) {
-  const [aiInsights, setAiInsights] = useState({});
-  const [insightsGenerator, setInsightsGenerator] = useState(null);
-  const [activePlatform, setActivePlatform] = useState('reddit');
-  // const [topAmplifiersData, setTopAmplifiersData] = useState([]); // Unused
-  const [, setLoadingInsights] = useState(false);
-  const [customerSegment] = useState('tech-entrepreneur');
+  const [aiInsights, setAiInsights] = useState(null);
+  const [contentStrategy, setContentStrategy] = useState(null);
+  const [activePlatform, setActivePlatform] = useState('bluesky');
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [aiServiceReady, setAiServiceReady] = useState(false);
 
-  // Initialize AI insights generator - MOVED BEFORE CONDITIONAL LOGIC
+  // Initialize REAL AI service
   useEffect(() => {
-    const generator = new AIInsightsGenerator(customerSegment);
-    setInsightsGenerator(generator);
-  }, [customerSegment]);
+    const initAI = async () => {
+      const ready = await realAIService.initialize();
+      setAiServiceReady(ready);
+    };
+    initAI();
+  }, []);
 
-  const generateAllInsights = useCallback(async () => {
-    if (!insightsGenerator || !metrics) return;
+  const generateRealInsights = useCallback(async () => {
+    if (!aiServiceReady || !metrics) return;
 
     setLoadingInsights(true);
     
     try {
-      // Check if AI insights are available
-      const contentStrategy = await insightsGenerator.generateInsights(metrics, INSIGHT_CATEGORIES.CONTENT_STRATEGY);
+      console.log('Generating REAL AI insights with metrics:', {
+        followers: metrics.followersCount,
+        posts: metrics.postsCount,
+        hasRecentPosts: !!metrics.recentPosts?.length
+      });
       
-      if (!contentStrategy) {
-        // No AI API configured - set to null to show settings message
-        setAiInsights({ comprehensive: null });
+      // Generate REAL AI insights using the user's configured API
+      const [insights, strategy] = await Promise.all([
+        realAIService.generateBlueskyInsights(metrics),
+        realAIService.generateContentStrategy(metrics, metrics.recentPosts || [])
+      ]);
+      
+      if (!insights && !strategy) {
+        console.log('AI service not configured or failed');
+        setAiInsights(null);
+        setContentStrategy(null);
         return;
       }
+      
+      setAiInsights(insights);
+      setContentStrategy(strategy);
+      
+      console.log('Real AI insights generated successfully:', {
+        hasInsights: !!insights,
+        hasStrategy: !!strategy
+      });
 
     } catch (error) {
-      console.error('Error generating insights:', error);
-      setAiInsights({ comprehensive: null });
+      console.error('Error generating REAL insights:', error);
+      setAiInsights(null);
+      setContentStrategy(null);
     } finally {
       setLoadingInsights(false);
     }
-  }, [insightsGenerator, metrics]);
+  }, [aiServiceReady, metrics]);
 
-  // Generate AI insights when metrics are available
+  // Generate REAL AI insights when metrics are available
   useEffect(() => {
-    if (metrics && insightsGenerator && Object.keys(aiInsights).length === 0) {
-      generateAllInsights();
+    if (metrics && aiServiceReady && !aiInsights && !loadingInsights) {
+      generateRealInsights();
     }
-  }, [metrics, insightsGenerator, aiInsights, generateAllInsights]);
+  }, [metrics, aiServiceReady, aiInsights, loadingInsights, generateRealInsights]);
 
   // Fetch real amplifier data
   useEffect(() => {
@@ -644,6 +663,46 @@ function Insights({ metrics }) {
 
 
 
+
+      {/* REAL AI Insights Test Section */}
+      <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
+        <h3 className="text-lg font-bold text-white mb-4">🤖 Real AI Insights</h3>
+        
+        <div className="mb-4">
+          <p className="text-sm text-gray-300 mb-3">
+            AI Service Status: {aiServiceReady ? '✅ Ready' : '❌ Not Configured'}
+          </p>
+          
+          <Button 
+            onClick={generateRealInsights}
+            disabled={!aiServiceReady || loadingInsights}
+            className="bg-brand-500 hover:bg-brand-600"
+          >
+            {loadingInsights ? 'Generating Real AI Insights...' : 'Generate Real AI Insights'}
+          </Button>
+        </div>
+        
+        {aiInsights && (
+          <div className="bg-primary-800 border border-gray-600 rounded-lg p-4 mb-4">
+            <h4 className="text-brand-400 font-semibold mb-2">📊 Bluesky Performance Analysis</h4>
+            <div className="text-sm text-gray-300 whitespace-pre-line leading-relaxed">
+              {aiInsights.content}
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Generated: {new Date(aiInsights.timestamp).toLocaleString()}
+            </div>
+          </div>
+        )}
+        
+        {contentStrategy && (
+          <div className="bg-primary-800 border border-gray-600 rounded-lg p-4">
+            <h4 className="text-electric-400 font-semibold mb-2">🎯 Content Strategy</h4>
+            <div className="text-sm text-gray-300 whitespace-pre-line leading-relaxed">
+              {contentStrategy.content}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Platform Content Tracking */}
       <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">

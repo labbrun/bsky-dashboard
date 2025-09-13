@@ -40,11 +40,32 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
       getTopBlogPosts(timeRange)
     ]);
 
-    // Process blog content data
+    // Process blog content data - Fast processing first, AI analysis later
     if (blogData.status === 'fulfilled') {
-      analytics.content = await processBlogContent(blogData.value, aiContext);
+      // Do fast, synchronous processing immediately
       analytics.overview.totalPosts = blogData.value.posts.length;
       analytics.overview.blogMetrics = calculateBlogMetrics(blogData.value.posts);
+      
+      // Start AI analysis in background (non-blocking)
+      processBlogContentAsync(blogData.value, aiContext)
+        .then(contentAnalysis => {
+          analytics.content = contentAnalysis;
+        })
+        .catch(error => {
+          console.warn('AI content analysis failed:', error.message);
+          analytics.content = { error: 'AI analysis unavailable' };
+        });
+      
+      // Return basic content data immediately
+      analytics.content = {
+        recentPosts: blogData.value.posts.slice(0, 10).map(post => ({
+          ...post,
+          analysis: null // Will be filled in by async processing
+        })),
+        metrics: {
+          totalPosts: blogData.value.posts.length
+        }
+      };
     } else {
       console.error('Blog feed loading failed:', blogData.reason);
       analytics.content = { error: blogData.reason.message };
@@ -105,7 +126,25 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
   }
 };
 
-// Process blog content with AI analysis
+// Fast, non-blocking version for immediate response
+const processBlogContentAsync = async (blogData, aiContext) => {
+  // Run AI analysis in background without blocking
+  try {
+    const result = await processBlogContent(blogData, aiContext);
+    return result;
+  } catch (error) {
+    console.warn('Background AI analysis failed:', error.message);
+    return { 
+      error: 'AI analysis failed',
+      recentPosts: blogData.posts?.slice(0, 10).map(post => ({
+        ...post,
+        analysis: { alignmentScore: null, alignmentAnalysis: 'Analysis unavailable' }
+      })) || []
+    };
+  }
+};
+
+// Process blog content with AI analysis (blocking version for complete analysis)
 const processBlogContent = async (blogData, aiContext) => {
   const { posts } = blogData;
   
@@ -130,11 +169,11 @@ const processBlogContent = async (blogData, aiContext) => {
         const alignment = analyzeBlogPostAlignment(post, aiContext.targetKeywords);
         
         // Get comprehensive AI analysis and repurposing suggestions (async - slow)
-        // Use timeout to prevent hanging
+        // Use shorter timeout to prevent hanging
         const repurposingAnalysis = await Promise.race([
           analyzeAndRepurposeBlogContent(post),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Analysis timeout')), 10000)
+            setTimeout(() => reject(new Error('Analysis timeout')), 3000)
           )
         ]);
         

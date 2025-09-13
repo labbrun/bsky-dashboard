@@ -18,6 +18,7 @@ import {
 // Services
 import { getComprehensiveBlogAnalytics } from '../services/blogAnalyticsService';
 import { getBlogTrafficOverview, getReferralTraffic } from '../services/googleAnalyticsService';
+import realAIService from '../services/realAIService';
 import logger from '../services/loggingService';
 
 // Import Untitled UI components
@@ -54,6 +55,56 @@ function BlogAnalytics({ metrics }) {
   const [referralData, setReferralData] = useState(null);
   const [gaLoading, setGaLoading] = useState(false);
   
+  // AI state management for blog analysis
+  const [aiServiceReady, setAiServiceReady] = useState(false);
+  const [blogAIAnalysis, setBlogAIAnalysis] = useState(null);
+  const [loadingAIAnalysis, setLoadingAIAnalysis] = useState(false);
+  
+  // Initialize AI service for blog analysis
+  useEffect(() => {
+    const initAI = async () => {
+      const ready = await realAIService.initialize();
+      setAiServiceReady(ready);
+    };
+    initAI();
+  }, []);
+  
+  // Generate AI analysis for blog content
+  const generateBlogAIAnalysis = async () => {
+    if (!aiServiceReady || !blogAnalytics || loadingAIAnalysis) return;
+    
+    setLoadingAIAnalysis(true);
+    try {
+      // Create blog-specific metrics object for AI analysis
+      const blogMetrics = {
+        totalPosts: blogAnalytics.overview?.totalPosts || 0,
+        recentPosts: blogAnalytics.content?.recentPosts?.slice(0, 5).map(post => ({
+          text: post.title + ': ' + (post.description || post.excerpt || ''),
+          title: post.title,
+          link: post.link
+        })) || [],
+        traffic: {
+          sessions: totalSessions || 0,
+          bounceRate: averageBounceRate || 0
+        }
+      };
+      
+      const analysis = await realAIService.generateContentStrategy(blogMetrics, blogMetrics.recentPosts);
+      setBlogAIAnalysis(analysis);
+    } catch (error) {
+      console.error('Failed to generate blog AI analysis:', error);
+    } finally {
+      setLoadingAIAnalysis(false);
+    }
+  };
+  
+  // Auto-generate AI analysis when blog data loads
+  useEffect(() => {
+    if (aiServiceReady && blogAnalytics && !loadingAIAnalysis && !blogAIAnalysis) {
+      generateBlogAIAnalysis();
+    }
+  }, [aiServiceReady, blogAnalytics, loadingAIAnalysis, blogAIAnalysis, generateBlogAIAnalysis]);
+  
 
   // Check if blog RSS is configured
   const isBlogConfigured = useMemo(() => {
@@ -75,7 +126,13 @@ function BlogAnalytics({ metrics }) {
     
     try {
       logger.info('Loading blog analytics data');
-      const analytics = await getComprehensiveBlogAnalytics(timeRange);
+      // Add timeout to prevent page hanging
+      const analytics = await Promise.race([
+        getComprehensiveBlogAnalytics(timeRange),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Blog analytics loading timeout')), 15000)
+        )
+      ]);
       
       // Only set data if we got valid analytics
       if (analytics && !analytics.error) {
@@ -430,15 +487,69 @@ function BlogAnalytics({ metrics }) {
               <h2 className="text-2xl font-bold font-sans">
                 AI Blog Intelligence
               </h2>
-              <Badge variant="warning" size="sm">LIVE</Badge>
+              <Badge variant={aiServiceReady ? "success" : "secondary"} size="sm">
+                {aiServiceReady ? "LIVE" : "NOT CONFIGURED"}
+              </Badge>
             </div>
             
-            {/* AI Summary */}
-            {analytics.insights?.summary && (
+            {/* REAL AI Blog Analysis */}
+            {!aiServiceReady ? (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                  Configure your AI API (API Key and Base URL) in Settings to get real AI analysis of your blog content.
+                </p>
+                <Button 
+                  size="sm"
+                  onClick={() => window.location.href = '/settings'}
+                  className="flex items-center gap-2"
+                >
+                  Configure AI Service
+                </Button>
+              </div>
+            ) : loadingAIAnalysis ? (
               <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {analytics.insights.summary}
+                  🤖 Analyzing your blog content with AI...
                 </p>
+              </div>
+            ) : blogAIAnalysis ? (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <div className="mb-3">
+                  <span className="text-brand-400 font-semibold text-sm font-sans">🤖 AI Blog Content Analysis</span>
+                  <span className="ml-2 text-xs text-gray-400">Generated from your blog data</span>
+                </div>
+                <div className="text-sm font-sans leading-relaxed text-gray-300 whitespace-pre-line mb-4">
+                  {blogAIAnalysis.content}
+                </div>
+                <Button 
+                  size="sm"
+                  onClick={generateBlogAIAnalysis}
+                  disabled={loadingAIAnalysis}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles size={14} />
+                  Refresh Analysis
+                </Button>
+                <div className="mt-3 text-xs text-gray-500">
+                  Generated: {new Date(blogAIAnalysis.timestamp).toLocaleString()}
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                  {blogAnalytics ? 'Unable to generate AI analysis. Check your API configuration.' : 'Load blog data first to get AI analysis.'}
+                </p>
+                {blogAnalytics && (
+                  <Button 
+                    size="sm"
+                    onClick={generateBlogAIAnalysis}
+                    disabled={loadingAIAnalysis}
+                    className="flex items-center gap-2"
+                  >
+                    <Sparkles size={14} />
+                    Try Again
+                  </Button>
+                )}
               </div>
             )}
             

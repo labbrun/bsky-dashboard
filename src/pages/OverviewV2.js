@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage, getPreviousMetrics, storePreviousMetrics } from '../utils/celebrationUtils';
+import realAIService from '../services/realAIService';
 import { 
   Users, 
   MessageSquare, 
@@ -41,6 +42,47 @@ function OverviewV2({ metrics }) {
   const [showCelebration, setShowCelebration] = React.useState(false);
   const [celebrationMessage, setCelebrationMessage] = React.useState('');
   const [timePeriod, setTimePeriod] = React.useState('7'); // '7' for 7 days, '30' for 30 days, 'lifetime' for all time
+  
+  // AI state management
+  const [aiServiceReady, setAiServiceReady] = useState(false);
+  const [aiInsights, setAiInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  
+  // Initialize AI service
+  useEffect(() => {
+    const initAI = async () => {
+      const ready = await realAIService.initialize();
+      setAiServiceReady(ready);
+      
+      // Auto-generate insights if ready and we have metrics
+      if (ready && metrics && !aiInsights) {
+        generateOverviewInsights();
+      }
+    };
+    initAI();
+  }, [metrics, aiInsights, generateOverviewInsights]);
+  
+  // Generate AI insights for overview
+  const generateOverviewInsights = async () => {
+    if (!aiServiceReady || !metrics || loadingInsights) return;
+    
+    setLoadingInsights(true);
+    try {
+      const insights = await realAIService.generateBlueskyInsights(metrics);
+      setAiInsights(insights);
+    } catch (error) {
+      console.error('Failed to generate overview insights:', error);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+  
+  // Auto-generate insights when metrics change
+  useEffect(() => {
+    if (aiServiceReady && metrics && !loadingInsights && !aiInsights) {
+      generateOverviewInsights();
+    }
+  }, [aiServiceReady, metrics, loadingInsights, aiInsights, generateOverviewInsights]);
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -426,34 +468,83 @@ function OverviewV2({ metrics }) {
         </div>
       </div>
 
-      {/* AI Insights Section - Not Available */}
+      {/* REAL AI Insights Section */}
       <div className="bg-primary-850 rounded-2xl p-6 shadow-xl border border-gray-700 text-white relative overflow-hidden">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-white/10 rounded-xl">
-            <AlertCircle size={24} className="text-gray-400" />
+            <Zap size={24} className={aiServiceReady ? "text-brand-400" : "text-gray-400"} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-6">
               <h2 className="text-2xl font-bold font-sans">
                 AI Insights
               </h2>
-              <Badge variant="secondary" size="sm">NOT CONFIGURED</Badge>
+              <Badge variant={aiServiceReady ? "success" : "secondary"} size="sm">
+                {aiServiceReady ? "LIVE" : "NOT CONFIGURED"}
+              </Badge>
             </div>
             
-            <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
-                AI insights require an AI service to be configured. Connect an AI API to get intelligent analysis of your social media performance.
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.location.href = '/settings'}
-                className="flex items-center gap-2"
-              >
-                <Target size={16} />
-                Configure AI Service
-              </Button>
-            </div>
+            {!aiServiceReady ? (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                  Configure your AI API (API Key and Base URL) in Settings to get real AI analysis of your social media performance.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/settings'}
+                  className="flex items-center gap-2"
+                >
+                  <Target size={16} />
+                  Configure AI Service
+                </Button>
+              </div>
+            ) : loadingInsights ? (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                  🤖 Generating real AI insights from your data...
+                </p>
+              </div>
+            ) : aiInsights ? (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <div className="mb-3">
+                  <span className="text-brand-400 font-semibold text-sm font-sans">🤖 AI Analysis Results</span>
+                  <span className="ml-2 text-xs text-gray-400">Generated from your real data</span>
+                </div>
+                <div className="text-sm font-sans leading-relaxed text-gray-300 whitespace-pre-line mb-4">
+                  {aiInsights.content}
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm"
+                    onClick={generateOverviewInsights}
+                    disabled={loadingInsights}
+                    className="flex items-center gap-2"
+                  >
+                    <Zap size={14} />
+                    Refresh Analysis
+                  </Button>
+                </div>
+                <div className="mt-3 text-xs text-gray-500">
+                  Analysis of {aiInsights.metricsAnalyzed?.followers || 0} followers, {aiInsights.metricsAnalyzed?.posts || 0} posts • {new Date(aiInsights.timestamp).toLocaleString()}
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300 mb-4">
+                  Unable to generate AI insights. Check your API configuration.
+                </p>
+                <Button 
+                  size="sm"
+                  onClick={generateOverviewInsights}
+                  disabled={loadingInsights}
+                  className="flex items-center gap-2"
+                >
+                  <Zap size={14} />
+                  Try Again
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
