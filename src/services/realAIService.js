@@ -106,13 +106,20 @@ export class RealAIService {
           messages: messages
         };
       } else {
-        // Generic/custom API format
-        apiUrl = this.config.baseUrl;
-        if (this.config.apiKey) {
+        // Local AI server (LM Studio, Ollama, etc.) - usually OpenAI-compatible
+        apiUrl = this.config.baseUrl.endsWith('/') ? 
+                  `${this.config.baseUrl}v1/chat/completions` : 
+                  `${this.config.baseUrl}/v1/chat/completions`;
+        
+        // Some local servers don't need auth, but include it if provided
+        if (this.config.apiKey && this.config.apiKey !== 'not-needed' && this.config.apiKey !== 'local') {
           headers['Authorization'] = `Bearer ${this.config.apiKey}`;
         }
+        
+        // Use OpenAI-compatible format for most local servers
         body = {
-          prompt: messages.map(m => `${m.role}: ${m.content}`).join('\n\n'),
+          model: this.config.apiKey || 'local-model', // Use the "API key" field as model name for local servers
+          messages: messages,
           max_tokens: maxTokens,
           temperature: temperature
         };
@@ -158,7 +165,14 @@ Response preview: ${responseText.substring(0, 200)}...`);
       } else if (this.config.provider === 'anthropic') {
         content = data.content?.[0]?.text || '';
       } else {
-        content = data.response || data.text || data.content || data.output || '';
+        // For local servers, try multiple response formats
+        content = data.choices?.[0]?.message?.content || // OpenAI format (most common)
+                 data.response || // Generic response
+                 data.text || // Simple text response
+                 data.content || // Content field
+                 data.output || // Output field
+                 data.message || // Message field
+                 '';
       }
 
       if (!content) {
