@@ -181,20 +181,20 @@ const API_GUIDES = {
     description: 'Google Analytics API for blog performance analysis and traffic insights',
     fields: [
       {
-        key: 'clientId',
-        label: 'Client ID',
+        key: 'serviceAccountEmail',
+        label: 'Service Account Email',
         type: 'text',
-        placeholder: '123456789-abc123.apps.googleusercontent.com',
+        placeholder: 'analytics-service@your-project.iam.gserviceaccount.com',
         required: false,
-        help: 'Google Analytics API Client ID from Google Cloud Console'
+        help: 'Service account email from your Google Cloud Console'
       },
       {
-        key: 'clientSecret',
-        label: 'Client Secret',
+        key: 'serviceAccountKey',
+        label: 'Service Account Private Key',
         type: 'password',
-        placeholder: 'GOCSPX-...',
+        placeholder: '-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----',
         required: false,
-        help: 'Google Analytics API Client Secret'
+        help: 'Private key from the service account JSON file'
       },
       {
         key: 'propertyId',
@@ -202,33 +202,27 @@ const API_GUIDES = {
         type: 'text',
         placeholder: '123456789',
         required: false,
-        help: 'Your Google Analytics 4 Property ID (found in GA4 Admin)'
-      },
-      {
-        key: 'refreshToken',
-        label: 'Refresh Token',
-        type: 'password',
-        placeholder: '1//04...',
-        required: false,
-        help: 'OAuth refresh token for API access (generated during setup)'
+        help: 'Your Google Analytics 4 Property ID (found in GA4 Admin → Property Settings)'
       }
     ],
     setupGuide: {
-      title: 'How to set up Google Analytics API:',
+      title: 'How to set up Google Analytics API (Service Account):',
       steps: [
-        'Go to console.developers.google.com',
+        'Go to console.cloud.google.com',
         'Create a new project or select existing one',
-        'Enable "Google Analytics Reporting API" and "Google Analytics Data API"',
-        'Go to "Credentials" → Create OAuth 2.0 Client ID',
-        'Set application type to "Web application"',
-        'Add authorized redirect URIs',
-        'Download the client configuration',
-        'Complete OAuth flow to get refresh token',
-        'Copy Client ID, Client Secret, Property ID, and Refresh Token'
+        'Enable "Google Analytics Data API v1"',
+        'Go to "IAM & Admin" → "Service Accounts"',
+        'Click "Create Service Account"',
+        'Name it "analytics-service" and create',
+        'Click on the service account → "Keys" → "Add Key" → "Create New Key" → JSON',
+        'Download the JSON file and copy the email and private_key values',
+        'In Google Analytics, go to Admin → Property → Property Access Management',
+        'Add the service account email with "Viewer" permissions',
+        'Copy Property ID from GA4 Admin → Property Settings'
       ],
-      link: 'https://console.developers.google.com',
+      link: 'https://console.cloud.google.com',
       linkText: 'Google Cloud Console',
-      note: 'Google Analytics integration allows AI to analyze your blog performance and provide data-driven content recommendations'
+      note: 'Service Account authentication is much simpler than OAuth - no refresh tokens needed! Just grant the service account access to your GA4 property.'
     }
   },
 

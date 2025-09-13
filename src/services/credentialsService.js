@@ -138,7 +138,7 @@ export const isServiceConfigured = (service) => {
       return !!(credentials.clientId && credentials.clientSecret);
     
     case 'googleAnalytics':
-      return !!(credentials.clientId && credentials.clientSecret && credentials.propertyId);
+      return !!(credentials.serviceAccountEmail && credentials.serviceAccountKey && credentials.propertyId);
     
     case 'linkedin':
       return !!(credentials.clientId && credentials.clientSecret);
@@ -318,20 +318,20 @@ export const validateGoogleTrendsCredentials = async (clientId, clientSecret) =>
 };
 
 // Validate Google Analytics credentials
-export const validateGoogleAnalyticsCredentials = async (clientId, clientSecret, propertyId, refreshToken) => {
+export const validateGoogleAnalyticsCredentials = async (serviceAccountEmail, serviceAccountKey, propertyId) => {
   try {
-    if (!clientId || !clientSecret || !propertyId) {
-      return { valid: false, error: 'Client ID, Client Secret, and Property ID are required' };
+    if (!serviceAccountEmail || !serviceAccountKey || !propertyId) {
+      return { valid: false, error: 'Service Account Email, Private Key, and Property ID are required' };
     }
 
-    // Validate Client ID format (Google OAuth client IDs have specific format)
-    if (!clientId.includes('.apps.googleusercontent.com')) {
-      return { valid: false, error: 'Invalid Client ID format. Should end with .apps.googleusercontent.com' };
+    // Validate Service Account Email format
+    if (!serviceAccountEmail.includes('.iam.gserviceaccount.com')) {
+      return { valid: false, error: 'Invalid Service Account Email format. Should end with .iam.gserviceaccount.com' };
     }
 
-    // Validate Client Secret format
-    if (!clientSecret.startsWith('GOCSPX-')) {
-      return { valid: false, error: 'Invalid Client Secret format. Should start with GOCSPX-' };
+    // Validate Private Key format
+    if (!serviceAccountKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      return { valid: false, error: 'Invalid Private Key format. Should start with -----BEGIN PRIVATE KEY-----' };
     }
 
     // Validate Property ID is numeric
@@ -339,19 +339,11 @@ export const validateGoogleAnalyticsCredentials = async (clientId, clientSecret,
       return { valid: false, error: 'Property ID should be numeric (e.g., 123456789)' };
     }
 
-    // For now, we can't easily test GA4 API without making actual API calls
-    // In a full implementation, you would validate the refresh token and make a test API call
-    if (refreshToken) {
-      return { 
-        valid: true, 
-        note: 'Credentials format looks correct. Full validation requires OAuth flow completion.' 
-      };
-    } else {
-      return { 
-        valid: false, 
-        error: 'Refresh token is required for API access. Complete OAuth flow to obtain it.' 
-      };
-    }
+    // Basic validation passed - service account setup is much simpler than OAuth
+    return { 
+      valid: true, 
+      note: 'Service Account credentials format is correct. Make sure the service account has Viewer access to your GA4 property.' 
+    };
     
   } catch (error) {
     return { valid: false, error: error.message };
@@ -459,7 +451,7 @@ export const validateServiceCredentials = async (service, credentials) => {
       return validateGoogleTrendsCredentials(credentials.clientId, credentials.clientSecret);
     
     case 'googleAnalytics':
-      return validateGoogleAnalyticsCredentials(credentials.clientId, credentials.clientSecret, credentials.propertyId, credentials.refreshToken);
+      return validateGoogleAnalyticsCredentials(credentials.serviceAccountEmail, credentials.serviceAccountKey, credentials.propertyId);
     
     case 'blog':
       return validateBlogCredentials(credentials.rssUrl);
