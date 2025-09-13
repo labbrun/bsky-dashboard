@@ -783,7 +783,7 @@ function Insights({ metrics }) {
         <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
           <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <FileText className="text-success-400" size={20} />
-6 Content Ideas Ready to Create
+            6 Content Ideas Ready to Create
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {contentIdeas.map((idea, index) => (
@@ -859,14 +859,13 @@ function Insights({ metrics }) {
               </div>
             ))}
           </div>
-          </div>
         </div>
 
         {/* Digital Product Ideas */}
         <div className="bg-primary-850 border border-gray-700 rounded-xl p-6 shadow-xl text-white">
           <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <Package className="text-accent-400" size={20} />
-6 Digital Product Ideas
+            6 Digital Product Ideas
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {productIdeas.map((product, index) => (
@@ -947,8 +946,8 @@ function Insights({ metrics }) {
                   </div>
                 </div>
               </div>
-            ))
-          }
+            ))}
+          </div>
         </div>
       </div>
     </div>
