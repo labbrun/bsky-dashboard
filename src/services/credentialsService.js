@@ -265,20 +265,14 @@ export const validateBlogCredentials = async (rssUrl) => {
       return { valid: false, error: 'RSS URL must start with http:// or https://' };
     }
 
-    // Test RSS feed
-    try {
-      const response = await fetch(rssUrl, { 
-        method: 'HEAD', 
-        timeout: 10000 
-      });
-      
-      if (response.ok) {
-        return { valid: true };
-      } else {
-        return { valid: false, error: `RSS feed returned ${response.status}` };
-      }
-    } catch (error) {
-      return { valid: false, error: 'Cannot access RSS feed' };
+    // Import and test RSS feed using the RSS service
+    const { testRSSConnection } = await import('./rssService');
+    const result = await testRSSConnection(rssUrl);
+    
+    if (result.connected) {
+      return { valid: true, note: result.message };
+    } else {
+      return { valid: false, error: result.message };
     }
     
   } catch (error) {

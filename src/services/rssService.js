@@ -1,7 +1,6 @@
 // RSS Feed Service
 // Fetches and processes blog content from RSS feeds for analytics
 
-const RSS_FEED_URL = 'https://labb.run/feed/';
 const CORS_PROXY = 'https://api.allorigins.win/get?url=';
 
 // Convert RSS XML to JavaScript object
@@ -93,16 +92,20 @@ const parseRSSFeed = (xmlText) => {
 };
 
 // Fetch RSS feed data
-export const fetchBlogFeed = async () => {
+export const fetchBlogFeed = async (rssUrl) => {
+  if (!rssUrl) {
+    throw new Error('RSS URL is required');
+  }
+  
   try {
-    console.log('Fetching RSS feed from:', RSS_FEED_URL);
+    console.log('Fetching RSS feed from:', rssUrl);
     
     // Try direct fetch first
     let response;
     let xmlText;
     
     try {
-      response = await fetch(RSS_FEED_URL, {
+      response = await fetch(rssUrl, {
         mode: 'cors',
         headers: {
           'Accept': 'application/rss+xml, application/xml, text/xml'
@@ -120,7 +123,7 @@ export const fetchBlogFeed = async () => {
       console.warn('Direct fetch failed, trying CORS proxy:', directError.message);
       
       // Fallback to CORS proxy
-      const proxyUrl = `${CORS_PROXY}${encodeURIComponent(RSS_FEED_URL)}`;
+      const proxyUrl = `${CORS_PROXY}${encodeURIComponent(rssUrl)}`;
       response = await fetch(proxyUrl);
       
       if (!response.ok) {
@@ -291,10 +294,13 @@ export const calculateBlogMetrics = (posts) => {
 };
 
 // Test RSS feed connection
-export const testRSSConnection = async () => {
+export const testRSSConnection = async (rssUrl) => {
   try {
-    await fetchBlogFeed();
-    return { connected: true, message: 'RSS feed accessible' };
+    const result = await fetchBlogFeed(rssUrl);
+    return { 
+      connected: true, 
+      message: `RSS feed accessible - found ${result.posts.length} posts from "${result.feed.title}"` 
+    };
   } catch (error) {
     return { connected: false, message: error.message };
   }

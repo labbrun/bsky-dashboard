@@ -5,6 +5,7 @@ import { fetchBlogFeed, analyzeBlogPostAlignment, calculateBlogMetrics } from '.
 import { getBlogTrafficOverview, getReferralTraffic, getTopBlogPosts } from './googleAnalyticsService';
 import { analyzeAndRepurposeBlogContent } from './enhancedContentRepurposingService';
 import { getAIContext } from './aiContextProvider';
+import { getServiceCredentials } from './credentialsService';
 
 // Main blog analytics orchestrator
 export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
@@ -24,9 +25,15 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
     // Load AI context for analysis
     const aiContext = await getAIContext();
     
+    // Get RSS URL from credentials
+    const blogCredentials = getServiceCredentials('blog');
+    if (!blogCredentials.rssUrl) {
+      throw new Error('Blog RSS URL not configured. Please configure it in Settings.');
+    }
+
     // Parallel data loading for performance
     const [blogData, trafficData, referralData, topPosts] = await Promise.allSettled([
-      fetchBlogFeed(),
+      fetchBlogFeed(blogCredentials.rssUrl),
       getBlogTrafficOverview(timeRange),
       getReferralTraffic(timeRange),
       getTopBlogPosts(timeRange)
@@ -464,7 +471,12 @@ const generateMockTopPosts = () => [
 // Get specific blog post analysis
 export const getPostAnalysis = async (postId) => {
   try {
-    const blogData = await fetchBlogFeed();
+    const blogCredentials = getServiceCredentials('blog');
+    if (!blogCredentials.rssUrl) {
+      throw new Error('Blog RSS URL not configured. Please configure it in Settings.');
+    }
+    
+    const blogData = await fetchBlogFeed(blogCredentials.rssUrl);
     const post = blogData.posts.find(p => p.id === postId);
     
     if (!post) {
@@ -488,8 +500,11 @@ export const testBlogAnalyticsConnections = async () => {
   };
   
   try {
-    await fetchBlogFeed();
-    tests.rssConnection = true;
+    const blogCredentials = getServiceCredentials('blog');
+    if (blogCredentials.rssUrl) {
+      await fetchBlogFeed(blogCredentials.rssUrl);
+      tests.rssConnection = true;
+    }
   } catch (error) {
     console.warn('RSS connection failed:', error.message);
   }
