@@ -150,22 +150,34 @@ function BlogAnalytics({ metrics }) {
     if (trafficData && trafficData.length > 0) {
       return trafficData.reduce((sum, day) => sum + day.sessions, 0).toLocaleString();
     }
-    return analytics.insights?.trafficPerformance?.totalSessions?.toLocaleString() || '1,842';
+    return analytics.insights?.trafficPerformance?.totalSessions?.toLocaleString() || '--';
   }, [trafficData, analytics.insights?.trafficPerformance?.totalSessions]);
 
   const averageBounceRate = useMemo(() => {
     if (trafficData && trafficData.length > 0) {
       return (trafficData.reduce((sum, day) => sum + day.bounceRate, 0) / trafficData.length).toFixed(1);
     }
-    return Math.round(analytics.insights?.trafficPerformance?.averageBounceRate || 23.4);
+    return analytics.insights?.trafficPerformance?.averageBounceRate ? Math.round(analytics.insights.trafficPerformance.averageBounceRate) : '--';
   }, [trafficData, analytics.insights?.trafficPerformance?.averageBounceRate]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Load data in background without blocking the UI
   useEffect(() => {
-    // Load both analytics simultaneously for faster performance
-    loadBlogAnalytics(); // This loads instantly with fallback data
-    loadGoogleAnalytics(); // Load GA data in parallel (no delay needed)
-  }, [loadBlogAnalytics, loadGoogleAnalytics]);
+    // Load blog analytics first (faster)
+    if (isBlogConfigured) {
+      loadBlogAnalytics();
+    } else {
+      setLoading(false);
+    }
+  }, [loadBlogAnalytics, isBlogConfigured]);
+
+  // Load Google Analytics separately to avoid blocking
+  useEffect(() => {
+    // Only load GA data if Google Analytics is configured
+    const gaConfigured = isServiceConfigured('google');
+    if (gaConfigured) {
+      loadGoogleAnalytics();
+    }
+  }, [loadGoogleAnalytics]);
 
   // Check if required services are configured - MOVED AFTER ALL HOOKS
   const blogConfigured = isServiceConfigured('blog');
@@ -422,13 +434,13 @@ function BlogAnalytics({ metrics }) {
             </div>
             
             {/* AI Summary */}
-            <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-              <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                {analytics.insights?.summary || 
-                  `Your blog shows strong content-audience alignment with ${analytics.content?.metrics?.averageAlignmentScore || 75}% average relevance score. Recent posts demonstrate solid technical depth, particularly in ${analytics.content?.topTopics?.slice(0, 2).join(' and ') || 'AI and homelab'} topics. Consider leveraging your ${analytics.overview?.blogMetrics?.topCategories?.[0]?.category || 'technical'} content for more Bluesky engagement - your audience clearly values privacy-focused and development insights.`
-                }
-              </p>
-            </div>
+            {analytics.insights?.summary && (
+              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+                <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                  {analytics.insights.summary}
+                </p>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
@@ -437,7 +449,7 @@ function BlogAnalytics({ metrics }) {
                   <span className="text-success-400 font-semibold text-sm font-sans">Performance</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {analytics.insights?.trafficPerformance?.totalSessions || 1247} monthly sessions with {Math.round(analytics.insights?.trafficPerformance?.averageBounceRate || 23.4)}% bounce rate
+                  {analytics.insights?.trafficPerformance?.totalSessions || '--'} monthly sessions with {analytics.insights?.trafficPerformance?.averageBounceRate ? Math.round(analytics.insights.trafficPerformance.averageBounceRate) : '--'}% bounce rate
                 </p>
               </div>
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
@@ -446,7 +458,7 @@ function BlogAnalytics({ metrics }) {
                   <span className="text-success-400 font-semibold text-sm font-sans">Alignment</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {analytics.content?.metrics?.averageAlignmentScore || 75}% audience alignment across {analytics.overview?.totalPosts || 15} analyzed posts
+                  {analytics.content?.metrics?.averageAlignmentScore || '--'}% audience alignment across {analytics.overview?.totalPosts || '--'} analyzed posts
                 </p>
               </div>
               <div className="bg-primary-850 rounded-xl p-4 border border-gray-600">
@@ -455,7 +467,7 @@ function BlogAnalytics({ metrics }) {
                   <span className="text-success-400 font-semibold text-sm font-sans">Opportunities</span>
                 </div>
                 <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                  {analytics.insights?.repurposingInsights?.highPriorityOpportunities || 3} high-priority repurposing opportunities identified
+                  {analytics.insights?.repurposingInsights?.highPriorityOpportunities || '--'} high-priority repurposing opportunities identified
                 </p>
               </div>
             </div>
@@ -528,10 +540,10 @@ function BlogAnalytics({ metrics }) {
               <span className="text-success-400 font-semibold text-sm font-sans">Total Posts</span>
             </div>
             <p className="text-2xl font-bold text-white mb-1 font-sans">
-              {analytics.overview?.totalPosts?.toLocaleString() || '15'}
+              {analytics.overview?.totalPosts?.toLocaleString() || '--'}
             </p>
             <p className="text-sm text-gray-300 font-sans">
-              {analytics.overview?.blogMetrics?.postsPerWeek || 0.5}/week
+              {analytics.overview?.blogMetrics?.postsPerWeek || '--'}/week
             </p>
           </div>
 
@@ -541,7 +553,7 @@ function BlogAnalytics({ metrics }) {
               <span className="text-success-400 font-semibold text-sm font-sans">Content Alignment</span>
             </div>
             <p className="text-2xl font-bold text-white mb-1 font-sans">
-              {analytics.content?.metrics?.averageAlignmentScore || 75}%
+              {analytics.content?.metrics?.averageAlignmentScore || '--'}%
             </p>
             <p className="text-sm text-gray-300 font-sans">
               {getAlignmentStatus(analytics.content?.metrics?.averageAlignmentScore)}
@@ -567,10 +579,10 @@ function BlogAnalytics({ metrics }) {
               <span className="text-success-400 font-semibold text-sm font-sans">Keyword Targeting</span>
             </div>
             <p className="text-2xl font-bold text-white mb-1 font-sans">
-              {analytics.content?.keywordTargeting?.averageScore || 78}%
+              {analytics.content?.keywordTargeting?.averageScore || '--'}%
             </p>
             <p className="text-sm text-gray-300 font-sans">
-              {analytics.content?.keywordTargeting?.matchedKeywords || 12} of {analytics.content?.keywordTargeting?.targetKeywords || 15} targets
+              {analytics.content?.keywordTargeting?.matchedKeywords || '--'} of {analytics.content?.keywordTargeting?.targetKeywords || '--'} targets
             </p>
           </div>
         </div>
@@ -761,7 +773,7 @@ function BlogAnalytics({ metrics }) {
                         post.analysis?.alignmentScore > 60 ? 'bg-warning-500' : 'bg-error-500'
                       }`}></div>
                       <span className="text-xs text-gray-400 font-sans">
-                        {post.analysis?.alignmentScore || 0}%
+                        {post.analysis?.alignmentScore || '--'}%
                       </span>
                     </div>
                   </div>
@@ -789,78 +801,31 @@ function BlogAnalytics({ metrics }) {
             </div>
           )}
           
-          {/* AI Content Performance Summary */}
-          <div className="mt-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles size={16} className="text-brand-400" />
-              <span className="text-brand-400 font-semibold text-sm font-sans">AI Performance Analysis</span>
-            </div>
-            {(() => {
-              const avgAlignment = analytics.content?.metrics?.averageAlignmentScore || 0;
-              const postCount = analytics.content?.recentPosts?.length || 0;
-              const recentPosts = analytics.content?.recentPosts || [];
-              
-              // Generate AI analysis based on performance data
-              let analysisText = '';
-              let recommendationText = '';
-              let statusColor = '';
-              
-              if (avgAlignment >= 80) {
-                analysisText = `Excellent performance! Your content shows ${avgAlignment}% alignment with target audience interests. Recent posts are consistently hitting the mark with privacy, security, and self-hosting topics that resonate strongly with your readers.`;
-                recommendationText = 'Keep focusing on technical deep-dives and practical guides. Consider expanding into emerging areas like AI privacy and advanced automation techniques.';
-                statusColor = 'text-success-300';
-              } else if (avgAlignment >= 60) {
-                analysisText = `Good foundation with ${avgAlignment}% alignment score across ${postCount} recent posts. Your security and privacy content performs well, but there's room for optimization in topic selection and keyword targeting.`;
-                recommendationText = 'Focus more on actionable tutorials and real-world case studies. Consider adding more specific technical examples and cost breakdowns that appeal to your audience.';
-                statusColor = 'text-warning-300';
-              } else {
-                analysisText = `Content alignment needs improvement (${avgAlignment}% current score). Your audience is highly interested in privacy, security, and self-hosting topics, but recent content may be missing the mark on technical depth or practical value.`;
-                recommendationText = 'Prioritize technical tutorials, security guides, and cost-analysis content. Your audience wants actionable, detailed content they can implement immediately.';
-                statusColor = 'text-error-300';
-              }
-              
-              // Add specific insights based on actual post performance
-              const highPerformers = recentPosts.filter(post => post.analysis?.alignmentScore > 80);
-              // const lowPerformers = recentPosts.filter(post => post.analysis?.alignmentScore < 60);
-              
-              if (highPerformers.length > 0) {
-                analysisText += ` Your top-performing posts focus on ${highPerformers[0]?.title?.includes('Security') ? 'security' : highPerformers[0]?.title?.includes('Privacy') ? 'privacy' : 'technical'} topics, indicating strong audience interest in these areas.`;
-              }
-              
-              return (
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
-                      {analysisText}
-                    </p>
-                  </div>
-                  
+          {/* AI Content Performance Summary - Only show if real AI data is available */}
+          {analytics.insights?.contentAnalysis && (
+            <div className="mt-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={16} className="text-brand-400" />
+                <span className="text-brand-400 font-semibold text-sm font-sans">AI Performance Analysis</span>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-sans font-normal leading-relaxed text-gray-300">
+                    {analytics.insights.contentAnalysis.summary}
+                  </p>
+                </div>
+                
+                {analytics.insights.contentAnalysis.recommendations && (
                   <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
                     <h4 className="text-brand-400 font-semibold text-xs font-sans mb-2">📈 AI Recommendations:</h4>
-                    <p className={`text-xs font-sans leading-relaxed ${statusColor}`}>
-                      {recommendationText}
+                    <p className="text-xs font-sans leading-relaxed text-success-300">
+                      {analytics.insights.contentAnalysis.recommendations}
                     </p>
                   </div>
-                  
-                  {/* Performance Metrics */}
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
-                      <p className="text-lg font-bold text-white font-sans">{avgAlignment}%</p>
-                      <p className="text-xs text-gray-400 font-sans">Alignment Score</p>
-                    </div>
-                    <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
-                      <p className="text-lg font-bold text-white font-sans">{highPerformers.length}</p>
-                      <p className="text-xs text-gray-400 font-sans">High Performers</p>
-                    </div>
-                    <div className="bg-primary-800 rounded-lg p-3 border border-gray-600">
-                      <p className="text-lg font-bold text-white font-sans">{postCount}</p>
-                      <p className="text-xs text-gray-400 font-sans">Recent Posts</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Content Performance Insights - Show only when data is available */}
