@@ -41,6 +41,7 @@ function OverviewV2({ metrics }) {
   const [showCelebration, setShowCelebration] = React.useState(false);
   const [celebrationMessage, setCelebrationMessage] = React.useState('');
   const [timeRange, setTimeRange] = React.useState('7'); // '7' for 7 days, '30' for 30 days
+  const [engagementView, setEngagementView] = React.useState('recent'); // 'recent' or 'lifetime'
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -315,27 +316,49 @@ function OverviewV2({ metrics }) {
         </div>
       </div>
 
-      {/* Time Range Toggle */}
-      <div className="flex items-center justify-between mb-8">
+      {/* Time Range and Engagement View Toggles */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 font-sans">Overview</h1>
           <p className="text-gray-600 mt-1 font-sans">Analytics dashboard for the last {timeRange} days</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={timeRange === '7' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setTimeRange('7')}
-          >
-            Last 7 days
-          </Button>
-          <Button
-            variant={timeRange === '30' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setTimeRange('30')}
-          >
-            Last 30 days
-          </Button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          {/* Engagement View Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Engagement:</span>
+            <Button
+              variant={engagementView === 'recent' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setEngagementView('recent')}
+            >
+              Recent 20 Posts
+            </Button>
+            <Button
+              variant={engagementView === 'lifetime' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setEngagementView('lifetime')}
+            >
+              Lifetime Estimate
+            </Button>
+          </div>
+          
+          {/* Time Range Toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant={timeRange === '7' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setTimeRange('7')}
+            >
+              Last 7 days
+            </Button>
+            <Button
+              variant={timeRange === '30' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setTimeRange('30')}
+            >
+              Last 30 days
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -391,20 +414,41 @@ function OverviewV2({ metrics }) {
           icon={<MessageSquare size={20} />}
         />
         <MetricCard
-          title="Total Engagement"
-          value={((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)).toLocaleString()}
-          description="Total likes, replies, and reposts\nacross recent posts"
-          change={`${metrics?.totalLikes || 0} likes, ${metrics?.totalReplies || 0} replies, ${metrics?.totalReposts || 0} reposts`}
+          title={engagementView === 'recent' ? 'Recent Engagement' : 'Lifetime Engagement (Est.)'}
+          value={(() => {
+            const recentEngagement = (metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0);
+            if (engagementView === 'lifetime' && metrics?.postsCount && metrics?.recentPosts?.length) {
+              // Estimate lifetime engagement by extrapolating from recent posts
+              const avgPerPost = recentEngagement / metrics.recentPosts.length;
+              const lifetimeEstimate = Math.round(avgPerPost * metrics.postsCount);
+              return lifetimeEstimate.toLocaleString();
+            }
+            return recentEngagement.toLocaleString();
+          })()}
+          description={engagementView === 'recent' 
+            ? `Likes, replies, and reposts\nacross ${metrics?.recentPosts?.length || 0} recent posts`
+            : `Estimated total engagement\nacross all ${metrics?.postsCount?.toLocaleString() || 0} posts`
+          }
+          change={engagementView === 'recent'
+            ? `${metrics?.totalLikes || 0} likes, ${metrics?.totalReplies || 0} replies, ${metrics?.totalReposts || 0} reposts`
+            : `Based on recent ${metrics?.recentPosts?.length || 0} posts average`
+          }
           changeType="positive"
           icon={<Heart size={20} />}
         />
         <MetricCard
           title="Avg Engagement Per Post"
-          value={metrics?.recentPosts?.length > 0 ? 
-            (((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)) / metrics.recentPosts.length).toFixed(1) :
-            '0'}
-          description="Average engagement per post\n(likes + replies + reposts)"
-          change={`Across ${metrics?.recentPosts?.length || 0} recent posts`}
+          value={(() => {
+            if (!metrics?.recentPosts?.length) return '0';
+            const recentEngagement = (metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0);
+            const avgPerPost = recentEngagement / metrics.recentPosts.length;
+            return avgPerPost.toFixed(1);
+          })()}
+          description={`Average engagement per post\n(likes + replies + reposts)`}
+          change={engagementView === 'recent'
+            ? `Based on ${metrics?.recentPosts?.length || 0} recent posts`
+            : `Consistent across all time periods`
+          }
           changeType={((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)) > 0 ? "positive" : "neutral"}
           icon={<Target size={20} />}
         />
