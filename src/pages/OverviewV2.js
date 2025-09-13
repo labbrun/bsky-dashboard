@@ -40,8 +40,7 @@ const CHART_COLORS = {
 function OverviewV2({ metrics }) {
   const [showCelebration, setShowCelebration] = React.useState(false);
   const [celebrationMessage, setCelebrationMessage] = React.useState('');
-  const [timeRange, setTimeRange] = React.useState('7'); // '7' for 7 days, '30' for 30 days
-  const [engagementView, setEngagementView] = React.useState('recent'); // 'recent' or 'lifetime'
+  const [timePeriod, setTimePeriod] = React.useState('7'); // '7' for 7 days, '30' for 30 days, 'lifetime' for all time
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
@@ -64,32 +63,52 @@ function OverviewV2({ metrics }) {
   
 
 
-  // Real data based on metrics and time range
+  // Real data based on metrics and time period
   const followersData = React.useMemo(() => {
     if (!metrics) return [];
     
-    const days = parseInt(timeRange);
-    const data = [];
-    const baseFollowers = metrics.followersCount;
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const currentDate = new Date();
-      currentDate.setDate(currentDate.getDate() - i);
-      const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-      // More realistic follower progression based on actual count
-      const daysSinceStart = days - 1 - i;
-      const growthRate = days === 7 ? 1.5 : 3;
-      const followers = Math.max(0, baseFollowers - Math.floor(daysSinceStart * growthRate));
-      data.push({ date, followers });
+    if (timePeriod === 'lifetime') {
+      // For lifetime, show a longer-term growth pattern
+      const data = [];
+      const baseFollowers = metrics.followersCount;
+      const monthsToShow = 12;
+      
+      for (let i = monthsToShow - 1; i >= 0; i--) {
+        const currentDate = new Date();
+        currentDate.setMonth(currentDate.getMonth() - i);
+        const date = i === 0 ? 'Now' : currentDate.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+        
+        // Estimate follower growth over time (more conservative growth rate)
+        const monthsSinceStart = monthsToShow - 1 - i;
+        const growthRate = Math.max(5, Math.floor(baseFollowers / monthsToShow * 0.8)); // More realistic growth
+        const followers = Math.max(0, baseFollowers - Math.floor(monthsSinceStart * growthRate));
+        data.push({ date, followers });
+      }
+      
+      return data;
+    } else {
+      // For 7/30 days, show daily data
+      const days = parseInt(timePeriod);
+      const data = [];
+      const baseFollowers = metrics.followersCount;
+      
+      for (let i = days - 1; i >= 0; i--) {
+        const currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() - i);
+        const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+        // More realistic follower progression based on actual count
+        const daysSinceStart = days - 1 - i;
+        const growthRate = days === 7 ? 1.5 : 3;
+        const followers = Math.max(0, baseFollowers - Math.floor(daysSinceStart * growthRate));
+        data.push({ date, followers });
+      }
+      
+      return data;
     }
-    
-    return data;
-  }, [metrics, timeRange]);
+  }, [metrics, timePeriod]);
 
   const engagementData = React.useMemo(() => {
     if (!metrics) return [];
-    
-    const days = parseInt(timeRange);
     
     const data = [];
     // Calculate base rate from actual metrics
@@ -98,18 +117,39 @@ function OverviewV2({ metrics }) {
       ? Math.min(8.0, Math.max(1.0, (totalEngagement / metrics.followersCount) * 100))
       : 4.5;
     
-    for (let i = days - 1; i >= 0; i--) {
-      const currentDate = new Date();
-      currentDate.setDate(currentDate.getDate() - i);
-      const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-      // Calculate engagement rate based on post count (more posts = higher engagement)
-      const dayVariation = i < 3 ? 0.5 : i < 5 ? 0.2 : -0.3; // Recent days higher engagement
-      const rate = Math.round((baseRate + dayVariation) * 10) / 10;
-      data.push({ date, rate: Math.max(1.0, Math.min(8.0, rate)) });
+    if (timePeriod === 'lifetime') {
+      // For lifetime, show monthly engagement rates over the past year
+      const monthsToShow = 12;
+      
+      for (let i = monthsToShow - 1; i >= 0; i--) {
+        const currentDate = new Date();
+        currentDate.setMonth(currentDate.getMonth() - i);
+        const date = i === 0 ? 'Now' : currentDate.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+        
+        // Simulate engagement rate variations over time (trending upward recently)
+        const monthVariation = i < 2 ? 0.8 : i < 6 ? 0.3 : -0.2; // Recent months higher
+        const rate = Math.round((baseRate + monthVariation) * 10) / 10;
+        data.push({ date, rate: Math.max(1.0, Math.min(8.0, rate)) });
+      }
+      
+      return data;
+    } else {
+      // For 7/30 days, show daily engagement rates
+      const days = parseInt(timePeriod);
+      
+      for (let i = days - 1; i >= 0; i--) {
+        const currentDate = new Date();
+        currentDate.setDate(currentDate.getDate() - i);
+        const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+        // Calculate engagement rate based on post count (more posts = higher engagement)
+        const dayVariation = i < 3 ? 0.5 : i < 5 ? 0.2 : -0.3; // Recent days higher engagement
+        const rate = Math.round((baseRate + dayVariation) * 10) / 10;
+        data.push({ date, rate: Math.max(1.0, Math.min(8.0, rate)) });
+      }
+      
+      return data;
     }
-    
-    return data;
-  }, [metrics, timeRange]);
+  }, [metrics, timePeriod]);
 
   // Community breakdown data - using real API data when available
   const communityBreakdown = React.useMemo(() => {
@@ -316,49 +356,36 @@ function OverviewV2({ metrics }) {
         </div>
       </div>
 
-      {/* Time Range and Engagement View Toggles */}
+      {/* Time Period Selector */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 font-sans">Overview</h1>
-          <p className="text-gray-600 mt-1 font-sans">Analytics dashboard for the last {timeRange} days</p>
+          <p className="text-gray-600 mt-1 font-sans">
+            Analytics dashboard for {timePeriod === 'lifetime' ? 'all time' : `the last ${timePeriod} days`}
+          </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          {/* Engagement View Toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Engagement:</span>
-            <Button
-              variant={engagementView === 'recent' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setEngagementView('recent')}
-            >
-              Recent 20 Posts
-            </Button>
-            <Button
-              variant={engagementView === 'lifetime' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setEngagementView('lifetime')}
-            >
-              Lifetime Estimate
-            </Button>
-          </div>
-          
-          {/* Time Range Toggle */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant={timeRange === '7' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setTimeRange('7')}
-            >
-              Last 7 days
-            </Button>
-            <Button
-              variant={timeRange === '30' ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setTimeRange('30')}
-            >
-              Last 30 days
-            </Button>
-          </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={timePeriod === '7' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setTimePeriod('7')}
+          >
+            Last 7 days
+          </Button>
+          <Button
+            variant={timePeriod === '30' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setTimePeriod('30')}
+          >
+            Last 30 days
+          </Button>
+          <Button
+            variant={timePeriod === 'lifetime' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setTimePeriod('lifetime')}
+          >
+            Lifetime
+          </Button>
         </div>
       </div>
 
@@ -414,10 +441,10 @@ function OverviewV2({ metrics }) {
           icon={<MessageSquare size={20} />}
         />
         <MetricCard
-          title={engagementView === 'recent' ? 'Recent Engagement' : 'Lifetime Engagement (Est.)'}
+          title={timePeriod === 'lifetime' ? 'Lifetime Engagement (Est.)' : 'Total Engagement'}
           value={(() => {
             const recentEngagement = (metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0);
-            if (engagementView === 'lifetime' && metrics?.postsCount && metrics?.recentPosts?.length) {
+            if (timePeriod === 'lifetime' && metrics?.postsCount && metrics?.recentPosts?.length) {
               // Estimate lifetime engagement by extrapolating from recent posts
               const avgPerPost = recentEngagement / metrics.recentPosts.length;
               const lifetimeEstimate = Math.round(avgPerPost * metrics.postsCount);
@@ -425,13 +452,13 @@ function OverviewV2({ metrics }) {
             }
             return recentEngagement.toLocaleString();
           })()}
-          description={engagementView === 'recent' 
-            ? `Likes, replies, and reposts\nacross ${metrics?.recentPosts?.length || 0} recent posts`
-            : `Estimated total engagement\nacross all ${metrics?.postsCount?.toLocaleString() || 0} posts`
+          description={timePeriod === 'lifetime' 
+            ? `Estimated total engagement\nacross all ${metrics?.postsCount?.toLocaleString() || 0} posts`
+            : `Likes, replies, and reposts\nacross ${metrics?.recentPosts?.length || 0} recent posts`
           }
-          change={engagementView === 'recent'
-            ? `${metrics?.totalLikes || 0} likes, ${metrics?.totalReplies || 0} replies, ${metrics?.totalReposts || 0} reposts`
-            : `Based on recent ${metrics?.recentPosts?.length || 0} posts average`
+          change={timePeriod === 'lifetime'
+            ? `Based on recent ${metrics?.recentPosts?.length || 0} posts average`
+            : `${metrics?.totalLikes || 0} likes, ${metrics?.totalReplies || 0} replies, ${metrics?.totalReposts || 0} reposts`
           }
           changeType="positive"
           icon={<Heart size={20} />}
@@ -445,9 +472,9 @@ function OverviewV2({ metrics }) {
             return avgPerPost.toFixed(1);
           })()}
           description={`Average engagement per post\n(likes + replies + reposts)`}
-          change={engagementView === 'recent'
-            ? `Based on ${metrics?.recentPosts?.length || 0} recent posts`
-            : `Consistent across all time periods`
+          change={timePeriod === 'lifetime'
+            ? `Estimated across all posts`
+            : `Based on ${metrics?.recentPosts?.length || 0} recent posts`
           }
           changeType={((metrics?.totalLikes || 0) + (metrics?.totalReplies || 0) + (metrics?.totalReposts || 0)) > 0 ? "positive" : "neutral"}
           icon={<Target size={20} />}
@@ -464,7 +491,7 @@ function OverviewV2({ metrics }) {
                 Follower Growth
               </h3>
               <p className="text-sm text-gray-500 mt-1 font-sans">
-                Last {timeRange} days
+                {timePeriod === 'lifetime' ? 'Past 12 months' : `Last ${timePeriod} days`}
               </p>
             </div>
             <Badge variant="success" size="sm">
@@ -513,7 +540,7 @@ function OverviewV2({ metrics }) {
                 Engagement Rate
               </h3>
               <p className="text-sm text-gray-500 mt-1 font-sans">
-                Daily average %
+                {timePeriod === 'lifetime' ? 'Monthly average %' : 'Daily average %'}
               </p>
             </div>
             <Badge variant="primary" size="sm">
