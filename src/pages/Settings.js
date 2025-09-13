@@ -137,8 +137,8 @@ const API_GUIDES = {
     }
   },
 
-  google: {
-    title: 'Google Custom Search',
+  googleSearch: {
+    title: 'Google Trends & Search API',
     description: 'Google Custom Search API for trend analysis and content research',
     fields: [
       {
@@ -147,7 +147,7 @@ const API_GUIDES = {
         type: 'password',
         placeholder: 'AIzaSy...',
         required: false,
-        help: 'Google Custom Search API key for trend analysis'
+        help: 'Google API key for Custom Search and Trends access'
       },
       {
         key: 'searchEngineId',
@@ -155,15 +155,15 @@ const API_GUIDES = {
         type: 'text',
         placeholder: '017576662512468239146:omuauf_lfve',
         required: false,
-        help: 'Your custom search engine ID'
+        help: 'Your custom search engine ID for content research'
       }
     ],
     setupGuide: {
-      title: 'How to set up Google Custom Search:',
+      title: 'How to set up Google Search & Trends API:',
       steps: [
         'Go to console.developers.google.com',
         'Create a new project or select existing one',
-        'Enable the "Custom Search API"',
+        'Enable "Custom Search API" and "Trends API"',
         'Go to "Credentials" and create an API key',
         'Go to cse.google.com/cse/',
         'Create a new search engine',
@@ -172,7 +172,63 @@ const API_GUIDES = {
       ],
       link: 'https://console.developers.google.com',
       linkText: 'Google Cloud Console',
-      note: 'Google Search is optional - enables trend analysis and content research features'
+      note: 'Google Search & Trends is optional - enables trend analysis and content research features'
+    }
+  },
+
+  googleAnalytics: {
+    title: 'Google Analytics API',
+    description: 'Google Analytics API for blog performance analysis and traffic insights',
+    fields: [
+      {
+        key: 'clientId',
+        label: 'Client ID',
+        type: 'text',
+        placeholder: '123456789-abc123.apps.googleusercontent.com',
+        required: false,
+        help: 'Google Analytics API Client ID from Google Cloud Console'
+      },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        placeholder: 'GOCSPX-...',
+        required: false,
+        help: 'Google Analytics API Client Secret'
+      },
+      {
+        key: 'propertyId',
+        label: 'GA4 Property ID',
+        type: 'text',
+        placeholder: '123456789',
+        required: false,
+        help: 'Your Google Analytics 4 Property ID (found in GA4 Admin)'
+      },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        placeholder: '1//04...',
+        required: false,
+        help: 'OAuth refresh token for API access (generated during setup)'
+      }
+    ],
+    setupGuide: {
+      title: 'How to set up Google Analytics API:',
+      steps: [
+        'Go to console.developers.google.com',
+        'Create a new project or select existing one',
+        'Enable "Google Analytics Reporting API" and "Google Analytics Data API"',
+        'Go to "Credentials" → Create OAuth 2.0 Client ID',
+        'Set application type to "Web application"',
+        'Add authorized redirect URIs',
+        'Download the client configuration',
+        'Complete OAuth flow to get refresh token',
+        'Copy Client ID, Client Secret, Property ID, and Refresh Token'
+      ],
+      link: 'https://console.developers.google.com',
+      linkText: 'Google Cloud Console',
+      note: 'Google Analytics integration allows AI to analyze your blog performance and provide data-driven content recommendations'
     }
   },
 
@@ -461,7 +517,7 @@ const Settings = () => {
     setIsSaving(true);
     try {
       // Save API credentials
-      const credentialsSuccess = saveCredentials(settings);
+      const credentialsSuccess = await saveCredentials(settings);
       if (!credentialsSuccess) {
         throw new Error('Failed to save credentials');
       }
@@ -487,13 +543,20 @@ const Settings = () => {
   };
 
   const updateSetting = (section, field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
+    setSettings(prev => {
+      // Get current credentials from localStorage to ensure we don't lose data
+      const current = getCredentials();
+      
+      return {
+        ...current, // Start with all existing credentials
+        ...prev,    // Apply any changes from state
+        [section]: {
+          ...current[section], // Preserve existing section data
+          ...prev[section],    // Apply state changes
+          [field]: value       // Apply new value
+        }
+      };
+    });
   };
 
   const validateSettings = async (section) => {

@@ -3,6 +3,36 @@
 
 const STORAGE_KEY = 'bluesky-analytics-settings';
 
+// Backup credentials to database (if configured)
+const backupCredentialsToDatabase = async (credentials) => {
+  // Only attempt backup if Supabase is configured
+  const supabaseConfig = credentials.database;
+  if (!supabaseConfig?.supabaseUrl || !supabaseConfig?.supabaseAnonKey) {
+    return; // Skip backup if no database configured
+  }
+  
+  try {
+    // Import Supabase service dynamically to avoid circular dependencies
+    const { saveUserSettings } = await import('./supabaseService');
+    
+    // Create a sanitized copy without sensitive database credentials for backup
+    const backupData = {
+      ...credentials,
+      database: {
+        // Don't backup the database credentials themselves
+        configured: true,
+        lastBackup: new Date().toISOString()
+      }
+    };
+    
+    await saveUserSettings('credentials_backup', backupData);
+    console.log('Credentials backed up to database successfully');
+  } catch (error) {
+    console.warn('Database backup failed:', error.message);
+    throw error; // Re-throw to be caught by calling function
+  }
+};
+
 // Get all saved credentials
 export const getCredentials = () => {
   try {
@@ -15,9 +45,42 @@ export const getCredentials = () => {
 };
 
 // Save credentials
-export const saveCredentials = (credentials) => {
+export const saveCredentials = async (credentials) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(credentials));
+    // Get existing credentials first to merge with new ones
+    const existing = getCredentials();
+    
+    // Deep merge the credentials to preserve existing sections
+    const merged = {
+      ...existing,
+      ...credentials,
+      // Ensure nested objects are properly merged
+      profile: {
+        ...existing.profile,
+        ...credentials.profile
+      }
+    };
+    
+    // Merge each service section properly
+    Object.keys(credentials).forEach(service => {
+      if (service !== 'profile' && typeof credentials[service] === 'object') {
+        merged[service] = {
+          ...existing[service],
+          ...credentials[service]
+        };
+      }
+    });
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+    
+    // Optionally backup to database if Supabase is configured
+    try {
+      await backupCredentialsToDatabase(merged);
+    } catch (error) {
+      console.warn('Failed to backup credentials to database:', error.message);
+      // Don't fail the save operation if database backup fails
+    }
+    
     return true;
   } catch (error) {
     console.error('Failed to save credentials:', error);
@@ -71,8 +134,11 @@ export const isServiceConfigured = (service) => {
     case 'ai':
       return !!(credentials.apiKey || credentials.provider === 'local');
     
-    case 'google':
+    case 'googleSearch':
       return !!(credentials.customSearchApiKey && credentials.searchEngineId);
+    
+    case 'googleAnalytics':
+      return !!(credentials.clientId && credentials.clientSecret && credentials.propertyId);
     
     case 'linkedin':
       return !!(credentials.clientId && credentials.clientSecret);
@@ -222,8 +288,8 @@ export const validateAICredentials = async (provider, apiKey, baseUrl) => {
   }
 };
 
-// Validate Google Custom Search credentials
-export const validateGoogleCredentials = async (apiKey, searchEngineId) => {
+// Validate Google Search & Trends credentials
+export const validateGoogleSearchCredentials = async (apiKey, searchEngineId) => {
   try {
     if (!apiKey || !searchEngineId) {
       return { valid: false, error: 'Both API key and Search Engine ID are required' };
@@ -247,6 +313,47 @@ export const validateGoogleCredentials = async (apiKey, searchEngineId) => {
       }
     } catch (error) {
       return { valid: false, error: 'Failed to test Google API connection' };
+    }
+    
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+};
+
+// Validate Google Analytics credentials
+export const validateGoogleAnalyticsCredentials = async (clientId, clientSecret, propertyId, refreshToken) => {
+  try {
+    if (!clientId || !clientSecret || !propertyId) {
+      return { valid: false, error: 'Client ID, Client Secret, and Property ID are required' };
+    }
+
+    // Validate Client ID format (Google OAuth client IDs have specific format)
+    if (!clientId.includes('.apps.googleusercontent.com')) {
+      return { valid: false, error: 'Invalid Client ID format. Should end with .apps.googleusercontent.com' };
+    }
+
+    // Validate Client Secret format
+    if (!clientSecret.startsWith('GOCSPX-')) {
+      return { valid: false, error: 'Invalid Client Secret format. Should start with GOCSPX-' };
+    }
+
+    // Validate Property ID is numeric
+    if (!/^\d+$/.test(propertyId)) {
+      return { valid: false, error: 'Property ID should be numeric (e.g., 123456789)' };
+    }
+
+    // For now, we can't easily test GA4 API without making actual API calls
+    // In a full implementation, you would validate the refresh token and make a test API call
+    if (refreshToken) {
+      return { 
+        valid: true, 
+        note: 'Credentials format looks correct. Full validation requires OAuth flow completion.' 
+      };
+    } else {
+      return { 
+        valid: false, 
+        error: 'Refresh token is required for API access. Complete OAuth flow to obtain it.' 
+      };
     }
     
   } catch (error) {
@@ -351,8 +458,11 @@ export const validateServiceCredentials = async (service, credentials) => {
     case 'ai':
       return validateAICredentials(credentials.provider, credentials.apiKey, credentials.baseUrl);
     
-    case 'google':
-      return validateGoogleCredentials(credentials.customSearchApiKey, credentials.searchEngineId);
+    case 'googleSearch':
+      return validateGoogleSearchCredentials(credentials.customSearchApiKey, credentials.searchEngineId);
+    
+    case 'googleAnalytics':
+      return validateGoogleAnalyticsCredentials(credentials.clientId, credentials.clientSecret, credentials.propertyId, credentials.refreshToken);
     
     case 'blog':
       return validateBlogCredentials(credentials.rssUrl);
