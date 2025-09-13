@@ -166,7 +166,12 @@ export class RealAIService {
    * Generate real AI insights for Bluesky metrics
    */
   async generateBlueskyInsights(metrics) {
+    console.log('generateBlueskyInsights called with metrics:', !!metrics);
+    console.log('AI service isReady:', this.isReady());
+    console.log('AI config:', { hasApiKey: !!this.config?.apiKey, hasBaseUrl: !!this.config?.baseUrl, provider: this.config?.provider });
+    
     if (!this.isReady()) {
+      console.log('AI service not ready - returning null');
       return null;
     }
 

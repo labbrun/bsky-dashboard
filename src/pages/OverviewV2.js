@@ -91,13 +91,14 @@ function OverviewV2({ metrics }) {
     initAI();
   }, []);
   
-  // Auto-generate insights when conditions are met
+  // Auto-generate insights when conditions are met (only once)
   useEffect(() => {
     if (aiServiceReady && metrics && !loadingInsights && !aiInsights) {
+      console.log('Triggering AI insights generation (one-time)');
       generateOverviewInsights();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aiServiceReady, metrics, loadingInsights, aiInsights]);
+  }, [aiServiceReady, metrics]); // Removed loadingInsights and aiInsights to prevent infinite loop
 
   // Check for celebration conditions on component mount
   React.useEffect(() => {
