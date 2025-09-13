@@ -227,7 +227,14 @@ Format as clear bullet points.`
       };
     } catch (error) {
       logger.error('Failed to generate Bluesky insights', error);
-      return null;
+      console.error('AI Insights Error:', error.message);
+      // Instead of returning null silently, let's return an error object so we know what went wrong
+      return {
+        type: 'error',
+        content: `AI Service Error: ${error.message}`,
+        timestamp: new Date().toISOString(),
+        error: true
+      };
     }
   }
 
@@ -288,7 +295,13 @@ Be specific and actionable.`
       };
     } catch (error) {
       logger.error('Failed to generate content strategy', error);
-      return null;
+      console.error('AI Content Strategy Error:', error.message);
+      return {
+        type: 'error',
+        content: `Content Strategy Error: ${error.message}`,
+        timestamp: new Date().toISOString(),
+        error: true
+      };
     }
   }
 
@@ -343,7 +356,13 @@ Keep it concise but insightful.`
       };
     } catch (error) {
       logger.error('Failed to analyze post performance', error);
-      return null;
+      console.error('AI Post Analysis Error:', error.message);
+      return {
+        type: 'error',
+        content: `Post Analysis Error: ${error.message}`,
+        timestamp: new Date().toISOString(),
+        error: true
+      };
     }
   }
 }

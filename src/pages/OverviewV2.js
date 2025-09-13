@@ -522,12 +522,16 @@ function OverviewV2({ metrics }) {
                 </p>
               </div>
             ) : aiInsights ? (
-              <div className="mb-6 p-4 rounded-xl bg-primary-850 border border-gray-600">
+              <div className={`mb-6 p-4 rounded-xl border ${aiInsights.error ? 'bg-red-900 border-red-600' : 'bg-primary-850 border-gray-600'}`}>
                 <div className="mb-3">
-                  <span className="text-brand-400 font-semibold text-sm font-sans">🤖 AI Analysis Results</span>
-                  <span className="ml-2 text-xs text-gray-400">Generated from your real data</span>
+                  <span className={`font-semibold text-sm font-sans ${aiInsights.error ? 'text-red-400' : 'text-brand-400'}`}>
+                    {aiInsights.error ? '❌ AI Service Error' : '🤖 AI Analysis Results'}
+                  </span>
+                  <span className="ml-2 text-xs text-gray-400">
+                    {aiInsights.error ? 'Error occurred' : 'Generated from your real data'}
+                  </span>
                 </div>
-                <div className="text-sm font-sans leading-relaxed text-gray-300 whitespace-pre-line mb-4">
+                <div className={`text-sm font-sans leading-relaxed whitespace-pre-line mb-4 ${aiInsights.error ? 'text-red-200' : 'text-gray-300'}`}>
                   {aiInsights.content}
                 </div>
                 <div className="flex gap-2">
