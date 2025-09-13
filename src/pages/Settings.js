@@ -828,7 +828,8 @@ const Settings = () => {
           {/* Bluesky Account Section */}
           <Card className="border-gray-700">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Bluesky Account</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">🦋 Bluesky Account</h3>
+              {console.log('🦋 Bluesky Account Section Rendering - This should be visible in Settings!')}
               <div className="grid grid-cols-1 gap-4">
                 {API_GUIDES.bluesky.fields.map(field => {
                   const currentValue = (settings.bluesky || {})[field.key] || '';
