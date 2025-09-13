@@ -48,6 +48,21 @@ function OverviewV2({ metrics }) {
   const [aiInsights, setAiInsights] = useState(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   
+  // Generate AI insights for overview
+  const generateOverviewInsights = React.useCallback(async () => {
+    if (!aiServiceReady || !metrics || loadingInsights) return;
+    
+    setLoadingInsights(true);
+    try {
+      const insights = await realAIService.generateBlueskyInsights(metrics);
+      setAiInsights(insights);
+    } catch (error) {
+      console.error('Failed to generate overview insights:', error);
+    } finally {
+      setLoadingInsights(false);
+    }
+  }, [aiServiceReady, metrics, loadingInsights]);
+  
   // Initialize AI service
   useEffect(() => {
     const initAI = async () => {
@@ -61,21 +76,6 @@ function OverviewV2({ metrics }) {
     };
     initAI();
   }, [metrics, aiInsights, generateOverviewInsights]);
-  
-  // Generate AI insights for overview
-  const generateOverviewInsights = async () => {
-    if (!aiServiceReady || !metrics || loadingInsights) return;
-    
-    setLoadingInsights(true);
-    try {
-      const insights = await realAIService.generateBlueskyInsights(metrics);
-      setAiInsights(insights);
-    } catch (error) {
-      console.error('Failed to generate overview insights:', error);
-    } finally {
-      setLoadingInsights(false);
-    }
-  };
   
   // Auto-generate insights when metrics change
   useEffect(() => {

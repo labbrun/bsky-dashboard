@@ -70,7 +70,7 @@ function BlogAnalytics({ metrics }) {
   }, []);
   
   // Generate AI analysis for blog content
-  const generateBlogAIAnalysis = async () => {
+  const generateBlogAIAnalysis = useCallback(async () => {
     if (!aiServiceReady || !blogAnalytics || loadingAIAnalysis) return;
     
     setLoadingAIAnalysis(true);
@@ -84,8 +84,8 @@ function BlogAnalytics({ metrics }) {
           link: post.link
         })) || [],
         traffic: {
-          sessions: totalSessions || 0,
-          bounceRate: averageBounceRate || 0
+          sessions: blogAnalytics.insights?.trafficPerformance?.totalSessions || 0,
+          bounceRate: blogAnalytics.insights?.trafficPerformance?.averageBounceRate || 0
         }
       };
       
@@ -96,7 +96,7 @@ function BlogAnalytics({ metrics }) {
     } finally {
       setLoadingAIAnalysis(false);
     }
-  };
+  }, [aiServiceReady, blogAnalytics, loadingAIAnalysis]);
   
   // Auto-generate AI analysis when blog data loads
   useEffect(() => {
