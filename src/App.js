@@ -29,7 +29,6 @@ import { Card } from './components/ui/UntitledUIComponents';
 
 function App() {
   // Skip all authentication - direct access to app
-  const [isLoggedIn] = useState(true);
   
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
@@ -44,24 +43,30 @@ function App() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Check if Bluesky credentials are configured
+      // Only fetch data if Bluesky credentials are configured
       if (!isServiceConfigured('bluesky')) {
-        throw new Error('Bluesky credentials not configured. Please go to Settings to configure your handle and app password.');
+        console.log('Bluesky credentials not configured. Users can configure them in Settings.');
+        setMetrics(null);
+        setLoading(false);
+        return;
       }
 
       if (!FIXED_HANDLE) {
-        throw new Error('No Bluesky handle configured. Please check your settings.');
+        console.log('No Bluesky handle configured.');
+        setMetrics(null);
+        setLoading(false);
+        return;
       }
-      
+
       const apiWorking = await testBlueskyAPI();
       if (!apiWorking) {
         throw new Error('Failed to connect to Bluesky API. Check your internet connection or try again later.');
       }
-      
+
       const data = await fetchBlueskyUserData(FIXED_HANDLE);
-      
+
       setMetrics(data);
 
       // Optional: Sync to database or local storage for persistence
@@ -93,14 +98,13 @@ function App() {
   }, [FIXED_HANDLE]);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchData();
-      // Initialize universal AI context for all AI-powered features
-      initializeAIContext().catch(error => 
-        console.warn('AI context initialization failed:', error)
-      );
-    }
-  }, [isLoggedIn, fetchData]);
+    // Always try to fetch data on app load, regardless of logged in state
+    fetchData();
+    // Initialize universal AI context for all AI-powered features
+    initializeAIContext().catch(error =>
+      console.warn('AI context initialization failed:', error)
+    );
+  }, [fetchData]);
 
   // Update browser tab title with username
   useEffect(() => {

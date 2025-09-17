@@ -249,16 +249,25 @@ function OverviewV2({ metrics }) {
 
   if (!metrics) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <Card className="text-center max-w-md">
-          <AlertCircle size={48} className="text-warning-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 font-sans">
-            No data available
-          </h2>
-          <p className="text-gray-600 mt-2 font-sans">
-            Please wait while we load your analytics...
-          </p>
-        </Card>
+      <div className="space-y-8 font-sans">
+        {/* Profile Configuration Message */}
+        <div className="flex items-center justify-center min-h-96">
+          <Card className="text-center max-w-md">
+            <AlertCircle size={48} className="text-brand-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 font-sans">
+              Connect Your Bluesky Account
+            </h2>
+            <p className="text-gray-600 mt-2 font-sans">
+              Go to Settings to configure your Bluesky handle and app password to view your analytics.
+            </p>
+            <Button
+              className="mt-4"
+              onClick={() => window.location.href = '/settings'}
+            >
+              Open Settings
+            </Button>
+          </Card>
+        </div>
       </div>
     );
   }
