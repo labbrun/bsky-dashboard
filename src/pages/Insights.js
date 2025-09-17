@@ -36,12 +36,9 @@ function Insights({ metrics }) {
     initAI();
   }, []);
 
-  const generateRealInsights = useCallback(async () => {
+  const generateRealInsights = useCallback(() => {
     if (!aiServiceReady || !metrics) return;
-
     setLoadingInsights(true);
-
-    // Simplified version to fix compilation issues
     setTimeout(() => {
       setAiInsights({ summary: 'AI insights coming soon' });
       setContentStrategy({ recommendations: 'Content strategy coming soon' });
