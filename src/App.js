@@ -14,6 +14,7 @@ import { initializeAIContext } from './services/aiContextProvider';
 import { storeProfile, storePosts, storeFollowers, storeMetricsSnapshot } from './services/localStorageService';
 import { getEffectiveConfig, isServiceConfigured } from './services/credentialsService';
 import { initializeFavicon } from './utils/faviconUtils';
+import { createAutoBackup, checkForMissingSettings, restoreFromAutoBackup } from './utils/settingsBackup';
 
 // Import layout and pages
 import DashboardLayout from './layouts/DashboardLayout';
@@ -98,8 +99,23 @@ function App() {
   }, [FIXED_HANDLE]);
 
   useEffect(() => {
-    // Always try to fetch data on app load, regardless of logged in state
-    fetchData();
+    // Check for missing settings and restore if backup available
+    const settingsCheck = checkForMissingSettings();
+    if (settingsCheck.hasMissingSettings && settingsCheck.backupAvailable) {
+      console.log('Settings appear to be missing, attempting to restore from auto backup...');
+      restoreFromAutoBackup().then(restored => {
+        if (restored) {
+          // Wait a moment then fetch data with restored settings
+          setTimeout(() => fetchData(), 1000);
+        } else {
+          fetchData();
+        }
+      });
+    } else {
+      // Always try to fetch data on app load
+      fetchData();
+    }
+
     // Initialize universal AI context for all AI-powered features
     initializeAIContext().catch(error =>
       console.warn('AI context initialization failed:', error)

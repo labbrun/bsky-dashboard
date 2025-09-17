@@ -42,11 +42,14 @@ WORKDIR /app
 # Copy built application from builder stage
 COPY --from=builder /app/build ./build
 
+# Create data directory for persistent settings
+RUN mkdir -p /app/data
+
 # Create non-root user for security
 RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup
 
-# Set ownership
+# Set ownership including data directory
 RUN chown -R appuser:appgroup /app
 USER appuser
 

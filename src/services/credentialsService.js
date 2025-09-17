@@ -88,14 +88,23 @@ export const saveCredentials = async (credentials) => {
     });
     
     localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-    
+
+    // Create auto backup whenever settings are saved
+    try {
+      const { createAutoBackup } = await import('../utils/settingsBackup');
+      createAutoBackup();
+    } catch (error) {
+      // Don't fail the save operation if auto backup fails
+      console.warn('Auto backup failed:', error);
+    }
+
     // Optionally backup to database if Supabase is configured
     try {
       await backupCredentialsToDatabase(merged);
     } catch (error) {
       // Don't fail the save operation if database backup fails
     }
-    
+
     return true;
   } catch (error) {
     return false;
