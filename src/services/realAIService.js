@@ -22,18 +22,53 @@ export class RealAIService {
   async initialize() {
     try {
       this.config = getServiceCredentials('ai');
-      this.isConfigured = !!(this.config.apiKey && this.config.baseUrl);
-      
+
+      // Set default base URLs for different providers
+      if (!this.config.baseUrl && this.config.provider) {
+        switch (this.config.provider) {
+          case 'openai':
+            this.config.baseUrl = 'https://api.openai.com/v1';
+            break;
+          case 'anthropic':
+            this.config.baseUrl = 'https://api.anthropic.com';
+            break;
+          case 'perplexity':
+            this.config.baseUrl = 'https://api.perplexity.ai';
+            break;
+          case 'local':
+            // For local, baseUrl must be provided by user
+            break;
+          default:
+            this.config.baseUrl = 'https://api.openai.com/v1'; // Default fallback
+        }
+      }
+
+      // Check configuration
+      const hasApiKey = !!this.config.apiKey;
+      const hasBaseUrl = !!this.config.baseUrl;
+      const isLocal = this.config.provider === 'local';
+
+      // For local providers, we don't need an API key, just baseUrl
+      // For cloud providers, we need both API key and baseUrl (which we set above)
+      this.isConfigured = isLocal ? hasBaseUrl : (hasApiKey && hasBaseUrl);
+
       if (this.isConfigured) {
         logger.info('AI Service initialized', {
           provider: this.config.provider,
           baseUrl: this.config.baseUrl,
-          hasApiKey: !!this.config.apiKey
+          hasApiKey: hasApiKey,
+          isLocal: isLocal
         });
       } else {
-        logger.warn('AI Service not configured - missing API key or base URL');
+        logger.warn('AI Service not configured', {
+          provider: this.config.provider,
+          hasApiKey: hasApiKey,
+          hasBaseUrl: hasBaseUrl,
+          isLocal: isLocal,
+          reason: isLocal ? 'Local provider needs baseUrl' : 'Cloud provider needs apiKey and baseUrl'
+        });
       }
-      
+
       return this.isConfigured;
     } catch (error) {
       logger.error('Failed to initialize AI Service', error);
@@ -46,7 +81,10 @@ export class RealAIService {
    * Check if AI service is properly configured
    */
   isReady() {
-    return this.isConfigured && this.config && this.config.apiKey && this.config.baseUrl;
+    if (!this.isConfigured || !this.config) return false;
+
+    const isLocal = this.config.provider === 'local';
+    return isLocal ? !!this.config.baseUrl : (!!(this.config.apiKey && this.config.baseUrl));
   }
 
   /**
