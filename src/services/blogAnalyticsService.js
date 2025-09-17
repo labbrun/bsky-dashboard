@@ -27,7 +27,7 @@ export const getComprehensiveBlogAnalytics = async (timeRange = 30) => {
     const aiContext = await getAIContext();
     
     // Get RSS URL from credentials
-    const blogCredentials = getServiceCredentials('blog');
+    const blogCredentials = await getServiceCredentials('blog');
     if (!blogCredentials.rssUrl) {
       throw new Error('Blog RSS URL not configured. Please configure it in Settings.');
     }
@@ -466,20 +466,20 @@ const getMostCommonOpportunityType = (opportunities) => {
 // Get specific blog post analysis
 export const getPostAnalysis = async (postId) => {
   try {
-    const blogCredentials = getServiceCredentials('blog');
+    const blogCredentials = await getServiceCredentials('blog');
     if (!blogCredentials.rssUrl) {
       throw new Error('Blog RSS URL not configured. Please configure it in Settings.');
     }
-    
+
     const blogData = await fetchBlogFeed(blogCredentials.rssUrl);
     const post = blogData.posts.find(p => p.id === postId);
-    
+
     if (!post) {
       throw new Error('Post not found');
     }
-    
+
     return await analyzeAndRepurposeBlogContent(post);
-    
+
   } catch (error) {
     console.error('Post analysis failed:', error);
     throw error;
@@ -493,9 +493,9 @@ export const testBlogAnalyticsConnections = async () => {
     googleAnalytics: false,
     aiGuidance: false
   };
-  
+
   try {
-    const blogCredentials = getServiceCredentials('blog');
+    const blogCredentials = await getServiceCredentials('blog');
     if (blogCredentials.rssUrl) {
       await fetchBlogFeed(blogCredentials.rssUrl);
       tests.rssConnection = true;
