@@ -3,6 +3,7 @@ import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle,
 import { Card, Button } from '../components/ui/UntitledUIComponents';
 import {
   getCredentials,
+  getLocalCredentials,
   saveCredentials,
   validateServiceCredentials,
   getConfigurationStatus,
@@ -402,11 +403,11 @@ const Settings = () => {
     loadProfileSettings();
   }, []);
 
-  const loadSettings = () => {
+  const loadSettings = async () => {
     try {
-      const saved = getCredentials();
+      const saved = await getCredentials();
       setSettings(saved);
-      
+
       // Load configuration status
       const status = getConfigurationStatus();
       setValidationStatus(status);
@@ -415,12 +416,12 @@ const Settings = () => {
     }
   };
 
-  const loadProfileSettings = () => {
+  const loadProfileSettings = async () => {
     try {
-      const saved = getProfileSettings();
+      const saved = await getProfileSettings();
       setProfileSettings(saved);
       setAvatarPreview(saved.customAvatar);
-      
+
       // Load documents
       const allDocuments = getAllDocuments();
       setDocuments(allDocuments);
@@ -574,8 +575,8 @@ const Settings = () => {
   const updateSetting = (section, field, value) => {
     setSettings(prev => {
       // Get current credentials from localStorage to ensure we don't lose data
-      const current = getCredentials();
-      
+      const current = getLocalCredentials();
+
       return {
         ...current, // Start with all existing credentials
         ...prev,    // Apply any changes from state

@@ -180,9 +180,10 @@ export const getServiceCredentials = async (service) => {
   return allCredentials[service] || {};
 };
 
-// Check if service is configured
+// Check if service is configured (synchronous, uses localStorage only)
 export const isServiceConfigured = (service) => {
-  const credentials = getServiceCredentials(service);
+  const allCredentials = getLocalCredentials();
+  const credentials = allCredentials[service] || {};
 
   switch (service) {
     case 'bluesky':
@@ -571,7 +572,7 @@ export const validateServiceCredentials = async (service, credentials) => {
 
 // Get effective configuration (combines saved settings with environment variables)
 export const getEffectiveConfig = () => {
-  const savedCredentials = getCredentials();
+  const savedCredentials = getLocalCredentials();
   
   // Merge with environment variables (env vars take precedence for security)
   return {
