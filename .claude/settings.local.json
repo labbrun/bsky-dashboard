@@ -30,7 +30,9 @@
       "Bash(git rev-parse:*)",
       "mcp__ide__getDiagnostics",
       "Bash(docker compose:*)",
-      "Read(//c/Users/micro/Downloads/**)"
+      "Read(//c/Users/micro/Downloads/**)",
+      "Bash(cat:*)",
+      "Bash(tasklist:*)"
     ],
     "deny": []
   }

@@ -27,6 +27,7 @@ const getApiEndpoint = () => {
  */
 export const testBlueskyAPI = async () => {
   try {
+    console.log('🧪 Testing Bluesky API connectivity...');
     const tokenData = await getBlueskyToken();
     const response = await fetch(`${getApiEndpoint()}/app.bsky.actor.getProfile?actor=${tokenData.handle}`, {
       headers: {
@@ -34,10 +35,75 @@ export const testBlueskyAPI = async () => {
         'Content-Type': 'application/json'
       }
     });
-    return response.ok;
+
+    if (response.ok) {
+      console.log('✅ Bluesky API test successful');
+      return true;
+    } else {
+      console.warn('❌ Bluesky API test failed:', response.status, response.statusText);
+      return false;
+    }
   } catch (error) {
-    console.warn('Bluesky API test failed:', error);
+    console.warn('💥 Bluesky API test failed:', error);
     return false;
+  }
+};
+
+/**
+ * Debug utility to test token refresh functionality
+ * @returns {Promise<Object>} Test results
+ */
+export const debugTokenRefresh = async () => {
+  console.log('🔧 Starting token refresh debug test...');
+
+  try {
+    const credentials = getCredentials();
+    const blueskyConfig = credentials.bluesky;
+
+    if (!blueskyConfig?.refreshToken) {
+      return {
+        success: false,
+        error: 'No refresh token configured',
+        details: 'Please add your refresh token in Settings'
+      };
+    }
+
+    console.log('📋 Debug info:', {
+      hasAccessToken: !!blueskyConfig.accessToken,
+      hasRefreshToken: !!blueskyConfig.refreshToken,
+      accessTokenStart: blueskyConfig.accessToken?.substring(0, 10) + '...',
+      refreshTokenStart: blueskyConfig.refreshToken?.substring(0, 10) + '...',
+      handle: blueskyConfig.handle,
+      apiEndpoint: getApiEndpoint()
+    });
+
+    // Test current token validity
+    const isCurrentValid = await isTokenValid(blueskyConfig.accessToken, blueskyConfig.handle);
+    console.log('🔍 Current token valid:', isCurrentValid);
+
+    // Force a refresh to test the mechanism
+    console.log('🔄 Testing refresh mechanism...');
+    const newToken = await refreshAccessToken();
+
+    // Test the new token
+    const isNewValid = await isTokenValid(newToken, blueskyConfig.handle);
+    console.log('🔍 New token valid:', isNewValid);
+
+    return {
+      success: true,
+      currentTokenValid: isCurrentValid,
+      refreshSuccessful: !!newToken,
+      newTokenValid: isNewValid,
+      newTokenStart: newToken?.substring(0, 10) + '...'
+    };
+
+  } catch (error) {
+    console.error('💥 Token refresh debug failed:', error);
+    return {
+      success: false,
+      error: error.message,
+      details: error.stack
+    };
   }
 };
 
@@ -67,13 +133,19 @@ const extractAvatar = (profileData, fallbackHandle = 'user') => {
  * @throws {Error} When refresh fails
  */
 export const refreshAccessToken = async () => {
+  console.log('🔄 Starting token refresh...');
+
   try {
     const credentials = getCredentials();
     const blueskyConfig = credentials.bluesky;
 
     if (!blueskyConfig?.refreshToken) {
-      throw new Error('Bluesky refresh token not configured. Please add your refresh token in Settings.');
+      const error = 'Bluesky refresh token not configured. Please add your refresh token in Settings.';
+      console.error('❌ Token refresh failed:', error);
+      throw new Error(error);
     }
+
+    console.log('📡 Making refresh request to:', `${getApiEndpoint()}/com.atproto.server.refreshSession`);
 
     const response = await fetch(`${getApiEndpoint()}/com.atproto.server.refreshSession`, {
       method: 'POST',
@@ -84,10 +156,28 @@ export const refreshAccessToken = async () => {
     });
 
     if (!response.ok) {
-      throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('❌ Token refresh HTTP error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+
+      if (response.status === 401) {
+        throw new Error('Refresh token is invalid or expired. Please update your refresh token in Settings.');
+      } else if (response.status === 400) {
+        throw new Error('Invalid refresh token format. Please check your refresh token in Settings.');
+      } else {
+        throw new Error(`Token refresh failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
     }
 
     const data = await response.json();
+    console.log('✅ Token refresh successful, received new tokens');
+
+    if (!data.accessJwt) {
+      throw new Error('Invalid refresh response: missing accessJwt');
+    }
 
     // Update stored credentials with new access token
     const updatedCredentials = {
@@ -101,10 +191,11 @@ export const refreshAccessToken = async () => {
 
     // Save updated credentials back to localStorage
     localStorage.setItem('bluesky-analytics-credentials', JSON.stringify(updatedCredentials));
+    console.log('💾 Updated credentials saved to localStorage');
 
     return data.accessJwt;
   } catch (error) {
-    console.error('Token refresh error:', error);
+    console.error('💥 Token refresh error:', error);
     throw error;
   }
 };
@@ -117,16 +208,61 @@ export const refreshAccessToken = async () => {
  */
 const isTokenValid = async (accessToken, handle) => {
   try {
+    console.log('🔍 Testing token validity for handle:', handle);
     const response = await fetch(`${getApiEndpoint()}/app.bsky.actor.getProfile?actor=${handle}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       }
     });
-    return response.ok;
+
+    if (response.ok) {
+      console.log('✅ Token validation successful');
+      return true;
+    } else {
+      console.log(`❌ Token validation failed: ${response.status} ${response.statusText}`);
+      return false;
+    }
   } catch (error) {
+    console.warn('⚠️ Token validation error:', error.message);
     return false;
   }
+};
+
+/**
+ * Refreshes access token with retry logic
+ * @param {number} maxRetries - Maximum number of retry attempts
+ * @returns {Promise<string>} New access token
+ */
+const refreshWithRetry = async (maxRetries = 2) => {
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔄 Token refresh attempt ${attempt}/${maxRetries}`);
+      const newToken = await refreshAccessToken();
+      console.log(`✅ Token refresh succeeded on attempt ${attempt}`);
+      return newToken;
+    } catch (error) {
+      lastError = error;
+      console.warn(`⚠️ Token refresh attempt ${attempt} failed:`, error.message);
+
+      // Don't retry on authentication errors (401, 400) as these likely indicate invalid refresh token
+      if (error.message.includes('invalid') || error.message.includes('expired') || error.message.includes('401') || error.message.includes('400')) {
+        console.log('❌ Authentication error detected, skipping retries');
+        break;
+      }
+
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s...
+        console.log(`⏳ Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError;
 };
 
 /**
@@ -144,22 +280,25 @@ export const getBlueskyToken = async () => {
     }
 
     // Check if current token is valid
+    console.log('🔍 Validating current access token...');
     const isValid = await isTokenValid(blueskyConfig.accessToken, blueskyConfig.handle);
 
     if (!isValid) {
-      console.log('Access token expired, attempting refresh...');
+      console.log('🔄 Access token expired, attempting refresh...');
       try {
-        const newAccessToken = await refreshAccessToken();
+        const newAccessToken = await refreshWithRetry();
+        console.log('✅ Token refresh completed successfully');
         return {
           accessToken: newAccessToken,
           handle: blueskyConfig.handle
         };
       } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+        console.error('💥 All token refresh attempts failed:', refreshError);
         throw new Error('Access token expired and refresh failed. Please update your credentials in Settings.');
       }
     }
 
+    console.log('✅ Current access token is valid');
     return {
       accessToken: blueskyConfig.accessToken,
       handle: blueskyConfig.handle

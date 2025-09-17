@@ -13,10 +13,12 @@ import {
   getAllDocuments
 } from '../services/credentialsService';
 
+console.log('Settings.js loaded with refresh token field');
+
 const API_GUIDES = {
   bluesky: {
-    title: 'Bluesky API Configuration',
-    description: 'Configure your Bluesky access token for analytics data access',
+    title: 'Bluesky API Configuration (WITH REFRESH TOKEN)',
+    description: 'Configure your Bluesky access and refresh tokens for analytics data access',
     fields: [
       {
         key: 'accessToken',
