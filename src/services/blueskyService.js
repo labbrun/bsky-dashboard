@@ -62,7 +62,75 @@ const extractAvatar = (profileData, fallbackHandle = 'user') => {
 };
 
 /**
- * Gets Bluesky access token from stored credentials
+ * Refreshes the Bluesky access token using the refresh token
+ * @returns {Promise<string>} New access token
+ * @throws {Error} When refresh fails
+ */
+export const refreshAccessToken = async () => {
+  try {
+    const credentials = getCredentials();
+    const blueskyConfig = credentials.bluesky;
+
+    if (!blueskyConfig?.refreshToken) {
+      throw new Error('Bluesky refresh token not configured. Please add your refresh token in Settings.');
+    }
+
+    const response = await fetch(`${getApiEndpoint()}/com.atproto.server.refreshSession`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${blueskyConfig.refreshToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Update stored credentials with new access token
+    const updatedCredentials = {
+      ...credentials,
+      bluesky: {
+        ...blueskyConfig,
+        accessToken: data.accessJwt,
+        refreshToken: data.refreshJwt || blueskyConfig.refreshToken
+      }
+    };
+
+    // Save updated credentials back to localStorage
+    localStorage.setItem('bluesky-analytics-credentials', JSON.stringify(updatedCredentials));
+
+    return data.accessJwt;
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Checks if an access token is valid by making a test API call
+ * @param {string} accessToken - The access token to validate
+ * @param {string} handle - The user handle for testing
+ * @returns {Promise<boolean>} True if token is valid
+ */
+const isTokenValid = async (accessToken, handle) => {
+  try {
+    const response = await fetch(`${getApiEndpoint()}/app.bsky.actor.getProfile?actor=${handle}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Gets Bluesky access token from stored credentials, refreshing if necessary
  * @returns {Promise<Object>} Token data
  * @throws {Error} When credentials not configured
  */
@@ -73,6 +141,23 @@ export const getBlueskyToken = async () => {
 
     if (!blueskyConfig?.handle || !blueskyConfig?.accessToken) {
       throw new Error('Bluesky credentials not configured. Please add your handle and access token in Settings.');
+    }
+
+    // Check if current token is valid
+    const isValid = await isTokenValid(blueskyConfig.accessToken, blueskyConfig.handle);
+
+    if (!isValid) {
+      console.log('Access token expired, attempting refresh...');
+      try {
+        const newAccessToken = await refreshAccessToken();
+        return {
+          accessToken: newAccessToken,
+          handle: blueskyConfig.handle
+        };
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        throw new Error('Access token expired and refresh failed. Please update your credentials in Settings.');
+      }
     }
 
     return {

@@ -148,10 +148,10 @@ export const getServiceCredentials = (service) => {
 // Check if service is configured
 export const isServiceConfigured = (service) => {
   const credentials = getServiceCredentials(service);
-  
+
   switch (service) {
     case 'bluesky':
-      return !!(credentials.handle && credentials.accessToken);
+      return !!(credentials.handle && credentials.accessToken && credentials.refreshToken);
     
     case 'ai':
       return !!(credentials.apiKey || credentials.provider === 'local');
@@ -220,15 +220,24 @@ export const validateDatabaseCredentials = async (supabaseUrl, supabaseAnonKey) 
 };
 
 // Validate Bluesky credentials
-export const validateBlueskyCredentials = async (handle, accessToken, apiEndpoint) => {
+export const validateBlueskyCredentials = async (handle, accessToken, apiEndpoint, refreshToken) => {
   try {
     if (!handle || !accessToken) {
       return { valid: false, error: 'Handle and access token are required' };
     }
 
+    if (!refreshToken) {
+      return { valid: false, error: 'Refresh token is required for automatic token renewal' };
+    }
+
     // Validate access token format (JWT tokens start with eyJ)
     if (!accessToken.startsWith('eyJ')) {
       return { valid: false, error: 'Access token should be a JWT token starting with "eyJ"' };
+    }
+
+    // Validate refresh token format (JWT tokens start with eyJ)
+    if (!refreshToken.startsWith('eyJ')) {
+      return { valid: false, error: 'Refresh token should be a JWT token starting with "eyJ"' };
     }
 
     // Validate API endpoint format if provided
@@ -497,7 +506,7 @@ export const validatePostizCredentials = async (url, apiKey) => {
 export const validateServiceCredentials = async (service, credentials) => {
   switch (service) {
     case 'bluesky':
-      return validateBlueskyCredentials(credentials.handle, credentials.accessToken, credentials.apiEndpoint);
+      return validateBlueskyCredentials(credentials.handle, credentials.accessToken, credentials.apiEndpoint, credentials.refreshToken);
     
     case 'database':
       return validateDatabaseCredentials(credentials.supabaseUrl, credentials.supabaseAnonKey);
@@ -534,6 +543,8 @@ export const getEffectiveConfig = () => {
     bluesky: {
       handle: process.env.REACT_APP_BLUESKY_HANDLE || savedCredentials.bluesky?.handle || '',
       appPassword: process.env.REACT_APP_BLUESKY_APP_PASSWORD || savedCredentials.bluesky?.appPassword || '',
+      accessToken: savedCredentials.bluesky?.accessToken || '',
+      refreshToken: savedCredentials.bluesky?.refreshToken || '',
     },
     ai: {
       provider: savedCredentials.ai?.provider || 'openai',

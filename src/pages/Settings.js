@@ -24,7 +24,15 @@ const API_GUIDES = {
         type: 'password',
         placeholder: 'eyJ0eXAiOiJKV1QiLCJhbGci...',
         required: true,
-        help: 'Your Bluesky access token for API access. Get this from Bluesky developer console.'
+        help: 'Your current Bluesky access token. This will be automatically refreshed when it expires.'
+      },
+      {
+        key: 'refreshToken',
+        label: 'Bluesky Refresh Token',
+        type: 'password',
+        placeholder: 'eyJ0eXAiOiJKV1QiLCJhbGci...',
+        required: true,
+        help: 'Your Bluesky refresh token (refreshJwt from session). This is used to automatically get new access tokens.'
       },
       {
         key: 'handle',
@@ -44,14 +52,15 @@ const API_GUIDES = {
       }
     ],
     setupGuide: {
-      title: 'How to get Bluesky Access Token:',
+      title: 'How to get Bluesky Tokens:',
       steps: [
-        'Visit the Bluesky Developer Documentation',
-        'Follow the authentication guide to create an access token',
-        'Use your Bluesky handle and app password to generate the token',
-        'Copy the access token (starts with "eyJ...")',
-        'Paste it in the Access Token field above',
-        'Enter your Bluesky handle in the Handle field'
+        'Authenticate with Bluesky to get a session (bsky_session.json)',
+        'Extract refresh token: cat bsky_session.json | jq -r \'.refreshJwt\' > bsky_refresh.txt',
+        'Get current access token: REFRESH=$(cat bsky_refresh.txt) && curl -s https://bsky.social/xrpc/com.atproto.server.refreshSession -H "Authorization: Bearer $REFRESH" | jq -r \'.accessJwt\'',
+        'Copy the refresh token (refreshJwt) to the Refresh Token field',
+        'Copy the access token (accessJwt) to the Access Token field',
+        'Enter your Bluesky handle in the Handle field',
+        'The app will automatically refresh access tokens when they expire'
       ],
       link: 'https://docs.bsky.app/docs/get-started',
       linkText: 'View Bluesky API Documentation'
