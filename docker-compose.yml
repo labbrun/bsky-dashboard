@@ -7,8 +7,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_BLUESKY_HANDLE=demo.bsky.social
-      - REACT_APP_AUTH_PASSWORD=demo123
       - REACT_APP_NAME=Bsky Dashboard
       - REACT_APP_MODE=local
       - REACT_APP_DEBUG=false
