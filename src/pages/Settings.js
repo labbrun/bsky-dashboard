@@ -37,6 +37,14 @@ const API_GUIDES = {
         help: 'Your current Bluesky access token. This will be automatically refreshed when it expires.'
       },
       {
+        key: 'testField',
+        label: '🚨 TEST FIELD - DELETE ME',
+        type: 'text',
+        placeholder: 'Test field to verify rendering',
+        required: false,
+        help: 'This is a test field to verify field rendering is working.'
+      },
+      {
         key: 'refreshToken',
         label: '🔄 Bluesky Refresh Token (REQUIRED)',
         type: 'password',
