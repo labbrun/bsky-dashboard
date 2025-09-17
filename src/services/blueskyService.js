@@ -136,7 +136,7 @@ export const refreshAccessToken = async () => {
   console.log('🔄 Starting token refresh...');
 
   try {
-    const credentials = getCredentials();
+    const credentials = await getCredentials();
     const blueskyConfig = credentials.bluesky;
 
     if (!blueskyConfig?.refreshToken) {
@@ -272,7 +272,7 @@ const refreshWithRetry = async (maxRetries = 2) => {
  */
 export const getBlueskyToken = async () => {
   try {
-    const credentials = getCredentials();
+    const credentials = await getCredentials();
     const blueskyConfig = credentials.bluesky;
 
     if (!blueskyConfig?.handle || !blueskyConfig?.accessToken) {

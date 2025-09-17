@@ -54,6 +54,14 @@ const API_GUIDES = {
         help: 'Your Bluesky refresh token (refreshJwt from session). This is used to automatically get new access tokens.'
       },
       {
+        key: 'appPassword',
+        label: 'Bluesky App Password (Alternative)',
+        type: 'password',
+        placeholder: 'xxxx-xxxx-xxxx-xxxx',
+        required: false,
+        help: 'Alternative: Use app password instead of tokens. Can be used for initial authentication to get tokens.'
+      },
+      {
         key: 'handle',
         label: 'Bluesky Handle',
         type: 'text',
