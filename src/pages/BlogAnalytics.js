@@ -108,14 +108,40 @@ function BlogAnalytics({ metrics }) {
   }, [aiServiceReady, blogAnalytics]);
   
 
-  // Check if blog RSS is configured
+  // Check if blog RSS is configured - make it reactive to credential changes
+  const [refreshConfig, setRefreshConfig] = useState(0);
   const isBlogConfigured = useMemo(() => {
-    return isServiceConfigured('blog');
+    const configured = isServiceConfigured('blog');
+    console.log('🔍 Blog configuration status:', configured);
+    return configured;
+  }, [refreshConfig]);
+
+  // Listen for storage changes to detect credential updates
+  useEffect(() => {
+    const handleStorageChange = () => {
+      console.log('📱 Storage changed, refreshing blog config');
+      setRefreshConfig(prev => prev + 1);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also periodically check for config changes
+    const interval = setInterval(() => {
+      setRefreshConfig(prev => prev + 1);
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
 
   // Load blog analytics data - Real data only
   const loadBlogAnalytics = useCallback(async () => {
+    console.log('🔍 loadBlogAnalytics called with isBlogConfigured:', isBlogConfigured);
+
     if (!isBlogConfigured) {
+      console.log('❌ Blog not configured, setting error state');
       setLoading(false);
       setError('Blog RSS feed not configured. Please configure it in Settings to view blog analytics.');
       setBlogAnalytics(null);

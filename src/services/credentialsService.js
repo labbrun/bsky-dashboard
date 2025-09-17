@@ -202,7 +202,13 @@ export const isServiceConfigured = (service) => {
       return !!(credentials.clientId && credentials.clientSecret);
     
     case 'blog':
-      return !!(credentials.rssUrl);
+      const blogConfigured = !!(credentials.rssUrl);
+      console.log('🔍 Blog credentials check:', {
+        rssUrl: credentials.rssUrl,
+        configured: blogConfigured,
+        credentials: credentials
+      });
+      return blogConfigured;
     
     case 'postiz':
       return !!(credentials.url && credentials.apiKey);
