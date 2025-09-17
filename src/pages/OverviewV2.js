@@ -62,11 +62,25 @@ function OverviewV2({ metrics }) {
       return;
     }
     
+    console.log('🔍 OverviewV2: Starting AI insights generation', {
+      hasMetrics: !!metrics,
+      aiServiceReady,
+      followersCount: metrics?.followersCount,
+      postsCount: metrics?.postsCount
+    });
+
     setLoadingInsights(true);
     try {
       const insights = await realAIService.generateBlueskyInsights(metrics);
+      console.log('📊 OverviewV2: AI Insights result:', insights);
       setAiInsights(insights);
     } catch (error) {
+      console.error('❌ OverviewV2: AI insights generation failed:', error);
+      setAiInsights({
+        type: 'error',
+        content: `AI service error: ${error.message}`,
+        error: true
+      });
     } finally {
       setLoadingInsights(false);
     }
@@ -76,7 +90,9 @@ function OverviewV2({ metrics }) {
   // Initialize AI service and auto-generate insights
   useEffect(() => {
     const initAI = async () => {
+      console.log('🤖 OverviewV2: Initializing AI service...');
       const ready = await realAIService.initialize();
+      console.log('🤖 OverviewV2: AI service ready?', ready);
       setAiServiceReady(ready);
     };
     initAI();

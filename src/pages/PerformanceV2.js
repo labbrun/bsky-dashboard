@@ -339,92 +339,7 @@ function PerformanceV2({ metrics }) {
 
   
 
-  const topAmplifiersToEngage = [
-    {
-      handle: 'sarah.tech.social',
-      displayName: 'Sarah Chen',
-      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzBlYTVlOSIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+U0M8L3RleHQ+PC9zdmc+',
-      followers: 4200,
-      posts: 150,
-      engagement: '8.4%',
-      potential: 'High',
-      latestPost: 'AI privacy is becoming crucial as models get more sophisticated. We need better frameworks for data protection in ML pipelines. Thoughts?',
-      postTime: '3h ago',
-      postEngagement: { likes: 67, replies: 24, shares: 12 },
-      reason: 'High engagement rate with tech content, frequently shares privacy-focused posts',
-      action: 'Reply to Post'
-    },
-    {
-      handle: 'alex.security.dev',
-      displayName: 'Alex Rodriguez',
-      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzEwYjk4MSIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+QVI8L3RleHQ+PC9zdmc+',
-      followers: 3100,
-      posts: 89,
-      engagement: '7.2%',
-      potential: 'High',
-      latestPost: 'Just set up my first homelab server with Proxmox. The learning curve is steep but the control you get is amazing! 🔧',
-      postTime: '5h ago',
-      postEngagement: { likes: 43, replies: 18, shares: 8 },
-      reason: 'Active in homelab community, aligns with your content themes',
-      action: 'Like & Comment'
-    },
-    {
-      handle: 'maria.data.scientist',
-      displayName: 'Dr. Maria Santos',
-      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iI2Y1OWUwYiIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+TVM8L3RleHQ+PC9zdmc+',
-      followers: 2800,
-      posts: 67,
-      engagement: '9.1%',
-      potential: 'High',
-      latestPost: 'Fascinating paper on differential privacy in federated learning. The trade-offs between utility and privacy are getting more nuanced.',
-      postTime: '1d ago',
-      postEngagement: { likes: 89, replies: 31, shares: 15 },
-      reason: 'Shares academic insights on privacy tech, high engagement on technical posts',
-      action: 'Share & Discuss'
-    },
-    {
-      handle: 'jordan.devops.pro',
-      displayName: 'Jordan Kim',
-      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzhiNWNmNiIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+Sko8L3RleHQ+PC9zdmc+',
-      followers: 1900,
-      posts: 134,
-      engagement: '6.8%',
-      potential: 'Medium',
-      latestPost: 'Docker compose files are getting out of hand in our org. Time to look into Kubernetes for better orchestration patterns.',
-      postTime: '8h ago',
-      postEngagement: { likes: 34, replies: 12, shares: 6 },
-      reason: 'DevOps focus complements your automation content',
-      action: 'Follow Up'
-    },
-    {
-      handle: 'emma.ux.researcher',
-      displayName: 'Emma Walsh',
-      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iI2VjNDg5OSIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+RVc8L3RleHQ+PC9zdmc+',
-      followers: 2600,
-      posts: 78,
-      engagement: '7.9%',
-      potential: 'Medium',
-      latestPost: 'User research for privacy-focused tools reveals interesting patterns. People want control but also convenience. Design challenge! 🎨',
-      postTime: '12h ago',
-      postEngagement: { likes: 56, replies: 22, shares: 9 },
-      reason: 'UX perspective on privacy tools, good cross-domain engagement potential',
-      action: 'Engage & Learn'
-    },
-    {
-      handle: 'chris.blockchain.dev',
-      displayName: 'Chris Patel',
-      avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iI2Y5NzMxNiIvPjx0ZXh0IHg9IjY0IiB5PSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iNDgiIGZvbnQtZmFtaWx5PSJBcmlhbCI+Q1A8L3RleHQ+PC9zdmc+',
-      followers: 3700,
-      posts: 201,
-      engagement: '5.4%',
-      potential: 'Medium',
-      latestPost: 'Smart contract security audit tools are evolving rapidly. Static analysis is getting better but still needs human expertise.',
-      postTime: '6h ago',
-      postEngagement: { likes: 38, replies: 15, shares: 7 },
-      reason: 'Security-focused blockchain content, moderate alignment with privacy themes',
-      action: 'Monitor & Engage'
-    }
-  ];
+  // Real amplifiers data comes from actual followers API - no hardcoded mock data
 
   return (
     <div className="space-y-8 font-sans">
@@ -1340,8 +1255,9 @@ function PerformanceV2({ metrics }) {
           <Users className="text-electric-400" size={20} />
           Top 6 Amplifiers to Engage With
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {(topAmplifiers.length > 0 ? topAmplifiers : topAmplifiersToEngage).map((amplifier, index) => (
+        {topAmplifiers.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {topAmplifiers.map((amplifier, index) => (
             <div key={index} className="border border-electric-600 rounded-lg bg-electric-900 p-4">
               {/* Profile Header */}
               <div className="flex items-center gap-3 mb-4">
@@ -1417,7 +1333,14 @@ function PerformanceV2({ metrics }) {
               </button>
             </div>
           ))}
-        </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            <Users size={48} className="mx-auto mb-4 opacity-50" />
+            <h3 className="text-white font-sans mb-2">No Amplifier Data Available</h3>
+            <p className="text-sm font-sans">Amplifier suggestions will appear here once your follower data is available and analyzed.</p>
+          </div>
+        )}
       </div>
 
       {/* AI Content Suggestions - Not Available */}
