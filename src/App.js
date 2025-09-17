@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { TrendingUp } from 'lucide-react';
 
 // Import Untitled UI styles
 import './styles/untitled-ui-variables.css';
@@ -26,21 +25,12 @@ import BlogAnalytics from './pages/BlogAnalytics';
 import Settings from './pages/Settings';
 
 // Import Untitled UI components
-import { Button, Card } from './components/ui/UntitledUIComponents';
+import { Card } from './components/ui/UntitledUIComponents';
 
 function App() {
-  // Check if this is the first run (no password set)
-  const [isFirstRun, setIsFirstRun] = useState(true);
-  const [authCheckComplete, setAuthCheckComplete] = useState(false);
+  // Skip all authentication - direct access to app
+  const [isLoggedIn] = useState(true);
   
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    // Don't auto-login on first run
-    if (!localStorage.getItem('bluesky-analytics-password')) return false;
-    return localStorage.getItem(APP_CONFIG.auth.storageKey) === 'true';
-  });
-  
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
@@ -49,19 +39,6 @@ function App() {
   const effectiveConfig = getEffectiveConfig();
   const FIXED_HANDLE = effectiveConfig.bluesky.handle || APP_CONFIG.api.defaultHandle;
 
-  // Check for existing authentication on app startup
-  useEffect(() => {
-    const checkExistingAuth = () => {
-      // Simple localStorage check only
-      const localAuth = localStorage.getItem('bluesky-analytics-password');
-      if (localAuth) {
-        setIsFirstRun(false);
-      }
-      setAuthCheckComplete(true);
-    };
-
-    checkExistingAuth();
-  }, []);
 
   // Fetch data from Bluesky API
   const fetchData = useCallback(async () => {
@@ -161,208 +138,10 @@ function App() {
     };
   }, []);
 
-  // Simple password hashing function (SHA-256)
-  const hashPassword = async (password) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hash))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-  };
-
-  const handleFirstRunSetup = async (e) => {
-    e?.preventDefault();
-
-    if (!password || password.length < 8) {
-      alert('Password must be at least 8 characters long for security');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    try {
-      // Hash and save the password to localStorage
-      const hashedPassword = await hashPassword(password);
-      localStorage.setItem('bluesky-analytics-password', hashedPassword);
-
-      setIsFirstRun(false);
-      setIsLoggedIn(true);
-      localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
-      setPassword('');
-      setConfirmPassword('');
-    } catch (error) {
-      console.error('Error setting up password:', error);
-      alert('Error setting up password. Please try again.');
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e?.preventDefault();
-
-    try {
-      // Get stored password from localStorage
-      const storedPassword = localStorage.getItem('bluesky-analytics-password');
-      const envPassword = APP_CONFIG.auth.password;
-
-      // Hash the entered password
-      const enteredPasswordHash = await hashPassword(password);
-
-      // Check against stored hash or environment password
-      const isValidPassword = (storedPassword && enteredPasswordHash === storedPassword) ||
-                             (envPassword && password === envPassword);
-
-      if (isValidPassword) {
-        setIsLoggedIn(true);
-        localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
-        setPassword('');
-      } else {
-        alert('Incorrect password');
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      alert('Login error. Please try again.');
-    }
-  };
-
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setMetrics(null);
-    setError(null);
-    setPassword('');
-    localStorage.removeItem(APP_CONFIG.auth.storageKey);
+    // Optional logout functionality - can be removed if not needed
+    console.log('Logout requested');
   };
-
-  // Show loading while checking auth
-  if (!authCheckComplete) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50">
-        <Card className="text-center">
-          <div className="w-15 h-15 border-4 border-primary-200 border-t-brand-500 rounded-full animate-spin mx-auto mb-8"></div>
-          <h2 className="text-xl font-semibold text-primary-900">
-            Initializing Dashboard...
-          </h2>
-        </Card>
-      </div>
-    );
-  }
-
-  // First Run Setup or Login Screen
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50 p-8">
-        <Card className="w-full max-w-md" padding="xl">
-          {/* Logo and Brand */}
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-brand-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <TrendingUp size={40} color="white" />
-            </div>
-            <h1 className="text-display-xs font-bold text-primary-900 mb-2">
-              🦋 {APP_CONFIG.app.name}
-            </h1>
-            <p className="text-lg text-primary-600">
-              {isFirstRun ? 'Welcome! Let\'s get started' : 'Advanced Bluesky Analytics Suite'}
-            </p>
-          </div>
-          
-          {/* User Card */}
-          <div className="bg-gradient-to-br from-brand-50 to-electric-50 border border-brand-200 rounded-xl p-6 text-center mb-8 shadow-sm">
-            <p className="text-brand-700 font-bold text-lg mb-1">
-              {isFirstRun ? '🎉 Welcome to Bluesky Analytics' : '🔐 Dashboard Access'}
-            </p>
-            <p className="text-brand-600 text-sm">
-              {isFirstRun ? 'Create your secure dashboard password' : 'Enter your password to access analytics'}
-            </p>
-            <p className="text-brand-500 text-xs mt-2">
-              Mode: {APP_CONFIG.app.mode} {APP_CONFIG.database.enabled ? '(Database Storage)' : '(Local Storage)'}
-            </p>
-          </div>
-          
-          {isFirstRun ? (
-            /* First Run Setup Form */
-            <form onSubmit={handleFirstRunSetup} className="flex flex-col gap-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-blue-800">
-                  <strong>🎉 Welcome!</strong> Create your dashboard password to get started.
-                </p>
-              </div>
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-primary-900 mb-2">
-                  Create Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter a secure password (min 8 characters)"
-                  required
-                  minLength="8"
-                  className="untitled-input w-full"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-primary-900 mb-2">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
-                  required
-                  minLength="8"
-                  className="untitled-input w-full"
-                />
-              </div>
-
-              <Button 
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full"
-              >
-                Create Dashboard & Get Started
-              </Button>
-            </form>
-          ) : (
-            /* Regular Login Form */
-            <form onSubmit={handleLogin} className="flex flex-col gap-6">
-              <div>
-                <label htmlFor="loginPassword" className="block text-sm font-semibold text-primary-900 mb-2">
-                  Password
-                </label>
-                <input
-                  id="loginPassword"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                  className="untitled-input w-full"
-                />
-              </div>
-
-              <Button 
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full"
-              >
-                Access Analytics Suite
-              </Button>
-            </form>
-          )}
-        </Card>
-      </div>
-    );
-  }
 
   // Loading Screen
   if (loading) {
