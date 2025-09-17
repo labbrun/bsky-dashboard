@@ -825,67 +825,6 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* Bluesky Account Section */}
-          <Card className="border-gray-700">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">🦋 Bluesky Account</h3>
-              <div className="grid grid-cols-1 gap-4">
-                {API_GUIDES.bluesky.fields.map(field => {
-                  const currentValue = (settings.bluesky || {})[field.key] || '';
-                  const fieldId = `bluesky-${field.key}`;
-                  const showPassword = showPasswords[fieldId];
-                  
-                  return (
-                    <div key={field.key} className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-900">
-                        {field.label}
-                        {field.required && <span className="text-error-500 ml-1">*</span>}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={field.type === 'password' && !showPassword ? 'password' : 'text'}
-                          value={currentValue}
-                          onChange={(e) => updateSetting('bluesky', field.key, e.target.value)}
-                          placeholder={field.placeholder}
-                          className="untitled-input w-full"
-                        />
-                        {field.type === 'password' && (
-                          <button
-                            type="button"
-                            onClick={() => setShowPasswords(prev => ({
-                              ...prev,
-                              [fieldId]: !prev[fieldId]
-                            }))}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        )}
-                      </div>
-                      {field.help && (
-                        <p className="text-xs text-gray-500">{field.help}</p>
-                      )}
-                    </div>
-                  );
-                })}
-                {renderValidationIcon('bluesky') && (
-                  <div className="flex items-center gap-2 mt-2">
-                    {renderValidationIcon('bluesky')}
-                    <span className="text-sm text-gray-600">{getValidationMessage('bluesky')}</span>
-                  </div>
-                )}
-                <Button
-                  onClick={() => validateSettings('bluesky')}
-                  variant="outline"
-                  size="sm"
-                  disabled={validationStatus.bluesky?.status === 'validating'}
-                >
-                  {validationStatus.bluesky?.status === 'validating' ? 'Testing...' : 'Test Connection'}
-                </Button>
-              </div>
-              {API_GUIDES.bluesky.setupGuide && renderSetupGuide(API_GUIDES.bluesky.setupGuide)}
-            </div>
-          </Card>
 
           {/* Keywords Section */}
           <Card className="border-gray-700">
@@ -1154,13 +1093,13 @@ const Settings = () => {
           <div className="bg-primary-850 rounded-lg p-4 border border-gray-700">
             <h3 className="text-lg font-semibold text-white mb-2">🔧 API Integrations</h3>
             <p className="text-gray-300 text-sm">
-              Configure optional API integrations to enhance your dashboard with AI insights, database storage, and additional analytics.
-              All integrations are optional - the dashboard works with just your Bluesky credentials.
+              Configure API integrations for your dashboard. Bluesky is required for core functionality.
+              Other integrations are optional and enhance your dashboard with AI insights, database storage, and additional analytics.
             </p>
           </div>
 
           {/* API Settings Sections */}
-          {Object.entries(API_GUIDES).filter(([section]) => section !== 'bluesky').map(([section, guide]) => {
+          {Object.entries(API_GUIDES).map(([section, guide]) => {
             const sectionSettings = settings[section] || {};
             const isExpanded = expandedSection === section;
             const hasSettings = Object.values(sectionSettings).some(value => value && value.length > 0);
