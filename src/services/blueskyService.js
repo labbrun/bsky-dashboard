@@ -12,11 +12,34 @@
 
 import { getCredentials } from './credentialsService';
 
-const BLUESKY_API_BASE = 'https://bsky.social/xrpc';
+const DEFAULT_BLUESKY_API_BASE = 'https://bsky.social/xrpc';
 const PUBLIC_API_BASE = 'https://public.api.bsky.app/xrpc';
 
-// Session storage for authentication
-let authSession = null;
+// Get configured API endpoint or fall back to default
+const getApiEndpoint = () => {
+  const credentials = getCredentials();
+  return credentials.bluesky?.apiEndpoint || DEFAULT_BLUESKY_API_BASE;
+};
+
+/**
+ * Tests if the Bluesky API is accessible with current credentials
+ * @returns {Promise<boolean>} True if API is working
+ */
+export const testBlueskyAPI = async () => {
+  try {
+    const tokenData = await getBlueskyToken();
+    const response = await fetch(`${getApiEndpoint()}/app.bsky.actor.getProfile?actor=${tokenData.handle}`, {
+      headers: {
+        'Authorization': `Bearer ${tokenData.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.ok;
+  } catch (error) {
+    console.warn('Bluesky API test failed:', error);
+    return false;
+  }
+};
 
 /**
  * MANDATORY IMAGE EXTRACTION UTILITY
@@ -39,85 +62,48 @@ const extractAvatar = (profileData, fallbackHandle = 'user') => {
 };
 
 /**
- * Authenticates with Bluesky AT Protocol using stored credentials
- * @returns {Promise<Object>} Session data with access token
- * @throws {Error} When authentication fails
+ * Gets Bluesky access token from stored credentials
+ * @returns {Promise<Object>} Token data
+ * @throws {Error} When credentials not configured
  */
-export const authenticateBluesky = async () => {
+export const getBlueskyToken = async () => {
   try {
     const credentials = getCredentials();
     const blueskyConfig = credentials.bluesky;
 
-    if (!blueskyConfig?.handle || !blueskyConfig?.appPassword) {
-      throw new Error('Bluesky credentials not configured. Please add your handle and app password in Settings.');
+    if (!blueskyConfig?.handle || !blueskyConfig?.accessToken) {
+      throw new Error('Bluesky credentials not configured. Please add your handle and access token in Settings.');
     }
 
-    const response = await fetch(`${BLUESKY_API_BASE}/com.atproto.server.createSession`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        identifier: blueskyConfig.handle,
-        password: blueskyConfig.appPassword
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Authentication failed: ${errorData.message || response.statusText}`);
-    }
-
-    const sessionData = await response.json();
-    authSession = sessionData;
-    return sessionData;
+    return {
+      accessToken: blueskyConfig.accessToken,
+      handle: blueskyConfig.handle
+    };
 
   } catch (error) {
-    authSession = null;
     throw error;
   }
 };
 
 /**
- * Makes authenticated API request to Bluesky
+ * Makes authenticated API request to Bluesky using access token
  * @param {string} endpoint - API endpoint path
  * @param {Object} params - Query parameters
  * @returns {Promise<Object>} API response data
  */
 const makeAuthenticatedRequest = async (endpoint, params = {}) => {
-  // Ensure we have a valid session
-  if (!authSession) {
-    await authenticateBluesky();
-  }
+  // Get access token
+  const tokenData = await getBlueskyToken();
 
   const queryString = new URLSearchParams(params).toString();
-  const url = `${BLUESKY_API_BASE}/${endpoint}${queryString ? `?${queryString}` : ''}`;
+  const url = `${getApiEndpoint()}/${endpoint}${queryString ? `?${queryString}` : ''}`;
 
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${authSession.accessJwt}`,
+      'Authorization': `Bearer ${tokenData.accessToken}`,
       'Content-Type': 'application/json'
     }
   });
-
-  // If unauthorized, try to reauthenticate once
-  if (response.status === 401 && authSession) {
-    authSession = null;
-    await authenticateBluesky();
-
-    const retryResponse = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${authSession.accessJwt}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!retryResponse.ok) {
-      throw new Error(`API request failed: ${retryResponse.status} ${retryResponse.statusText}`);
-    }
-
-    return await retryResponse.json();
-  }
 
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status} ${response.statusText}`);
@@ -134,12 +120,10 @@ const makeAuthenticatedRequest = async (endpoint, params = {}) => {
  */
 export const getProfile = async (handle = null) => {
   try {
-    // If no handle provided, use the authenticated user's handle
-    if (!handle && authSession?.handle) {
-      handle = authSession.handle;
-    } else if (!handle) {
-      const credentials = getCredentials();
-      handle = credentials.bluesky?.handle;
+    // If no handle provided, use the configured user's handle
+    if (!handle) {
+      const tokenData = await getBlueskyToken();
+      handle = tokenData.handle;
     }
 
     if (!handle) {

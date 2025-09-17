@@ -151,7 +151,7 @@ export const isServiceConfigured = (service) => {
   
   switch (service) {
     case 'bluesky':
-      return !!(credentials.handle && credentials.appPassword);
+      return !!(credentials.handle && credentials.accessToken);
     
     case 'ai':
       return !!(credentials.apiKey || credentials.provider === 'local');
@@ -220,10 +220,20 @@ export const validateDatabaseCredentials = async (supabaseUrl, supabaseAnonKey) 
 };
 
 // Validate Bluesky credentials
-export const validateBlueskyCredentials = async (handle, appPassword) => {
+export const validateBlueskyCredentials = async (handle, accessToken, apiEndpoint) => {
   try {
-    if (!handle || !appPassword) {
-      return { valid: false, error: 'Handle and app password are required' };
+    if (!handle || !accessToken) {
+      return { valid: false, error: 'Handle and access token are required' };
+    }
+
+    // Validate access token format (JWT tokens start with eyJ)
+    if (!accessToken.startsWith('eyJ')) {
+      return { valid: false, error: 'Access token should be a JWT token starting with "eyJ"' };
+    }
+
+    // Validate API endpoint format if provided
+    if (apiEndpoint && !apiEndpoint.startsWith('http://') && !apiEndpoint.startsWith('https://')) {
+      return { valid: false, error: 'API endpoint must start with http:// or https://' };
     }
 
     // Basic format validation - allow any domain (Bluesky supports custom domains)
@@ -237,41 +247,34 @@ export const validateBlueskyCredentials = async (handle, appPassword) => {
       return { valid: false, error: 'Invalid handle format. Should be like: username.bsky.social or username.yourdomain.com' };
     }
 
-    if (appPassword.length < 16 || !appPassword.includes('-')) {
-      return { valid: false, error: 'Invalid app password format. Should be like: xxxx-xxxx-xxxx-xxxx' };
-    }
-
-    // Test actual AT Protocol authentication
+    // Test actual API access with the token
     try {
-      const response = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
-        method: 'POST',
+      const endpoint = apiEndpoint || 'https://bsky.social/xrpc';
+      const response = await fetch(`${endpoint}/app.bsky.actor.getProfile?actor=${handle}`, {
         headers: {
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          identifier: handle,
-          password: appPassword
-        })
+        }
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 401) {
-          return { valid: false, error: 'Invalid credentials. Check your handle and app password.' };
+          return { valid: false, error: 'Invalid access token. Please check your token.' };
         } else if (response.status === 400) {
           return { valid: false, error: 'Bad request. Check your handle format.' };
         } else {
-          return { valid: false, error: errorData.message || `Authentication failed: ${response.statusText}` };
+          return { valid: false, error: errorData.message || `API request failed: ${response.statusText}` };
         }
       }
 
-      const sessionData = await response.json();
+      const profileData = await response.json();
 
       return {
         valid: true,
-        note: `Successfully authenticated as @${sessionData.handle}`,
-        handle: sessionData.handle,
-        displayName: sessionData.displayName
+        note: `Successfully connected to @${profileData.handle || handle}`,
+        handle: profileData.handle || handle,
+        displayName: profileData.displayName || 'Unknown'
       };
 
     } catch (fetchError) {
@@ -494,7 +497,7 @@ export const validatePostizCredentials = async (url, apiKey) => {
 export const validateServiceCredentials = async (service, credentials) => {
   switch (service) {
     case 'bluesky':
-      return validateBlueskyCredentials(credentials.handle, credentials.appPassword);
+      return validateBlueskyCredentials(credentials.handle, credentials.accessToken, credentials.apiEndpoint);
     
     case 'database':
       return validateDatabaseCredentials(credentials.supabaseUrl, credentials.supabaseAnonKey);

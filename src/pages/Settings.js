@@ -22,9 +22,17 @@ import {
 
 const API_GUIDES = {
   bluesky: {
-    title: 'Bluesky Account',
-    description: 'Your Bluesky profile handle and app password for authentication',
+    title: 'Bluesky API Configuration',
+    description: 'Configure your Bluesky access token for analytics data access',
     fields: [
+      {
+        key: 'accessToken',
+        label: 'Bluesky Access Token',
+        type: 'password',
+        placeholder: 'eyJ0eXAiOiJKV1QiLCJhbGci...',
+        required: true,
+        help: 'Your Bluesky access token for API access. Get this from Bluesky developer console.'
+      },
       {
         key: 'handle',
         label: 'Bluesky Handle',
@@ -34,26 +42,26 @@ const API_GUIDES = {
         help: 'Your Bluesky handle (supports custom domains like yourname.com or standard username.bsky.social)'
       },
       {
-        key: 'appPassword',
-        label: 'App Password',
-        type: 'password',
-        placeholder: 'xxxx-xxxx-xxxx-xxxx',
-        required: true,
-        help: 'Generate this in Bluesky Settings → Privacy and Security → App Passwords'
+        key: 'apiEndpoint',
+        label: 'API Endpoint (Optional)',
+        type: 'text',
+        placeholder: 'https://bsky.social/xrpc',
+        required: false,
+        help: 'Custom API endpoint (defaults to https://bsky.social/xrpc if not specified)'
       }
     ],
     setupGuide: {
-      title: 'How to get Bluesky App Password:',
+      title: 'How to get Bluesky Access Token:',
       steps: [
-        'Open Bluesky app or web interface',
-        'Go to Settings → Privacy and Security',
-        'Scroll to "App Passwords" section',
-        'Click "Add App Password"',
-        'Give it a name (e.g., "Analytics Dashboard")',
-        'Copy the generated password'
+        'Visit the Bluesky Developer Documentation',
+        'Follow the authentication guide to create an access token',
+        'Use your Bluesky handle and app password to generate the token',
+        'Copy the access token (starts with "eyJ...")',
+        'Paste it in the Access Token field above',
+        'Enter your Bluesky handle in the Handle field'
       ],
-      link: 'https://bsky.app/settings/privacy-security',
-      linkText: 'Open Bluesky Settings'
+      link: 'https://docs.bsky.app/docs/get-started',
+      linkText: 'View Bluesky API Documentation'
     }
   },
 
