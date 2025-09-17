@@ -3,11 +3,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import CelebrationOverlay from '../components/CelebrationOverlay';
 import { checkCelebrationConditions, shouldShowCelebration, markCelebrationShown, formatCelebrationMessage, getPreviousMetrics, storePreviousMetrics } from '../utils/celebrationUtils';
 import realAIService from '../services/realAIService';
-import { 
-  Users, 
-  MessageSquare, 
-  Heart, 
-  ArrowUp,
+import {
+  Users,
+  MessageSquare,
+  Heart,
   Target,
   AlertCircle,
   CheckCircle,
@@ -150,172 +149,100 @@ function OverviewV2({ metrics }) {
   
 
 
-  // Real data based on metrics and time period
+  // Real follower data - show current follower count as single data point
   const followersData = React.useMemo(() => {
     if (!metrics) return [];
-    
-    if (timePeriod === 'lifetime') {
-      // For lifetime, show a longer-term growth pattern
-      const data = [];
-      const baseFollowers = metrics.followersCount;
-      const monthsToShow = 12;
-      
-      for (let i = monthsToShow - 1; i >= 0; i--) {
-        const currentDate = new Date();
-        currentDate.setMonth(currentDate.getMonth() - i);
-        const date = i === 0 ? 'Now' : currentDate.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-        
-        // Estimate follower growth over time (more conservative growth rate)
-        const monthsSinceStart = monthsToShow - 1 - i;
-        const growthRate = Math.max(5, Math.floor(baseFollowers / monthsToShow * 0.8)); // More realistic growth
-        const followers = Math.max(0, baseFollowers - Math.floor(monthsSinceStart * growthRate));
-        data.push({ date, followers });
-      }
-      
-      return data;
-    } else {
-      // For 7/30 days, show daily data
-      const days = parseInt(timePeriod);
-      const data = [];
-      const baseFollowers = metrics.followersCount;
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const currentDate = new Date();
-        currentDate.setDate(currentDate.getDate() - i);
-        const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-        // More realistic follower progression based on actual count
-        const daysSinceStart = days - 1 - i;
-        const growthRate = days === 7 ? 1.5 : 3;
-        const followers = Math.max(0, baseFollowers - Math.floor(daysSinceStart * growthRate));
-        data.push({ date, followers });
-      }
-      
-      return data;
-    }
-  }, [metrics, timePeriod]);
 
+    // Since we only have current follower count, display it as a single point
+    // Future enhancement: Store historical data for trend analysis
+    return [{
+      date: 'Current',
+      followers: metrics.followersCount
+    }];
+  }, [metrics]);
+
+  // Real engagement rate data based on actual metrics
   const engagementData = React.useMemo(() => {
-    if (!metrics) return [];
-    
-    const data = [];
-    // Calculate base rate from filtered metrics based on time period
-    const baseRate = metrics.followersCount > 0 && filteredEngagementMetrics.totalEngagement > 0
-      ? Math.min(8.0, Math.max(1.0, (filteredEngagementMetrics.totalEngagement / metrics.followersCount) * 100))
-      : 4.5;
-    
-    if (timePeriod === 'lifetime') {
-      // For lifetime, show monthly engagement rates over the past year
-      const monthsToShow = 12;
-      
-      for (let i = monthsToShow - 1; i >= 0; i--) {
-        const currentDate = new Date();
-        currentDate.setMonth(currentDate.getMonth() - i);
-        const date = i === 0 ? 'Now' : currentDate.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-        
-        // Simulate engagement rate variations over time (trending upward recently)
-        const monthVariation = i < 2 ? 0.8 : i < 6 ? 0.3 : -0.2; // Recent months higher
-        const rate = Math.round((baseRate + monthVariation) * 10) / 10;
-        data.push({ date, rate: Math.max(1.0, Math.min(8.0, rate)) });
-      }
-      
-      return data;
-    } else {
-      // For 7/30 days, show daily engagement rates
-      const days = parseInt(timePeriod);
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const currentDate = new Date();
-        currentDate.setDate(currentDate.getDate() - i);
-        const date = i === 0 ? 'Today' : currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-        // Calculate engagement rate based on post count (more posts = higher engagement)
-        const dayVariation = i < 3 ? 0.5 : i < 5 ? 0.2 : -0.3; // Recent days higher engagement
-        const rate = Math.round((baseRate + dayVariation) * 10) / 10;
-        data.push({ date, rate: Math.max(1.0, Math.min(8.0, rate)) });
-      }
-      
-      return data;
-    }
+    if (!metrics || !filteredEngagementMetrics.postCount) return [];
+
+    // Calculate actual engagement rate from real data
+    const engagementRate = metrics.followersCount > 0 && filteredEngagementMetrics.totalEngagement > 0
+      ? Math.round(((filteredEngagementMetrics.totalEngagement / metrics.followersCount) * 100) * 10) / 10
+      : 0;
+
+    // Show current engagement rate as single data point
+    // Future enhancement: Store historical data for trend analysis
+    return [{
+      date: `${timePeriod === 'lifetime' ? 'All Time' : `Last ${timePeriod} days`}`,
+      rate: Math.max(0, engagementRate)
+    }];
   }, [metrics, timePeriod, filteredEngagementMetrics]);
 
-  // Community breakdown data - using real API data when available
+  // Community breakdown data based on post content analysis
   const communityBreakdown = React.useMemo(() => {
-
-    // Base percentages (these will always add up to 100%)
-    let techPercentage = 45;
-    let businessPercentage = 25; 
-    let devPercentage = 20;
-    let generalPercentage = 10;
-
-    // If we have real data, adjust percentages based on content from filtered posts
-    if (getFilteredPosts && getFilteredPosts.length > 0) {
-      
-      const posts = getFilteredPosts;
-      let techScore = 0;
-      let businessScore = 0;
-      let devScore = 0;
-
-      posts.forEach(post => {
-        const text = (post.text || '').toLowerCase();
-        
-        // Score each post for different categories
-        if (text.includes('ai') || text.includes('tech') || text.includes('privacy') || 
-            text.includes('security') || text.includes('homelab') || text.includes('server')) {
-          techScore++;
-        }
-        
-        if (text.includes('business') || text.includes('startup') || text.includes('entrepreneur') || 
-            text.includes('productivity') || text.includes('enterprise')) {
-          businessScore++;
-        }
-        
-        if (text.includes('code') || text.includes('dev') || text.includes('programming') || 
-            text.includes('software') || text.includes('github') || text.includes('api')) {
-          devScore++;
-        }
-      });
-
-      const totalScore = techScore + businessScore + devScore;
-      
-      if (totalScore > 0) {
-        // Adjust percentages based on content, but keep them reasonable
-        const techRatio = techScore / totalScore;
-        const businessRatio = businessScore / totalScore;
-        const devRatio = devScore / totalScore;
-        
-        // Apply weighting but keep minimums and ensure total = 100%
-        techPercentage = Math.round(Math.max(techRatio * 70 + 20, 15));
-        businessPercentage = Math.round(Math.max(businessRatio * 50 + 15, 10));
-        devPercentage = Math.round(Math.max(devRatio * 60 + 10, 10));
-        generalPercentage = 100 - techPercentage - businessPercentage - devPercentage;
-        
-        // Ensure general audience is at least 5%
-        if (generalPercentage < 5) {
-          generalPercentage = 5;
-          // Reduce others proportionally
-          const excess = 5 - generalPercentage;
-          const reduction = excess / 3;
-          techPercentage = Math.max(techPercentage - reduction, 15);
-          businessPercentage = Math.max(businessPercentage - reduction, 10);
-          devPercentage = Math.max(devPercentage - reduction, 10);
-          generalPercentage = 100 - techPercentage - businessPercentage - devPercentage;
-        }
-        
-      }
+    if (!getFilteredPosts || getFilteredPosts.length === 0) {
+      // No posts available - show placeholder message
+      return [
+        { name: 'No Data Available', value: 100, color: CHART_COLORS.slate }
+      ];
     }
+
+    const posts = getFilteredPosts;
+    let techScore = 0;
+    let businessScore = 0;
+    let devScore = 0;
+    let generalScore = 0;
+
+    // Analyze post content for topic categories
+    posts.forEach(post => {
+      const text = (post.text || '').toLowerCase();
+      let categorized = false;
+
+      // Tech keywords
+      if (text.match(/\b(ai|tech|technology|privacy|security|homelab|server|cloud|data|analytics|machine learning|artificial intelligence)\b/)) {
+        techScore++;
+        categorized = true;
+      }
+
+      // Business keywords
+      if (text.match(/\b(business|startup|entrepreneur|productivity|enterprise|marketing|sales|strategy|growth|revenue)\b/)) {
+        businessScore++;
+        categorized = true;
+      }
+
+      // Developer keywords
+      if (text.match(/\b(code|dev|developer|programming|software|github|api|javascript|python|react|coding|bug|feature)\b/)) {
+        devScore++;
+        categorized = true;
+      }
+
+      // If no category matched, count as general
+      if (!categorized) {
+        generalScore++;
+      }
+    });
+
+    const totalCategorized = techScore + businessScore + devScore + generalScore;
+
+    if (totalCategorized === 0) {
+      return [
+        { name: 'General Content', value: 100, color: CHART_COLORS.electric }
+      ];
+    }
+
+    // Calculate percentages based on actual content
+    const techPercentage = Math.round((techScore / totalCategorized) * 100);
+    const businessPercentage = Math.round((businessScore / totalCategorized) * 100);
+    const devPercentage = Math.round((devScore / totalCategorized) * 100);
+    const generalPercentage = 100 - techPercentage - businessPercentage - devPercentage;
 
     const result = [
-      { name: 'Tech Enthusiasts', value: Math.round(techPercentage), color: CHART_COLORS.primary },
-      { name: 'Entrepreneurs', value: Math.round(businessPercentage), color: CHART_COLORS.brand },
-      { name: 'Developers', value: Math.round(devPercentage), color: CHART_COLORS.accent },
-      { name: 'General Audience', value: Math.round(generalPercentage), color: CHART_COLORS.electric }
-    ];
+      { name: 'Tech Content', value: techPercentage, color: CHART_COLORS.primary },
+      { name: 'Business Content', value: businessPercentage, color: CHART_COLORS.brand },
+      { name: 'Developer Content', value: devPercentage, color: CHART_COLORS.accent },
+      { name: 'General Content', value: Math.max(0, generalPercentage), color: CHART_COLORS.electric }
+    ].filter(item => item.value > 0); // Remove categories with 0%
 
-    // Ensure total = 100% (final safety check)
-    const total = result.reduce((sum, item) => sum + item.value, 0);
-    if (total !== 100) {
-      result[3].value = 100 - result[0].value - result[1].value - result[2].value;
-    }
-    
     return result;
   }, [getFilteredPosts]);
 
@@ -421,20 +348,35 @@ function OverviewV2({ metrics }) {
                   <p className="text-gray-400 text-xs font-medium font-sans">Following</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.mutualsPercentage || '--'}%</p>
-                  <p className="text-gray-400 text-xs font-medium font-sans">Mutuals</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">
+                    {metrics.followersCount > 0 && metrics.followsCount > 0
+                      ? Math.round((Math.min(metrics.followersCount, metrics.followsCount) / Math.max(metrics.followersCount, metrics.followsCount)) * 100)
+                      : 0
+                    }%
+                  </p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Follow Ratio</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
                   <p className="text-xl font-bold text-white font-sans mb-1">{metrics.postsCount.toLocaleString()}</p>
                   <p className="text-gray-400 text-xs font-medium font-sans">Posts</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.currentEngagement || '--'}</p>
-                  <p className="text-gray-400 text-xs font-medium font-sans">Frequency</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">
+                    {getFilteredPosts && getFilteredPosts.length > 0
+                      ? `${Math.round(filteredEngagementMetrics.avgEngagementPerPost * 10) / 10}`
+                      : '0'
+                    }
+                  </p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Avg Engagement</p>
                 </div>
                 <div className="bg-primary-800 border border-gray-600 rounded-xl p-3 text-center hover:border-brand-400 transition-colors min-h-[80px] flex flex-col justify-center">
-                  <p className="text-xl font-bold text-white font-sans mb-1">{metrics?.targetPercentage || '--'}%</p>
-                  <p className="text-gray-400 text-xs font-medium font-sans">On Target</p>
+                  <p className="text-xl font-bold text-white font-sans mb-1">
+                    {metrics.followersCount > 0 && filteredEngagementMetrics.totalEngagement > 0
+                      ? Math.round(((filteredEngagementMetrics.totalEngagement / metrics.followersCount) * 100) * 10) / 10
+                      : 0
+                    }%
+                  </p>
+                  <p className="text-gray-400 text-xs font-medium font-sans">Engagement Rate</p>
                 </div>
               </div>
             </div>
@@ -621,15 +563,15 @@ function OverviewV2({ metrics }) {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 font-sans">
-                Follower Growth
+                Current Followers
               </h3>
               <p className="text-sm text-gray-500 mt-1 font-sans">
-                {timePeriod === 'lifetime' ? 'Past 12 months' : `Last ${timePeriod} days`}
+                Current follower count from your Bluesky profile
               </p>
             </div>
-            <Badge variant="success" size="sm">
-              <ArrowUp size={12} className="mr-1" />
-              Growing
+            <Badge variant="primary" size="sm">
+              <Users size={12} className="mr-1" />
+              Live Data
             </Badge>
           </div>
           
@@ -673,12 +615,12 @@ function OverviewV2({ metrics }) {
                 Engagement Rate
               </h3>
               <p className="text-sm text-gray-500 mt-1 font-sans">
-                {timePeriod === 'lifetime' ? 'Monthly average %' : 'Daily average %'}
+                {timePeriod === 'lifetime' ? 'Overall engagement rate' : `Engagement rate for last ${timePeriod} days`}
               </p>
             </div>
-            <Badge variant="primary" size="sm">
-              <Zap size={12} className="mr-1" />
-              Active
+            <Badge variant={filteredEngagementMetrics.totalEngagement > 0 ? "success" : "secondary"} size="sm">
+              <Heart size={12} className="mr-1" />
+              {filteredEngagementMetrics.totalEngagement > 0 ? 'Active' : 'No Data'}
             </Badge>
           </div>
           
@@ -740,14 +682,15 @@ function OverviewV2({ metrics }) {
             
             {/* Community Breakdown - Full Width */}
             <Card>
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Community Breakdown</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Content Analysis</h3>
+              <p className="text-sm text-gray-600 mb-6">Based on analysis of your {getFilteredPosts?.length || 0} posts in the selected time period</p>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={communityBreakdown}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="name" stroke="#6B7280" fontSize={12} />
                   <YAxis stroke="#6B7280" fontSize={12} tickFormatter={(value) => `${value}%`} />
-                  <Tooltip 
-                    formatter={(value) => [`${value}%`, 'Percentage']}
+                  <Tooltip
+                    formatter={(value, name) => [`${value}%`, name.replace('Content', '')]}
                     contentStyle={{
                       backgroundColor: 'white',
                       border: 'none',

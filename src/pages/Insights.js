@@ -57,8 +57,6 @@ function Insights({ metrics }) {
       
       setAiInsights(insights);
       setContentStrategy(strategy);
-      
-      });
 
     } catch (error) {
       console.error('Error generating REAL insights:', error);

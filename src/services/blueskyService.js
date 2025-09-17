@@ -1,7 +1,7 @@
 /**
  * Bluesky API Service
- * Connects to the public Bluesky API to fetch real profile and post data
- * 
+ * Connects to the Bluesky AT Protocol API with user authentication to fetch real profile and post data
+ *
  * ⚠️  MANDATORY IMAGE EXTRACTION RULE ⚠️
  * ALL functions in this service MUST extract and provide images/avatars when available
  * This includes: profile avatars, post images, banner images, external thumbnails
@@ -10,7 +10,13 @@
  * @module blueskyService
  */
 
-const BLUESKY_API_BASE = 'https://public.api.bsky.app';
+import { getCredentials } from './credentialsService';
+
+const BLUESKY_API_BASE = 'https://bsky.social/xrpc';
+const PUBLIC_API_BASE = 'https://public.api.bsky.app/xrpc';
+
+// Session storage for authentication
+let authSession = null;
 
 /**
  * MANDATORY IMAGE EXTRACTION UTILITY
@@ -33,67 +39,175 @@ const extractAvatar = (profileData, fallbackHandle = 'user') => {
 };
 
 /**
- * Fetches user profile information from Bluesky API
- * @param {string} handle - The user handle (with or without @)
+ * Authenticates with Bluesky AT Protocol using stored credentials
+ * @returns {Promise<Object>} Session data with access token
+ * @throws {Error} When authentication fails
+ */
+export const authenticateBluesky = async () => {
+  try {
+    const credentials = getCredentials();
+    const blueskyConfig = credentials.bluesky;
+
+    if (!blueskyConfig?.handle || !blueskyConfig?.appPassword) {
+      throw new Error('Bluesky credentials not configured. Please add your handle and app password in Settings.');
+    }
+
+    const response = await fetch(`${BLUESKY_API_BASE}/com.atproto.server.createSession`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        identifier: blueskyConfig.handle,
+        password: blueskyConfig.appPassword
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Authentication failed: ${errorData.message || response.statusText}`);
+    }
+
+    const sessionData = await response.json();
+    authSession = sessionData;
+    return sessionData;
+
+  } catch (error) {
+    authSession = null;
+    throw error;
+  }
+};
+
+/**
+ * Makes authenticated API request to Bluesky
+ * @param {string} endpoint - API endpoint path
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Object>} API response data
+ */
+const makeAuthenticatedRequest = async (endpoint, params = {}) => {
+  // Ensure we have a valid session
+  if (!authSession) {
+    await authenticateBluesky();
+  }
+
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${BLUESKY_API_BASE}/${endpoint}${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${authSession.accessJwt}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  // If unauthorized, try to reauthenticate once
+  if (response.status === 401 && authSession) {
+    authSession = null;
+    await authenticateBluesky();
+
+    const retryResponse = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${authSession.accessJwt}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!retryResponse.ok) {
+      throw new Error(`API request failed: ${retryResponse.status} ${retryResponse.statusText}`);
+    }
+
+    return await retryResponse.json();
+  }
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
+/**
+ * Fetches user profile information from Bluesky API (authenticated)
+ * @param {string} handle - The user handle (with or without @) - defaults to authenticated user
  * @returns {Promise<Object>} Profile data with extracted images
  * @throws {Error} When profile cannot be fetched
  */
-export const getProfile = async (handle) => {
+export const getProfile = async (handle = null) => {
   try {
-    const response = await fetch(`${BLUESKY_API_BASE}/xrpc/app.bsky.actor.getProfile?actor=${handle}`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch profile: ${response.status} ${response.statusText}`);
+    // If no handle provided, use the authenticated user's handle
+    if (!handle && authSession?.handle) {
+      handle = authSession.handle;
+    } else if (!handle) {
+      const credentials = getCredentials();
+      handle = credentials.bluesky?.handle;
     }
-    
-    const data = await response.json();
-    
+
+    if (!handle) {
+      throw new Error('No handle provided and no authenticated user found');
+    }
+
+    const data = await makeAuthenticatedRequest('app.bsky.actor.getProfile', {
+      actor: handle
+    });
+
     // MANDATORY: Ensure avatar is always extracted and added to response
     data.avatar = extractAvatar(data, handle);
-    
+
     return data;
   } catch (error) {
     throw error;
   }
 };
 
-// Get user's posts/feed
-export const getAuthorFeed = async (handle, limit = 25, cursor = null) => {
+// Get user's posts/feed (authenticated)
+export const getAuthorFeed = async (handle = null, limit = 25, cursor = null) => {
   try {
-    let url = `${BLUESKY_API_BASE}/xrpc/app.bsky.feed.getAuthorFeed?actor=${handle}&limit=${limit}`;
+    // If no handle provided, use the authenticated user's handle
+    if (!handle && authSession?.handle) {
+      handle = authSession.handle;
+    } else if (!handle) {
+      const credentials = getCredentials();
+      handle = credentials.bluesky?.handle;
+    }
+
+    if (!handle) {
+      throw new Error('No handle provided and no authenticated user found');
+    }
+
+    const params = { actor: handle, limit: limit.toString() };
     if (cursor) {
-      url += `&cursor=${cursor}`;
+      params.cursor = cursor;
     }
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch author feed: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
+
+    const data = await makeAuthenticatedRequest('app.bsky.feed.getAuthorFeed', params);
     return data;
   } catch (error) {
     throw error;
   }
 };
 
-// Get user's followers
-export const getFollowers = async (handle, limit = 100, cursor = null) => {
+// Get user's followers (authenticated)
+export const getFollowers = async (handle = null, limit = 100, cursor = null) => {
   try {
-    let url = `${BLUESKY_API_BASE}/xrpc/app.bsky.graph.getFollowers?actor=${handle}&limit=${limit}`;
+    // If no handle provided, use the authenticated user's handle
+    if (!handle && authSession?.handle) {
+      handle = authSession.handle;
+    } else if (!handle) {
+      const credentials = getCredentials();
+      handle = credentials.bluesky?.handle;
+    }
+
+    if (!handle) {
+      throw new Error('No handle provided and no authenticated user found');
+    }
+
+    const params = { actor: handle, limit: limit.toString() };
     if (cursor) {
-      url += `&cursor=${cursor}`;
+      params.cursor = cursor;
     }
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch followers: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
+
+    const data = await makeAuthenticatedRequest('app.bsky.graph.getFollowers', params);
+
     // MANDATORY: Ensure all follower avatars are extracted
     if (data.followers && Array.isArray(data.followers)) {
       data.followers = data.followers.map(follower => ({
@@ -101,28 +215,34 @@ export const getFollowers = async (handle, limit = 100, cursor = null) => {
         avatar: extractAvatar(follower, follower.handle || 'follower')
       }));
     }
-    
+
     return data;
   } catch (error) {
     throw error;
   }
 };
 
-// Get users the account follows
-export const getFollows = async (handle, limit = 100, cursor = null) => {
+// Get users the account follows (authenticated)
+export const getFollows = async (handle = null, limit = 100, cursor = null) => {
   try {
-    let url = `${BLUESKY_API_BASE}/xrpc/app.bsky.graph.getFollows?actor=${handle}&limit=${limit}`;
+    // If no handle provided, use the authenticated user's handle
+    if (!handle && authSession?.handle) {
+      handle = authSession.handle;
+    } else if (!handle) {
+      const credentials = getCredentials();
+      handle = credentials.bluesky?.handle;
+    }
+
+    if (!handle) {
+      throw new Error('No handle provided and no authenticated user found');
+    }
+
+    const params = { actor: handle, limit: limit.toString() };
     if (cursor) {
-      url += `&cursor=${cursor}`;
+      params.cursor = cursor;
     }
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch follows: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
+
+    const data = await makeAuthenticatedRequest('app.bsky.graph.getFollows', params);
     return data;
   } catch (error) {
     throw error;
@@ -273,39 +393,92 @@ export const transformBlueskyData = (profile, feedItems, followers) => {
   };
 };
 
-// Main function to fetch all user data
-export const fetchBlueskyUserData = async (handle) => {
+// Main function to fetch all user data (authenticated)
+export const fetchBlueskyUserData = async (handle = null) => {
   try {
-    
+    // Authenticate first
+    if (!authSession) {
+      await authenticateBluesky();
+    }
+
+    // Use authenticated user's handle if none provided
+    if (!handle) {
+      handle = authSession?.handle;
+      if (!handle) {
+        const credentials = getCredentials();
+        handle = credentials.bluesky?.handle;
+      }
+    }
+
+    if (!handle) {
+      throw new Error('No handle available for data fetching');
+    }
+
     // Fetch profile, posts, and followers in parallel
     const [profileData, feedData, followersData] = await Promise.all([
       getProfile(handle),
-      getAuthorFeed(handle, 20),
-      getFollowers(handle, 10)
+      getAuthorFeed(handle, 50), // Get more posts for better analytics
+      getFollowers(handle, 20)   // Get more followers for better analysis
     ]);
-    
+
     // Transform and return data (pass full feed items to preserve reply context)
     const transformedData = transformBlueskyData(
       profileData,
       feedData.feed || [],
       followersData.followers || []
     );
-    
+
     return transformedData;
-    
+
   } catch (error) {
     throw error;
   }
 };
 
-// Test function to verify API connectivity
+// Test function to verify API connectivity and authentication
 export const testBlueskyAPI = async () => {
   try {
-    // Test with a known public account
-    const testHandle = 'bsky.app';
-    await getProfile(testHandle);
-    return true;
+    // Try to authenticate with stored credentials
+    await authenticateBluesky();
+
+    // If authentication succeeds, try to fetch the user's own profile
+    const profile = await getProfile();
+
+    // Return success with user info
+    return {
+      success: true,
+      handle: profile.handle,
+      displayName: profile.displayName
+    };
   } catch (error) {
-    return false;
+    return {
+      success: false,
+      error: error.message
+    };
   }
+};
+
+// Public API fallback for non-authenticated requests
+export const getPublicProfile = async (handle) => {
+  try {
+    const response = await fetch(`${PUBLIC_API_BASE}/app.bsky.actor.getProfile?actor=${handle}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch profile: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // MANDATORY: Ensure avatar is always extracted and added to response
+    data.avatar = extractAvatar(data, handle);
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Clear authentication session (for logout)
+export const clearBlueskySession = () => {
+  authSession = null;
 };

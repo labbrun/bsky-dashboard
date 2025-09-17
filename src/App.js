@@ -23,7 +23,6 @@ import OverviewV2 from './pages/OverviewV2';
 import PerformanceV2 from './pages/PerformanceV2';
 import Insights from './pages/Insights';
 import BlogAnalytics from './pages/BlogAnalytics';
-import Calendar from './pages/Calendar';
 import Settings from './pages/Settings';
 
 // Import Untitled UI components
@@ -382,14 +381,6 @@ function App() {
             element={
               <ErrorBoundary>
                 <BlogAnalytics metrics={metrics} />
-              </ErrorBoundary>
-            } 
-          />
-          <Route 
-            path="/calendar" 
-            element={
-              <ErrorBoundary>
-                <Calendar metrics={metrics} />
               </ErrorBoundary>
             } 
           />

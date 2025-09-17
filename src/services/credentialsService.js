@@ -221,7 +221,7 @@ export const validateBlueskyCredentials = async (handle, appPassword) => {
     if (!handle.includes('.')) {
       return { valid: false, error: 'Invalid handle format. Should be like: username.bsky.social or username.yourdomain.com' };
     }
-    
+
     // Check for valid domain structure
     const parts = handle.split('.');
     if (parts.length < 2 || parts.some(part => part.length === 0)) {
@@ -232,10 +232,43 @@ export const validateBlueskyCredentials = async (handle, appPassword) => {
       return { valid: false, error: 'Invalid app password format. Should be like: xxxx-xxxx-xxxx-xxxx' };
     }
 
-    // Test actual connection (this would require implementing AT Protocol authentication)
-    // For now, we'll do basic validation
-    return { valid: true };
-    
+    // Test actual AT Protocol authentication
+    try {
+      const response = await fetch('https://bsky.social/xrpc/com.atproto.server.createSession', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          identifier: handle,
+          password: appPassword
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          return { valid: false, error: 'Invalid credentials. Check your handle and app password.' };
+        } else if (response.status === 400) {
+          return { valid: false, error: 'Bad request. Check your handle format.' };
+        } else {
+          return { valid: false, error: errorData.message || `Authentication failed: ${response.statusText}` };
+        }
+      }
+
+      const sessionData = await response.json();
+
+      return {
+        valid: true,
+        note: `Successfully authenticated as @${sessionData.handle}`,
+        handle: sessionData.handle,
+        displayName: sessionData.displayName
+      };
+
+    } catch (fetchError) {
+      return { valid: false, error: 'Network error. Check your internet connection and try again.' };
+    }
+
   } catch (error) {
     return { valid: false, error: error.message };
   }
