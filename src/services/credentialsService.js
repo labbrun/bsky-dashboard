@@ -42,15 +42,50 @@ const backupCredentialsToDatabase = async (credentials) => {
 };
 
 /**
- * Retrieves all saved credentials from localStorage
+ * Retrieves all saved credentials from database first, then localStorage as fallback
+ * @returns {Promise<Object>} Object containing all saved credentials or empty object if none found
+ */
+export const getCredentials = async () => {
+  try {
+    // First try to get from database if Supabase is configured
+    const localCredentials = getLocalCredentials();
+    const supabaseConfig = localCredentials.database;
+
+    if (supabaseConfig?.supabaseUrl && supabaseConfig?.supabaseAnonKey) {
+      try {
+        const { getUserSettings } = await import('./supabaseService');
+        const result = await getUserSettings('credentials_backup');
+
+        if (result.success && result.data) {
+          // Merge database credentials with local ones (local takes precedence for database config)
+          return {
+            ...result.data,
+            database: localCredentials.database // Keep local database config
+          };
+        }
+      } catch (error) {
+        console.warn('Failed to load credentials from database, using localStorage:', error.message);
+      }
+    }
+
+    // Fallback to localStorage
+    return localCredentials;
+  } catch (error) {
+    logger.error('Failed to load credentials', error);
+    return {};
+  }
+};
+
+/**
+ * Retrieves credentials from localStorage only
  * @returns {Object} Object containing all saved credentials or empty object if none found
  */
-export const getCredentials = () => {
+export const getLocalCredentials = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : {};
   } catch (error) {
-    logger.error('Failed to load credentials', error);
+    logger.error('Failed to load local credentials', error);
     return {};
   }
 };
@@ -64,7 +99,7 @@ export const getCredentials = () => {
 export const saveCredentials = async (credentials) => {
   try {
     // Get existing credentials first to merge with new ones
-    const existing = getCredentials();
+    const existing = await getCredentials();
     
     // Deep merge the credentials to preserve existing sections
     const merged = {
@@ -112,8 +147,8 @@ export const saveCredentials = async (credentials) => {
 };
 
 // Get profile settings (keywords, preferences, etc.)
-export const getProfileSettings = () => {
-  const credentials = getCredentials();
+export const getProfileSettings = async () => {
+  const credentials = await getCredentials();
   return credentials.profile || {
     keywords: [],
     displayName: '',
@@ -129,19 +164,19 @@ export const getProfileSettings = () => {
 };
 
 // Save profile settings
-export const saveProfileSettings = (profileSettings) => {
+export const saveProfileSettings = async (profileSettings) => {
   try {
-    const credentials = getCredentials();
+    const credentials = await getCredentials();
     credentials.profile = profileSettings;
-    return saveCredentials(credentials);
+    return await saveCredentials(credentials);
   } catch (error) {
     return false;
   }
 };
 
 // Get specific service credentials
-export const getServiceCredentials = (service) => {
-  const allCredentials = getCredentials();
+export const getServiceCredentials = async (service) => {
+  const allCredentials = await getCredentials();
   return allCredentials[service] || {};
 };
 

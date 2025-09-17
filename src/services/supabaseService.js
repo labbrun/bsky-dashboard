@@ -181,6 +181,52 @@ export const getUserAuth = async () => {
   }
 };
 
+// Save user settings to database
+export const saveUserSettings = async (key, data) => {
+  try {
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert({
+        id: 'default_user',
+        setting_key: key,
+        setting_data: data,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'id,setting_key'
+      });
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.warn(`Failed to save ${key} to database:`, error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get user settings from database
+export const getUserSettings = async (key) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('setting_data')
+      .eq('id', 'default_user')
+      .eq('setting_key', key)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No setting found
+        return { success: true, data: null };
+      }
+      throw error;
+    }
+    return { success: true, data: data.setting_data };
+  } catch (error) {
+    console.warn(`Failed to get ${key} from database:`, error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 export const testConnection = async () => {
   try {
     // First test basic connection
