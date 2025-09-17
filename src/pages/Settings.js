@@ -13,7 +13,7 @@ import {
   getAllDocuments
 } from '../services/credentialsService';
 
-console.log('Settings.js loaded with refresh token field');
+console.log('Settings.js loaded with refresh token field - UPDATED');
 
 // Debug: Log the bluesky fields to console
 console.log('🔧 BLUESKY FIELDS DEBUG:', {
@@ -38,7 +38,7 @@ const API_GUIDES = {
       },
       {
         key: 'refreshToken',
-        label: 'Bluesky Refresh Token',
+        label: '🔄 Bluesky Refresh Token (REQUIRED)',
         type: 'password',
         placeholder: 'eyJ0eXAiOiJKV1QiLCJhbGci...',
         required: true,
