@@ -137,6 +137,50 @@ export const insertPosts = async (handle, posts) => {
 };
 
 // Test connection to Supabase
+// Store user authentication hash in database
+export const storeUserAuth = async (passwordHash) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_auth')
+      .upsert({
+        id: 'default_user',
+        password_hash: passwordHash,
+        created_at: new Date().toISOString()
+      }, {
+        onConflict: 'id'
+      });
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.warn('Failed to store auth in database, using localStorage:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+// Retrieve user authentication hash from database
+export const getUserAuth = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('user_auth')
+      .select('password_hash')
+      .eq('id', 'default_user')
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No auth record found
+        return { success: true, passwordHash: null };
+      }
+      throw error;
+    }
+    return { success: true, passwordHash: data.password_hash };
+  } catch (error) {
+    console.warn('Failed to get auth from database, using localStorage:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 export const testConnection = async () => {
   try {
     // First test basic connection
@@ -144,7 +188,7 @@ export const testConnection = async () => {
       .from('profiles')
       .select('count')
       .limit(1);
-    
+
     if (error) {
       // If table doesn't exist, that's still a successful connection
       if (error.code === 'PGRST106' || error.message.includes('does not exist')) {

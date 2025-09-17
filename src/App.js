@@ -30,9 +30,8 @@ import { Button, Card } from './components/ui/UntitledUIComponents';
 
 function App() {
   // Check if this is the first run (no password set)
-  const [isFirstRun, setIsFirstRun] = useState(() => {
-    return !localStorage.getItem('bluesky-analytics-password');
-  });
+  const [isFirstRun, setIsFirstRun] = useState(true);
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
   
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     // Don't auto-login on first run
@@ -49,6 +48,20 @@ function App() {
   // Get handle from credentials or fallback to config
   const effectiveConfig = getEffectiveConfig();
   const FIXED_HANDLE = effectiveConfig.bluesky.handle || APP_CONFIG.api.defaultHandle;
+
+  // Check for existing authentication on app startup
+  useEffect(() => {
+    const checkExistingAuth = () => {
+      // Simple localStorage check only
+      const localAuth = localStorage.getItem('bluesky-analytics-password');
+      if (localAuth) {
+        setIsFirstRun(false);
+      }
+      setAuthCheckComplete(true);
+    };
+
+    checkExistingAuth();
+  }, []);
 
   // Fetch data from Bluesky API
   const fetchData = useCallback(async () => {
@@ -160,45 +173,58 @@ function App() {
 
   const handleFirstRunSetup = async (e) => {
     e?.preventDefault();
-    
+
     if (!password || password.length < 8) {
       alert('Password must be at least 8 characters long for security');
       return;
     }
-    
+
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    
-    // Hash and save the password
-    const hashedPassword = await hashPassword(password);
-    localStorage.setItem('bluesky-analytics-password', hashedPassword);
-    setIsFirstRun(false);
-    setIsLoggedIn(true);
-    localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
-    setPassword('');
-    setConfirmPassword('');
+
+    try {
+      // Hash and save the password to localStorage
+      const hashedPassword = await hashPassword(password);
+      localStorage.setItem('bluesky-analytics-password', hashedPassword);
+
+      setIsFirstRun(false);
+      setIsLoggedIn(true);
+      localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
+      setPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      console.error('Error setting up password:', error);
+      alert('Error setting up password. Please try again.');
+    }
   };
 
   const handleLogin = async (e) => {
     e?.preventDefault();
-    const storedPassword = localStorage.getItem('bluesky-analytics-password');
-    const envPassword = APP_CONFIG.auth.password;
-    
-    // Hash the entered password
-    const enteredPasswordHash = await hashPassword(password);
-    
-    // Check against stored hash or environment password
-    const isValidPassword = (storedPassword && enteredPasswordHash === storedPassword) || 
-                           (envPassword && password === envPassword);
-    
-    if (isValidPassword) {
-      setIsLoggedIn(true);
-      localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
-      setPassword('');
-    } else {
-      alert('Incorrect password');
+
+    try {
+      // Get stored password from localStorage
+      const storedPassword = localStorage.getItem('bluesky-analytics-password');
+      const envPassword = APP_CONFIG.auth.password;
+
+      // Hash the entered password
+      const enteredPasswordHash = await hashPassword(password);
+
+      // Check against stored hash or environment password
+      const isValidPassword = (storedPassword && enteredPasswordHash === storedPassword) ||
+                             (envPassword && password === envPassword);
+
+      if (isValidPassword) {
+        setIsLoggedIn(true);
+        localStorage.setItem(APP_CONFIG.auth.storageKey, 'true');
+        setPassword('');
+      } else {
+        alert('Incorrect password');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert('Login error. Please try again.');
     }
   };
 
@@ -209,6 +235,20 @@ function App() {
     setPassword('');
     localStorage.removeItem(APP_CONFIG.auth.storageKey);
   };
+
+  // Show loading while checking auth
+  if (!authCheckComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50">
+        <Card className="text-center">
+          <div className="w-15 h-15 border-4 border-primary-200 border-t-brand-500 rounded-full animate-spin mx-auto mb-8"></div>
+          <h2 className="text-xl font-semibold text-primary-900">
+            Initializing Dashboard...
+          </h2>
+        </Card>
+      </div>
+    );
+  }
 
   // First Run Setup or Login Screen
   if (!isLoggedIn) {
@@ -231,13 +271,13 @@ function App() {
           {/* User Card */}
           <div className="bg-gradient-to-br from-brand-50 to-electric-50 border border-brand-200 rounded-xl p-6 text-center mb-8 shadow-sm">
             <p className="text-brand-700 font-bold text-lg mb-1">
-              @{APP_CONFIG.api.defaultHandle}
+              {isFirstRun ? '🎉 Welcome to Bluesky Analytics' : '🔐 Dashboard Access'}
             </p>
             <p className="text-brand-600 text-sm">
-              {isFirstRun ? 'First Time Setup' : 'Professional Analytics Dashboard'}
+              {isFirstRun ? 'Create your secure dashboard password' : 'Enter your password to access analytics'}
             </p>
             <p className="text-brand-500 text-xs mt-2">
-              Mode: {APP_CONFIG.app.mode} {APP_CONFIG.database.enabled ? '(DB)' : '(Local)'}
+              Mode: {APP_CONFIG.app.mode} {APP_CONFIG.database.enabled ? '(Database Storage)' : '(Local Storage)'}
             </p>
           </div>
           
