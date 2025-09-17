@@ -15,6 +15,14 @@ import {
 
 console.log('Settings.js loaded with refresh token field');
 
+// Debug: Log the bluesky fields to console
+console.log('🔧 BLUESKY FIELDS DEBUG:', {
+  accessToken: 'Bluesky Access Token',
+  refreshToken: 'Bluesky Refresh Token',
+  handle: 'Bluesky Handle',
+  apiEndpoint: 'API Endpoint (Optional)'
+});
+
 const API_GUIDES = {
   bluesky: {
     title: 'Bluesky API Configuration (WITH REFRESH TOKEN)',
@@ -1180,6 +1188,11 @@ const Settings = () => {
                             const currentValue = sectionSettings[field.key] || '';
                             const fieldId = `${section}-${field.key}`;
                             const showPassword = showPasswords[fieldId];
+
+                            // Debug logging for Bluesky fields
+                            if (section === 'bluesky') {
+                              console.log(`Rendering ${section} field:`, field.key, field.label);
+                            }
                             
                             if (field.type === 'select') {
                               return (
