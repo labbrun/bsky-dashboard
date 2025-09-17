@@ -21,7 +21,7 @@ export class RealAIService {
    */
   async initialize() {
     try {
-      this.config = getServiceCredentials('ai');
+      this.config = await getServiceCredentials('ai');
 
       // Set default base URLs for different providers
       if (!this.config.baseUrl && this.config.provider) {
