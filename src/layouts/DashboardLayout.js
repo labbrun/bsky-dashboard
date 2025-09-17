@@ -100,17 +100,6 @@ function DashboardLayout({ children, metrics, loading, error, onRefresh, onLogou
     badge: null
   };
 
-  // Remove welcome screen - always show dashboard
-  // if (!metrics && !loading && !error) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-brand-50">
-  //       <div className="text-center">
-  //         <h2 className="text-xl font-semibold text-primary-900">Welcome to Labb Analytics Pro</h2>
-  //         <p className="text-primary-600 mt-2">Please wait while we load your data...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
