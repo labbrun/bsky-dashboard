@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, User, Target, Plus, X, Upload, Camera, FileText, Trash2, Download, UploadCloud } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Eye, EyeOff, ExternalLink, CheckCircle, AlertCircle, HelpCircle, Loader, User, Target, Plus, X, Upload, Camera, FileText, Trash2 } from 'lucide-react';
 import { Card, Button } from '../components/ui/UntitledUIComponents';
 import {
   getCredentials,
@@ -12,13 +12,6 @@ import {
   removeDocument,
   getAllDocuments
 } from '../services/credentialsService';
-import {
-  exportSettings,
-  importSettings,
-  createAutoBackup,
-  restoreFromAutoBackup,
-  checkForMissingSettings
-} from '../utils/settingsBackup';
 
 const API_GUIDES = {
   bluesky: {

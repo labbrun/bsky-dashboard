@@ -14,7 +14,7 @@ import { initializeAIContext } from './services/aiContextProvider';
 import { storeProfile, storePosts, storeFollowers, storeMetricsSnapshot } from './services/localStorageService';
 import { getEffectiveConfig, isServiceConfigured } from './services/credentialsService';
 import { initializeFavicon } from './utils/faviconUtils';
-import { createAutoBackup, checkForMissingSettings, restoreFromAutoBackup } from './utils/settingsBackup';
+import { checkForMissingSettings, restoreFromAutoBackup } from './utils/settingsBackup';
 
 // Import layout and pages
 import DashboardLayout from './layouts/DashboardLayout';

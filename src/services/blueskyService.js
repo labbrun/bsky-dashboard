@@ -146,12 +146,10 @@ export const getProfile = async (handle = null) => {
 // Get user's posts/feed (authenticated)
 export const getAuthorFeed = async (handle = null, limit = 25, cursor = null) => {
   try {
-    // If no handle provided, use the authenticated user's handle
-    if (!handle && authSession?.handle) {
-      handle = authSession.handle;
-    } else if (!handle) {
-      const credentials = getCredentials();
-      handle = credentials.bluesky?.handle;
+    // If no handle provided, use the configured user's handle
+    if (!handle) {
+      const tokenData = await getBlueskyToken();
+      handle = tokenData.handle;
     }
 
     if (!handle) {
@@ -173,12 +171,10 @@ export const getAuthorFeed = async (handle = null, limit = 25, cursor = null) =>
 // Get user's followers (authenticated)
 export const getFollowers = async (handle = null, limit = 100, cursor = null) => {
   try {
-    // If no handle provided, use the authenticated user's handle
-    if (!handle && authSession?.handle) {
-      handle = authSession.handle;
-    } else if (!handle) {
-      const credentials = getCredentials();
-      handle = credentials.bluesky?.handle;
+    // If no handle provided, use the configured user's handle
+    if (!handle) {
+      const tokenData = await getBlueskyToken();
+      handle = tokenData.handle;
     }
 
     if (!handle) {
@@ -209,12 +205,10 @@ export const getFollowers = async (handle = null, limit = 100, cursor = null) =>
 // Get users the account follows (authenticated)
 export const getFollows = async (handle = null, limit = 100, cursor = null) => {
   try {
-    // If no handle provided, use the authenticated user's handle
-    if (!handle && authSession?.handle) {
-      handle = authSession.handle;
-    } else if (!handle) {
-      const credentials = getCredentials();
-      handle = credentials.bluesky?.handle;
+    // If no handle provided, use the configured user's handle
+    if (!handle) {
+      const tokenData = await getBlueskyToken();
+      handle = tokenData.handle;
     }
 
     if (!handle) {
@@ -380,18 +374,10 @@ export const transformBlueskyData = (profile, feedItems, followers) => {
 // Main function to fetch all user data (authenticated)
 export const fetchBlueskyUserData = async (handle = null) => {
   try {
-    // Authenticate first
-    if (!authSession) {
-      await authenticateBluesky();
-    }
-
-    // Use authenticated user's handle if none provided
+    // Use configured user's handle if none provided
     if (!handle) {
-      handle = authSession?.handle;
-      if (!handle) {
-        const credentials = getCredentials();
-        handle = credentials.bluesky?.handle;
-      }
+      const tokenData = await getBlueskyToken();
+      handle = tokenData.handle;
     }
 
     if (!handle) {
@@ -419,28 +405,6 @@ export const fetchBlueskyUserData = async (handle = null) => {
   }
 };
 
-// Test function to verify API connectivity and authentication
-export const testBlueskyAPI = async () => {
-  try {
-    // Try to authenticate with stored credentials
-    await authenticateBluesky();
-
-    // If authentication succeeds, try to fetch the user's own profile
-    const profile = await getProfile();
-
-    // Return success with user info
-    return {
-      success: true,
-      handle: profile.handle,
-      displayName: profile.displayName
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-};
 
 // Public API fallback for non-authenticated requests
 export const getPublicProfile = async (handle) => {
@@ -462,7 +426,3 @@ export const getPublicProfile = async (handle) => {
   }
 };
 
-// Clear authentication session (for logout)
-export const clearBlueskySession = () => {
-  authSession = null;
-};
